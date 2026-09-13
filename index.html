@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f4f5f7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Henkerspiel</title>
+  <style>
+    :root{--bg:#f4f5f7;--card:#fff;--text:#17191d;--muted:#6b7280;--border:#e2e5e9;--dark:#111827;--green:#147447;--green-bg:#eaf7ef;--red:#b42318;--red-bg:#fff0ee}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+    body{padding:max(18px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
+    button,input{font:inherit}
+    button{touch-action:manipulation;cursor:pointer}
+    .app{width:min(760px,100%);margin:0 auto}
+    .hero{margin-bottom:16px}
+    h1{margin:0;font-size:clamp(32px,9vw,46px);letter-spacing:-.045em;line-height:1}
+    .sub{margin:8px 0 0;color:var(--muted);font-size:14px;line-height:1.4}
+    .card{background:var(--card);border:1px solid rgba(0,0,0,.05);border-radius:22px;padding:20px;box-shadow:0 10px 28px rgba(0,0,0,.06)}
+    .setup h2{margin:0 0 7px;font-size:21px}
+    .setup p{margin:0 0 16px;color:var(--muted);line-height:1.45;font-size:14px}
+    label{display:block;font-size:14px;font-weight:800;margin-bottom:7px}
+    .secret{width:100%;min-height:54px;border:1px solid var(--border);border-radius:15px;background:#fafbfc;padding:13px 15px;color:var(--text);font-size:17px;outline:none;-webkit-appearance:none;appearance:none}
+    .secret:focus{background:#fff;border-color:#aab1bb;box-shadow:0 0 0 4px rgba(17,24,39,.05)}
+    .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:11px}
+    .primary,.secondary{min-height:50px;border-radius:14px;font-weight:800;padding:0 17px}
+    .primary{border:0;background:var(--dark);color:#fff}
+    .secondary{border:1px solid var(--border);background:#f4f5f7;color:var(--text)}
+    .error{display:none;margin-top:10px;color:var(--red);font-size:13px;font-weight:800}
+    .game{display:none;gap:14px}
+    .game.on{display:grid}
+    .toprow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+    .toprow strong{font-size:16px}
+    .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}
+    .stat{text-align:center;border:1px solid var(--border);background:#f8f9fa;border-radius:14px;padding:10px 5px;min-width:0}
+    .stat b{display:block;font-size:21px;line-height:1.1}
+    .stat span{display:block;margin-top:4px;color:var(--muted);font-size:11px;line-height:1.15}
+    .hangman{display:grid;place-items:center;padding:3px 0 0}
+    svg{width:min(100%,340px);height:auto;display:block}
+    .draw{fill:none;stroke:var(--text);stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
+    .part{opacity:0;transition:opacity .18s ease}
+    .part.show{opacity:1}
+    .wordcard{text-align:center;padding:22px 13px 18px}
+    .word{display:flex;justify-content:center;align-items:flex-end;flex-wrap:wrap;gap:10px 7px;min-height:55px}
+    .slot{width:30px;height:42px;border-bottom:3px solid var(--text);display:grid;place-items:center;font-size:24px;font-weight:850;text-transform:uppercase}
+    .slot.space{width:14px;border:0}.slot.symbol{width:18px;border:0}
+    .wrongline{margin-top:18px;color:var(--muted);font-size:14px;overflow-wrap:anywhere}
+    .wrongletters{color:var(--red);font-weight:850;letter-spacing:.08em;margin-left:5px}
+    .keyboard{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+    .key{min-height:45px;border:1px solid var(--border);border-radius:12px;background:#f8f9fa;color:var(--text);padding:0;font-size:15px;font-weight:850}
+    .key.good{background:var(--green-bg);border-color:#bce0ca;color:var(--green)}
+    .key.bad{background:var(--red-bg);border-color:#efc1bb;color:var(--red)}
+    .key:disabled{opacity:.72}
+    .result{display:none;text-align:center}.result.on{display:block}
+    .emoji{font-size:42px;line-height:1;margin-bottom:7px}.result h2{margin:0;font-size:24px}.result p{margin:8px 0 16px;color:var(--muted)}
+    .ready{display:inline-flex;align-items:center;gap:7px;margin-top:12px;color:var(--muted);font-size:12px}.dot{width:8px;height:8px;border-radius:50%;background:#1a8f55}
+    @media(max-width:420px){.keyboard{grid-template-columns:repeat(6,minmax(0,1fr))}.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}.slot{width:27px;font-size:22px}}
+    @media(min-width:660px){.game.on{grid-template-columns:1.05fr .95fr}.keyboard-card,.result{grid-column:1/-1}}
+    @media(prefers-reduced-motion:reduce){.part{transition:none}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="hero">
+      <h1>Henkerspiel</h1>
+      <p class="sub">Errate das Wort, bevor das Männchen vollständig gezeichnet ist.</p>
+    </header>
+
+    <section class="card setup" id="setup">
+      <h2>Geheimes Wort festlegen</h2>
+      <p>Eine Person gibt ein Wort oder einen Begriff ein. Danach wird das Wort verborgen und die andere Person beginnt zu raten.</p>
+      <form id="startForm">
+        <label for="secretInput">Wort oder Begriff</label>
+        <input id="secretInput" class="secret" type="password" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" maxlength="40" placeholder="Zum Beispiel: SCHOKOLADE">
+        <div class="actions">
+          <button class="primary" type="submit">Runde starten</button>
+          <button class="secondary" id="showWord" type="button">Wort anzeigen</button>
+        </div>
+        <div class="error" id="error">Bitte gib zuerst ein Wort mit mindestens einem Buchstaben ein.</div>
+      </form>
+      <div class="ready"><span class="dot"></span><span>Spiel bereit</span></div>
+    </section>
+
+    <section class="game" id="game">
+      <section class="card">
+        <div class="toprow">
+          <strong>Aktuelle Runde</strong>
+          <button class="secondary" id="newGame" type="button">Neu</button>
+        </div>
+        <div class="stats">
+          <div class="stat"><b id="length">0</b><span>Buchstaben</span></div>
+          <div class="stat"><b id="remaining">10</b><span>Fehler übrig</span></div>
+          <div class="stat"><b id="progress">0%</b><span>gefunden</span></div>
+        </div>
+        <div class="hangman">
+          <svg viewBox="0 0 330 310" role="img" aria-label="Henkerspiel-Männchen">
+            <g class="draw">
+              <line class="part" data-step="1" x1="35" y1="280" x2="150" y2="280"/>
+              <line class="part" data-step="2" x1="78" y1="280" x2="78" y2="28"/>
+              <line class="part" data-step="3" x1="78" y1="28" x2="240" y2="28"/>
+              <line class="part" data-step="4" x1="240" y1="28" x2="240" y2="67"/>
+              <circle class="part" data-step="5" cx="240" cy="96" r="29"/>
+              <line class="part" data-step="6" x1="240" y1="125" x2="240" y2="198"/>
+              <line class="part" data-step="7" x1="240" y1="145" x2="200" y2="174"/>
+              <line class="part" data-step="8" x1="240" y1="145" x2="280" y2="174"/>
+              <line class="part" data-step="9" x1="240" y1="198" x2="207" y2="247"/>
+              <line class="part" data-step="10" x1="240" y1="198" x2="273" y2="247"/>
+            </g>
+          </svg>
+        </div>
+      </section>
+
+      <section class="card wordcard">
+        <div class="word" id="word"></div>
+        <div class="wrongline">Falsche Buchstaben:<span class="wrongletters" id="wrong">—</span></div>
+      </section>
+
+      <section class="card keyboard-card">
+        <div class="keyboard" id="keyboard"></div>
+      </section>
+
+      <section class="card result" id="result">
+        <div class="emoji" id="emoji">🎉</div>
+        <h2 id="resultTitle">Gewonnen!</h2>
+        <p id="resultText"></p>
+        <button class="primary" id="again" type="button">Neue Runde</button>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    (function(){
+      'use strict';
+      var MAX_ERRORS=10;
+      var LETTERS='ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ'.split('');
+      var setup=document.getElementById('setup');
+      var game=document.getElementById('game');
+      var form=document.getElementById('startForm');
+      var input=document.getElementById('secretInput');
+      var showWord=document.getElementById('showWord');
+      var error=document.getElementById('error');
+      var keyboard=document.getElementById('keyboard');
+      var word=document.getElementById('word');
+      var wrong=document.getElementById('wrong');
+      var lengthEl=document.getElementById('length');
+      var remaining=document.getElementById('remaining');
+      var progress=document.getElementById('progress');
+      var result=document.getElementById('result');
+      var emoji=document.getElementById('emoji');
+      var resultTitle=document.getElementById('resultTitle');
+      var resultText=document.getElementById('resultText');
+      var again=document.getElementById('again');
+      var newGame=document.getElementById('newGame');
+      var secret='';
+      var guessed={};
+      var mistakes=[];
+      var finished=false;
+
+      function isLetter(ch){return LETTERS.indexOf(ch)!==-1;}
+      function normalize(value){return value.trim().replace(/\s+/g,' ').toUpperCase();}
+
+      function buildKeyboard(){
+        keyboard.innerHTML='';
+        for(var i=0;i<LETTERS.length;i++){
+          (function(letter){
+            var b=document.createElement('button');
+            b.type='button';
+            b.className='key';
+            b.textContent=letter;
+            b.setAttribute('aria-label','Buchstabe '+letter);
+            b.addEventListener('click',function(){guess(letter);});
+            keyboard.appendChild(b);
+          })(LETTERS[i]);
+        }
+      }
+
+      function startRound(event){
+        if(event){event.preventDefault();}
+        var value=normalize(input.value);
+        var hasLetter=false;
+        for(var i=0;i<value.length;i++){
+          if(isLetter(value.charAt(i))){hasLetter=true;break;}
+        }
+        if(!value||!hasLetter){
+          error.style.display='block';
+          input.focus();
+          return false;
+        }
+        secret=value;
+        guessed={};
+        mistakes=[];
+        finished=false;
+        error.style.display='none';
+        input.value='';
+        input.type='password';
+        showWord.textContent='Wort anzeigen';
+        setup.style.display='none';
+        game.classList.add('on');
+        result.classList.remove('on');
+        buildKeyboard();
+        render();
+        if(document.activeElement){document.activeElement.blur();}
+        return false;
+      }
+
+      function guess(letter){
+        if(finished||guessed[letter]){return;}
+        guessed[letter]=true;
+        if(secret.indexOf(letter)===-1){mistakes.push(letter);}
+        render();
+        if(isSolved()){finish(true);}
+        else if(mistakes.length>=MAX_ERRORS){finish(false);}
+      }
+
+      function isSolved(){
+        for(var i=0;i<secret.length;i++){
+          var c=secret.charAt(i);
+          if(isLetter(c)&&!guessed[c]){return false;}
+        }
+        return true;
+      }
+
+      function render(){
+        word.innerHTML='';
+        var total=0;
+        var found=0;
+        for(var i=0;i<secret.length;i++){
+          var c=secret.charAt(i);
+          var slot=document.createElement('span');
+          if(c===' '){slot.className='slot space';slot.innerHTML='&nbsp;';}
+          else if(!isLetter(c)){slot.className='slot symbol';slot.textContent=c;}
+          else{
+            slot.className='slot';
+            total++;
+            if(guessed[c]){slot.textContent=c;found++;}
+            else{slot.innerHTML='&nbsp;';}
+          }
+          word.appendChild(slot);
+        }
+        lengthEl.textContent=String(total);
+        remaining.textContent=String(Math.max(0,MAX_ERRORS-mistakes.length));
+        progress.textContent=(total?Math.round(found/total*100):0)+'%';
+        wrong.textContent=mistakes.length?mistakes.join('  '):'—';
+        var parts=document.querySelectorAll('.part');
+        for(var p=0;p<parts.length;p++){
+          var step=parseInt(parts[p].getAttribute('data-step'),10);
+          if(step<=mistakes.length){parts[p].classList.add('show');}
+          else{parts[p].classList.remove('show');}
+        }
+        var buttons=keyboard.getElementsByTagName('button');
+        for(var b=0;b<buttons.length;b++){
+          var l=buttons[b].textContent;
+          buttons[b].classList.remove('good');
+          buttons[b].classList.remove('bad');
+          buttons[b].disabled=finished||!!guessed[l];
+          if(guessed[l]){
+            if(secret.indexOf(l)!==-1){buttons[b].classList.add('good');}
+            else{buttons[b].classList.add('bad');}
+          }
+        }
+      }
+
+      function revealWholeWord(){
+        var children=word.children;
+        for(var i=0;i<children.length;i++){
+          var c=secret.charAt(i);
+          if(isLetter(c)){children[i].textContent=c;}
+        }
+      }
+
+      function finish(won){
+        finished=true;
+        render();
+        if(!won){revealWholeWord();}
+        result.classList.add('on');
+        emoji.textContent=won?'🎉':'😵';
+        resultTitle.textContent=won?'Gewonnen!':'Verloren!';
+        resultText.textContent=won?'Du hast „'+secret+'“ erraten.':'Das gesuchte Wort war „'+secret+'“.';
+      }
+
+      function reset(){
+        secret='';guessed={};mistakes=[];finished=false;
+        game.classList.remove('on');
+        result.classList.remove('on');
+        setup.style.display='block';
+        input.value='';
+        input.type='password';
+        showWord.textContent='Wort anzeigen';
+        error.style.display='none';
+        buildKeyboard();
+        setTimeout(function(){input.focus();},50);
+      }
+
+      form.addEventListener('submit',startRound);
+      showWord.addEventListener('click',function(){
+        var hidden=input.type==='password';
+        input.type=hidden?'text':'password';
+        showWord.textContent=hidden?'Wort verbergen':'Wort anzeigen';
+        input.focus();
+      });
+      again.addEventListener('click',reset);
+      newGame.addEventListener('click',reset);
+      buildKeyboard();
+    })();
+  </script>
+</body>
+</html>
