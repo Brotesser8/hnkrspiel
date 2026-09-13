@@ -1,450 +1,55 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
-  <meta name="theme-color" content="#f3f4f6">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Henkerspiel">
-  <meta name="format-detection" content="telephone=no">
-  <title>Henkerspiel</title>
-  <style>
-    :root{
-      --bg:#f3f4f6;
-      --card:#fff;
-      --text:#17191d;
-      --muted:#707782;
-      --line:#e1e5e9;
-      --dark:#17191d;
-      --green:#157447;
-      --green-bg:#eaf7ef;
-      --red:#b42318;
-      --red-bg:#fff0ee;
-      --app-h:100dvh;
-    }
-
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text)}
-    body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Arial,sans-serif;overscroll-behavior:none}
-    button,input{font:inherit}
-    button{cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}
-
-    .app{
-      position:fixed;
-      inset:0;
-      height:var(--app-h);
-      width:100%;
-      max-width:520px;
-      margin:0 auto;
-      padding:max(8px,env(safe-area-inset-top)) 10px max(8px,env(safe-area-inset-bottom));
-      overflow:hidden;
-    }
-
-    .card{background:var(--card);border:1px solid rgba(0,0,0,.045);border-radius:18px}
-
-    /* Startbildschirm */
-    .setup-screen{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);gap:12px}
-    .hero{padding:8px 4px 0}
-    .hero h1{margin:0;font-size:clamp(34px,10vw,46px);line-height:.98;letter-spacing:-.045em}
-    .hero p{margin:8px 0 0;color:var(--muted);font-size:14px;line-height:1.35}
-    .setup-card{align-self:start;padding:18px;margin-top:6px}
-    .setup-card h2{margin:0 0 7px;font-size:20px}
-    .setup-card p{margin:0 0 15px;color:var(--muted);font-size:14px;line-height:1.4}
-    label{display:block;font-size:13px;font-weight:800;margin-bottom:7px}
-    .secret{width:100%;height:52px;border:1px solid var(--line);border-radius:14px;background:#fafbfc;padding:0 14px;color:var(--text);font-size:17px;outline:none;-webkit-appearance:none;appearance:none}
-    .secret:focus{background:#fff;border-color:#aeb5bf;box-shadow:0 0 0 3px rgba(17,24,39,.05)}
-    .setup-actions{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:9px}
-    .primary,.secondary{height:46px;border-radius:13px;font-weight:800;padding:0 15px}
-    .primary{border:0;background:var(--dark);color:#fff}
-    .secondary{border:1px solid var(--line);background:#f7f8fa;color:var(--text)}
-    .error{display:none;margin-top:9px;color:var(--red);font-size:12px;font-weight:800}
-
-    /* Spiel: exakt eine sichtbare Seite */
-    .game-screen{
-      display:none;
-      height:100%;
-      min-height:0;
-      grid-template-rows:42px 54px minmax(0,1fr) 224px;
-      gap:7px;
-      overflow:hidden;
-    }
-    .game-screen.on{display:grid}
-
-    .gamebar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2px}
-    .gamebar h1{margin:0;font-size:22px;letter-spacing:-.035em;line-height:1}
-    .new-btn{height:38px;min-width:58px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--text);font-weight:800;padding:0 12px}
-
-    .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-    .stat{display:flex;align-items:center;justify-content:center;gap:7px;min-width:0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:5px 4px;text-align:left}
-    .stat b{font-size:20px;line-height:1;white-space:nowrap}
-    .stat span{color:var(--muted);font-size:10px;line-height:1.05;max-width:54px}
-
-    .stage{
-      min-height:0;
-      overflow:hidden;
-      display:grid;
-      grid-template-columns:minmax(120px,.92fr) minmax(0,1.18fr);
-      gap:6px;
-      padding:7px;
-      background:#fff;
-      border:1px solid rgba(0,0,0,.045);
-      border-radius:18px;
-    }
-    .hangman{min-width:0;min-height:0;display:grid;place-items:center;overflow:hidden}
-    .hangman svg{display:block;width:100%;height:100%;max-height:100%;object-fit:contain}
-    .draw{fill:none;stroke:var(--text);stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
-    .part{opacity:0;transition:opacity .15s ease}
-    .part.show{opacity:1}
-
-    .word-area{min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:4px 2px}
-    .word-label{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
-    .word{--slot:24px;width:100%;display:flex;justify-content:center;align-items:flex-end;align-content:center;flex-wrap:wrap;gap:7px 5px;max-height:65%;overflow:hidden}
-    .slot{width:var(--slot);height:calc(var(--slot) * 1.35);border-bottom:2.5px solid var(--text);display:grid;place-items:center;font-size:calc(var(--slot) * .78);font-weight:850;text-transform:uppercase;line-height:1}
-    .slot.space{width:calc(var(--slot) * .42);border:0}
-    .slot.symbol{width:calc(var(--slot) * .62);border:0}
-    .wrongline{width:100%;margin-top:12px;text-align:center;color:var(--muted);font-size:11px;line-height:1.25;overflow:hidden}
-    .wrongletters{display:block;margin-top:4px;color:var(--red);font-weight:850;letter-spacing:.07em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-    .keyboard-card{height:224px;min-height:0;padding:8px;background:#fff;border:1px solid rgba(0,0,0,.045);border-radius:18px;overflow:hidden}
-    .keyboard{height:100%;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:repeat(5,minmax(0,1fr));gap:5px}
-    .key{min-width:0;min-height:0;border:1px solid var(--line);border-radius:11px;background:#f8f9fa;color:var(--text);padding:0;font-size:16px;font-weight:850}
-    .key.good{background:var(--green-bg);border-color:#bce0ca;color:var(--green)}
-    .key.bad{background:var(--red-bg);border-color:#efc1bb;color:var(--red)}
-    .key:disabled{opacity:.72}
-
-    .result-overlay{display:none;position:absolute;inset:0;z-index:10;background:rgba(243,244,246,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:22px}
-    .result-overlay.on{display:flex}
-    .result-box{width:min(330px,100%);background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;text-align:center;box-shadow:0 18px 55px rgba(0,0,0,.12)}
-    .emoji{font-size:42px;line-height:1;margin-bottom:8px}
-    .result-box h2{margin:0;font-size:24px}
-    .result-box p{margin:8px 0 16px;color:var(--muted);font-size:14px;line-height:1.35}
-    .result-box .primary{width:100%}
-
-    @media (max-width:350px){
-      .game-screen{grid-template-rows:40px 50px minmax(0,1fr) 210px}
-      .keyboard-card{height:210px;padding:6px}
-      .keyboard{gap:4px}
-      .key{font-size:14px;border-radius:9px}
-      .stage{grid-template-columns:minmax(104px,.85fr) minmax(0,1.15fr)}
-      .stat{gap:4px}.stat b{font-size:17px}.stat span{font-size:9px}
-    }
-
-    @media (max-height:700px){
-      .game-screen{grid-template-rows:38px 48px minmax(0,1fr) 198px;gap:5px}
-      .gamebar h1{font-size:20px}
-      .new-btn{height:34px}
-      .keyboard-card{height:198px;padding:6px}
-      .keyboard{gap:4px}
-      .key{font-size:14px;border-radius:9px}
-      .stage{padding:5px;gap:4px}
-      .wrongline{margin-top:7px}
-      .word-label{margin-bottom:5px}
-    }
-
-    @media (orientation:landscape) and (max-height:500px){
-      .game-screen{grid-template-columns:42% 58%;grid-template-rows:40px 48px minmax(0,1fr);gap:5px}
-      .gamebar{grid-column:1/-1}
-      .stats{grid-column:1/-1}
-      .stage{grid-column:1;grid-template-columns:1fr}
-      .word-area{display:none}
-      .keyboard-card{grid-column:2;grid-row:3;height:auto}
-    }
-
-    @media(prefers-reduced-motion:reduce){.part{transition:none}}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#f3f4f6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Henkerspiel">
+<title>Henkerspiel</title>
+<style>
+:root{--bg:#f3f4f6;--card:#fff;--text:#17191d;--muted:#707782;--line:#e1e5e9;--dark:#17191d;--green:#157447;--green-bg:#eaf7ef;--red:#b42318;--red-bg:#fff0ee;--app-h:100dvh}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text)}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Arial,sans-serif;overscroll-behavior:none}
+button,input{font:inherit}button{cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.app{position:fixed;inset:0;height:var(--app-h);width:100%;max-width:520px;margin:0 auto;padding:max(8px,env(safe-area-inset-top)) 10px max(8px,env(safe-area-inset-bottom));overflow:hidden}
+.card{background:var(--card);border:1px solid rgba(0,0,0,.045);border-radius:18px}
+.setup-screen{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);gap:12px}.hero{padding:8px 4px 0}.hero h1{margin:0;font-size:clamp(34px,10vw,46px);line-height:.98;letter-spacing:-.045em}.hero p{margin:8px 0 0;color:var(--muted);font-size:14px;line-height:1.35}
+.setup-card{align-self:start;padding:18px;margin-top:6px}.setup-card h2{margin:0 0 7px;font-size:20px}.setup-card p{margin:0 0 15px;color:var(--muted);font-size:14px;line-height:1.4}label{display:block;font-size:13px;font-weight:800;margin-bottom:7px}.secret{width:100%;height:52px;border:1px solid var(--line);border-radius:14px;background:#fafbfc;padding:0 14px;color:var(--text);font-size:17px;outline:none;-webkit-appearance:none;appearance:none}.secret:focus{background:#fff;border-color:#aeb5bf;box-shadow:0 0 0 3px rgba(17,24,39,.05)}
+.setup-actions{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:9px}.primary,.secondary{height:46px;border-radius:13px;font-weight:800;padding:0 15px}.primary{border:0;background:var(--dark);color:#fff}.secondary{border:1px solid var(--line);background:#f7f8fa;color:var(--text)}.error{display:none;margin-top:9px;color:var(--red);font-size:12px;font-weight:800}
+.game-screen{display:none;height:100%;min-height:0;grid-template-rows:42px 54px minmax(0,1fr) 178px;gap:7px;overflow:hidden}.game-screen.on{display:grid}.gamebar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2px}.gamebar h1{margin:0;font-size:22px;letter-spacing:-.035em;line-height:1}.new-btn{height:38px;min-width:58px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--text);font-weight:800;padding:0 12px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.stat{display:flex;align-items:center;justify-content:center;gap:7px;min-width:0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:5px 4px}.stat b{font-size:20px;line-height:1;white-space:nowrap}.stat span{color:var(--muted);font-size:10px;line-height:1.05;max-width:54px}
+.stage{min-height:0;overflow:hidden;display:grid;grid-template-columns:minmax(120px,.92fr) minmax(0,1.18fr);gap:6px;padding:7px;background:#fff;border:1px solid rgba(0,0,0,.045);border-radius:18px}.hangman{min-width:0;min-height:0;display:grid;place-items:center;overflow:hidden}.hangman svg{display:block;width:100%;height:100%;max-height:100%}.draw{fill:none;stroke:var(--text);stroke-width:8;stroke-linecap:round;stroke-linejoin:round}.part{opacity:0;transition:opacity .15s ease}.part.show{opacity:1}
+.word-area{min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:4px 2px}.word-label{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}.word{--slot:24px;width:100%;display:flex;justify-content:center;align-items:flex-end;align-content:center;flex-wrap:wrap;gap:7px 5px;max-height:65%;overflow:hidden}.slot{width:var(--slot);height:calc(var(--slot)*1.35);border-bottom:2.5px solid var(--text);display:grid;place-items:center;font-size:calc(var(--slot)*.78);font-weight:850;text-transform:uppercase;line-height:1}.slot.space{width:calc(var(--slot)*.42);border:0}.slot.symbol{width:calc(var(--slot)*.62);border:0}.wrongline{width:100%;margin-top:12px;text-align:center;color:var(--muted);font-size:11px;line-height:1.25;overflow:hidden}.wrongletters{display:block;margin-top:4px;color:var(--red);font-weight:850;letter-spacing:.07em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.keyboard-card{height:178px;min-height:0;padding:7px;background:#fff;border:1px solid rgba(0,0,0,.045);border-radius:18px;overflow:visible;position:relative;z-index:3}.keyboard{height:100%;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));gap:5px}.key-wrap{position:relative;min-width:0;min-height:0}.key-wrap>.key{width:100%;height:100%}.key{min-width:0;min-height:0;border:1px solid var(--line);border-radius:11px;background:#f8f9fa;color:var(--text);padding:0;font-size:16px;font-weight:850;position:relative}.key.good{background:var(--green-bg);border-color:#bce0ca;color:var(--green)}.key.bad{background:var(--red-bg);border-color:#efc1bb;color:var(--red)}.key:disabled{opacity:.68}.alt-hint{position:absolute;right:6px;top:4px;font-size:9px;font-weight:800;color:var(--muted);line-height:1}.choice-pop{display:none;position:absolute;z-index:20;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);grid-template-columns:repeat(2,48px);gap:5px;padding:5px;background:#fff;border:1px solid var(--line);border-radius:13px;box-shadow:0 10px 28px rgba(0,0,0,.16)}.key-wrap.open .choice-pop{display:grid}.key-wrap.edge-left .choice-pop{left:0;transform:none}.key-wrap.edge-right .choice-pop{left:auto;right:0;transform:none}.choice-option{height:43px;border:1px solid var(--line);border-radius:9px;background:#f8f9fa;color:var(--text);font-size:17px;font-weight:850;padding:0}.choice-option.good{background:var(--green-bg);border-color:#bce0ca;color:var(--green)}.choice-option.bad{background:var(--red-bg);border-color:#efc1bb;color:var(--red)}.choice-option:disabled{opacity:.58}
+.result-overlay{display:none;position:absolute;inset:0;z-index:30;background:rgba(243,244,246,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:22px}.result-overlay.on{display:flex}.result-box{width:min(330px,100%);background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;text-align:center;box-shadow:0 18px 55px rgba(0,0,0,.12)}.emoji{font-size:42px;line-height:1;margin-bottom:8px}.result-box h2{margin:0;font-size:24px}.result-box p{margin:8px 0 16px;color:var(--muted);font-size:14px;line-height:1.35}.result-box .primary{width:100%}
+@media(max-width:350px){.game-screen{grid-template-rows:40px 50px minmax(0,1fr) 166px}.keyboard-card{height:166px;padding:6px}.keyboard{gap:4px}.key{font-size:14px;border-radius:9px}.stage{grid-template-columns:minmax(104px,.85fr) minmax(0,1.15fr)}.stat{gap:4px}.stat b{font-size:17px}.stat span{font-size:9px}}
+@media(max-height:700px){.game-screen{grid-template-rows:38px 48px minmax(0,1fr) 158px;gap:5px}.gamebar h1{font-size:20px}.new-btn{height:34px}.keyboard-card{height:158px;padding:5px}.keyboard{gap:4px}.key{font-size:14px;border-radius:9px}.stage{padding:5px;gap:4px}.wrongline{margin-top:7px}.word-label{margin-bottom:5px}.choice-option{height:38px}}
+@media(prefers-reduced-motion:reduce){.part{transition:none}}
+</style>
 </head>
 <body>
-  <main class="app" id="app">
-    <section class="setup-screen" id="setupScreen">
-      <header class="hero">
-        <h1>Henkerspiel</h1>
-        <p>Geheimes Wort eingeben, Handy weitergeben und losraten.</p>
-      </header>
-
-      <section class="card setup-card">
-        <h2>Geheimes Wort</h2>
-        <p>Eine Person legt das Wort fest. Nach dem Start wird es sofort verborgen.</p>
-        <form id="startForm">
-          <label for="secretInput">Wort oder Begriff</label>
-          <input id="secretInput" class="secret" type="password" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" maxlength="40" placeholder="Zum Beispiel: SCHOKOLADE">
-          <div class="setup-actions">
-            <button class="primary" type="submit">Runde starten</button>
-            <button class="secondary" id="showWord" type="button">Anzeigen</button>
-          </div>
-          <div class="error" id="error">Bitte gib zuerst ein Wort mit mindestens einem Buchstaben ein.</div>
-        </form>
-      </section>
-    </section>
-
-    <section class="game-screen" id="gameScreen" aria-live="polite">
-      <header class="gamebar">
-        <h1>Henkerspiel</h1>
-        <button class="new-btn" id="newGame" type="button">Neu</button>
-      </header>
-
-      <section class="stats" aria-label="Spielstand">
-        <div class="stat"><b id="length">0</b><span>Buchstaben</span></div>
-        <div class="stat"><b id="remaining">10</b><span>Fehler übrig</span></div>
-        <div class="stat"><b id="progress">0%</b><span>gefunden</span></div>
-      </section>
-
-      <section class="stage">
-        <div class="hangman">
-          <svg viewBox="0 0 330 310" role="img" aria-label="Henkerspiel-Männchen" preserveAspectRatio="xMidYMid meet">
-            <g class="draw">
-              <line class="part" data-step="1" x1="35" y1="280" x2="150" y2="280"/>
-              <line class="part" data-step="2" x1="78" y1="280" x2="78" y2="28"/>
-              <line class="part" data-step="3" x1="78" y1="28" x2="240" y2="28"/>
-              <line class="part" data-step="4" x1="240" y1="28" x2="240" y2="67"/>
-              <circle class="part" data-step="5" cx="240" cy="96" r="29"/>
-              <line class="part" data-step="6" x1="240" y1="125" x2="240" y2="198"/>
-              <line class="part" data-step="7" x1="240" y1="145" x2="200" y2="174"/>
-              <line class="part" data-step="8" x1="240" y1="145" x2="280" y2="174"/>
-              <line class="part" data-step="9" x1="240" y1="198" x2="207" y2="247"/>
-              <line class="part" data-step="10" x1="240" y1="198" x2="273" y2="247"/>
-            </g>
-          </svg>
-        </div>
-
-        <div class="word-area">
-          <div class="word-label">Gesuchtes Wort</div>
-          <div class="word" id="word"></div>
-          <div class="wrongline">Falsche Buchstaben<span class="wrongletters" id="wrong">—</span></div>
-        </div>
-      </section>
-
-      <section class="keyboard-card">
-        <div class="keyboard" id="keyboard" aria-label="Buchstabentastatur"></div>
-      </section>
-    </section>
-
-    <section class="result-overlay" id="resultOverlay" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
-      <div class="result-box">
-        <div class="emoji" id="emoji">🎉</div>
-        <h2 id="resultTitle">Gewonnen!</h2>
-        <p id="resultText"></p>
-        <button class="primary" id="again" type="button">Neue Runde</button>
-      </div>
-    </section>
-  </main>
-
-  <script>
-    (function(){
-      'use strict';
-
-      var MAX_ERRORS=10;
-      var LETTERS='ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ'.split('');
-
-      var setupScreen=document.getElementById('setupScreen');
-      var gameScreen=document.getElementById('gameScreen');
-      var form=document.getElementById('startForm');
-      var input=document.getElementById('secretInput');
-      var showWord=document.getElementById('showWord');
-      var error=document.getElementById('error');
-      var keyboard=document.getElementById('keyboard');
-      var word=document.getElementById('word');
-      var wrong=document.getElementById('wrong');
-      var lengthEl=document.getElementById('length');
-      var remaining=document.getElementById('remaining');
-      var progress=document.getElementById('progress');
-      var newGame=document.getElementById('newGame');
-      var resultOverlay=document.getElementById('resultOverlay');
-      var emoji=document.getElementById('emoji');
-      var resultTitle=document.getElementById('resultTitle');
-      var resultText=document.getElementById('resultText');
-      var again=document.getElementById('again');
-
-      var secret='';
-      var guessed={};
-      var mistakes=[];
-      var finished=false;
-
-      function setVisibleHeight(){
-        var h=window.innerHeight;
-        if(window.visualViewport && window.visualViewport.height){h=window.visualViewport.height;}
-        document.documentElement.style.setProperty('--app-h',Math.floor(h)+'px');
-      }
-
-      setVisibleHeight();
-      window.addEventListener('resize',setVisibleHeight);
-      window.addEventListener('orientationchange',function(){setTimeout(setVisibleHeight,120);});
-      if(window.visualViewport){window.visualViewport.addEventListener('resize',setVisibleHeight);}
-
-      function isLetter(ch){return LETTERS.indexOf(ch)!==-1;}
-      function normalize(value){return value.trim().replace(/\s+/g,' ').toUpperCase();}
-
-      function buildKeyboard(){
-        keyboard.innerHTML='';
-        for(var i=0;i<LETTERS.length;i++){
-          (function(letter){
-            var b=document.createElement('button');
-            b.type='button';
-            b.className='key';
-            b.textContent=letter;
-            b.setAttribute('aria-label','Buchstabe '+letter);
-            b.addEventListener('click',function(){guess(letter);});
-            keyboard.appendChild(b);
-          })(LETTERS[i]);
-        }
-      }
-
-      function startRound(event){
-        if(event){event.preventDefault();}
-        var value=normalize(input.value);
-        var hasLetter=false;
-        for(var i=0;i<value.length;i++){
-          if(isLetter(value.charAt(i))){hasLetter=true;break;}
-        }
-        if(!value || !hasLetter){
-          error.style.display='block';
-          input.focus();
-          return false;
-        }
-
-        secret=value;
-        guessed={};
-        mistakes=[];
-        finished=false;
-        error.style.display='none';
-        input.value='';
-        input.type='password';
-        showWord.textContent='Anzeigen';
-        setupScreen.style.display='none';
-        gameScreen.classList.add('on');
-        resultOverlay.classList.remove('on');
-        buildKeyboard();
-        render();
-        if(document.activeElement){document.activeElement.blur();}
-        setTimeout(setVisibleHeight,80);
-        return false;
-      }
-
-      function guess(letter){
-        if(finished || guessed[letter]){return;}
-        guessed[letter]=true;
-        if(secret.indexOf(letter)===-1){mistakes.push(letter);}
-        render();
-        if(isSolved()){finish(true);}
-        else if(mistakes.length>=MAX_ERRORS){finish(false);}
-      }
-
-      function isSolved(){
-        for(var i=0;i<secret.length;i++){
-          var c=secret.charAt(i);
-          if(isLetter(c) && !guessed[c]){return false;}
-        }
-        return true;
-      }
-
-      function setSlotSize(total){
-        var size=24;
-        if(total>10){size=21;}
-        if(total>14){size=18;}
-        if(total>20){size=16;}
-        word.style.setProperty('--slot',size+'px');
-      }
-
-      function render(){
-        word.innerHTML='';
-        var total=0;
-        var found=0;
-        var i;
-        for(i=0;i<secret.length;i++){
-          if(isLetter(secret.charAt(i))){total++;}
-        }
-        setSlotSize(total);
-
-        for(i=0;i<secret.length;i++){
-          var c=secret.charAt(i);
-          var slot=document.createElement('span');
-          if(c===' '){
-            slot.className='slot space';
-            slot.innerHTML='&nbsp;';
-          }else if(!isLetter(c)){
-            slot.className='slot symbol';
-            slot.textContent=c;
-          }else{
-            slot.className='slot';
-            if(guessed[c]){slot.textContent=c;found++;}
-            else{slot.innerHTML='&nbsp;';}
-          }
-          word.appendChild(slot);
-        }
-
-        lengthEl.textContent=String(total);
-        remaining.textContent=String(Math.max(0,MAX_ERRORS-mistakes.length));
-        progress.textContent=(total?Math.round(found/total*100):0)+'%';
-        wrong.textContent=mistakes.length?mistakes.join('  '):'—';
-
-        var parts=document.querySelectorAll('.part');
-        for(i=0;i<parts.length;i++){
-          var step=parseInt(parts[i].getAttribute('data-step'),10);
-          if(step<=mistakes.length){parts[i].classList.add('show');}
-          else{parts[i].classList.remove('show');}
-        }
-
-        var buttons=keyboard.getElementsByTagName('button');
-        for(i=0;i<buttons.length;i++){
-          var l=buttons[i].textContent;
-          buttons[i].classList.remove('good');
-          buttons[i].classList.remove('bad');
-          buttons[i].disabled=finished || !!guessed[l];
-          if(guessed[l]){
-            if(secret.indexOf(l)!==-1){buttons[i].classList.add('good');}
-            else{buttons[i].classList.add('bad');}
-          }
-        }
-      }
-
-      function revealWholeWord(){
-        var children=word.children;
-        var visibleIndex=0;
-        for(var i=0;i<secret.length;i++){
-          var c=secret.charAt(i);
-          if(children[visibleIndex] && isLetter(c)){children[visibleIndex].textContent=c;}
-          visibleIndex++;
-        }
-      }
-
-      function finish(won){
-        finished=true;
-        render();
-        if(!won){revealWholeWord();}
-        emoji.textContent=won?'🎉':'😵';
-        resultTitle.textContent=won?'Gewonnen!':'Verloren!';
-        resultText.textContent=won?'Du hast „'+secret+'“ erraten.':'Das gesuchte Wort war „'+secret+'“.';
-        resultOverlay.classList.add('on');
-      }
-
-      function reset(){
-        secret='';
-        guessed={};
-        mistakes=[];
-        finished=false;
-        resultOverlay.classList.remove('on');
-        gameScreen.classList.remove('on');
-        setupScreen.style.display='grid';
-        input.value='';
-        input.type='password';
-        showWord.textContent='Anzeigen';
-        error.style.display='none';
-        buildKeyboard();
-        setTimeout(function(){input.focus();setVisibleHeight();},60);
-      }
-
-      form.addEventListener('submit',startRound);
-      showWord.addEventListener('click',function(){
-        var hidden=input.type==='password';
-        input.type=hidden?'text':'password';
-        showWord.textContent=hidden?'Verbergen':'Anzeigen';
-        input.focus();
-      });
-      newGame.addEventListener('click',reset);
-      again.addEventListener('click',reset);
-
-      buildKeyboard();
-    })();
-  </script>
+<main class="app" id="app">
+<section class="setup-screen" id="setupScreen"><header class="hero"><h1>Henkerspiel</h1><p>Geheimes Wort eingeben, Handy weitergeben und losraten.</p></header><section class="card setup-card"><h2>Geheimes Wort</h2><p>Eine Person legt das Wort fest. Nach dem Start wird es sofort verborgen.</p><form id="startForm"><label for="secretInput">Wort oder Begriff</label><input id="secretInput" class="secret" type="password" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" maxlength="40" placeholder="Zum Beispiel: SCHOKOLADE"><div class="setup-actions"><button class="primary" type="submit">Runde starten</button><button class="secondary" id="showWord" type="button">Anzeigen</button></div><div class="error" id="error">Bitte gib zuerst ein Wort mit mindestens einem Buchstaben ein.</div></form></section></section>
+<section class="game-screen" id="gameScreen" aria-live="polite"><header class="gamebar"><h1>Henkerspiel</h1><button class="new-btn" id="newGame" type="button">Neu</button></header><section class="stats" aria-label="Spielstand"><div class="stat"><b id="length">0</b><span>Buchstaben</span></div><div class="stat"><b id="remaining">10</b><span>Fehler übrig</span></div><div class="stat"><b id="progress">0%</b><span>gefunden</span></div></section><section class="stage"><div class="hangman"><svg viewBox="0 0 330 310" role="img" aria-label="Henkerspiel-Männchen" preserveAspectRatio="xMidYMid meet"><g class="draw"><line class="part" data-step="1" x1="35" y1="280" x2="150" y2="280"/><line class="part" data-step="2" x1="78" y1="280" x2="78" y2="28"/><line class="part" data-step="3" x1="78" y1="28" x2="240" y2="28"/><line class="part" data-step="4" x1="240" y1="28" x2="240" y2="67"/><circle class="part" data-step="5" cx="240" cy="96" r="29"/><line class="part" data-step="6" x1="240" y1="125" x2="240" y2="198"/><line class="part" data-step="7" x1="240" y1="145" x2="200" y2="174"/><line class="part" data-step="8" x1="240" y1="145" x2="280" y2="174"/><line class="part" data-step="9" x1="240" y1="198" x2="207" y2="247"/><line class="part" data-step="10" x1="240" y1="198" x2="273" y2="247"/></g></svg></div><div class="word-area"><div class="word-label">Gesuchtes Wort</div><div class="word" id="word"></div><div class="wrongline">Falsche Buchstaben<span class="wrongletters" id="wrong">—</span></div></div></section><section class="keyboard-card"><div class="keyboard" id="keyboard" aria-label="Buchstabentastatur"></div></section></section>
+<section class="result-overlay" id="resultOverlay" role="dialog" aria-modal="true" aria-labelledby="resultTitle"><div class="result-box"><div class="emoji" id="emoji">🎉</div><h2 id="resultTitle">Gewonnen!</h2><p id="resultText"></p><button class="primary" id="again" type="button">Neue Runde</button></div></section>
+</main>
+<script>
+(function(){'use strict';var MAX_ERRORS=10,KEY_LETTERS='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),ALL_LETTERS='ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ'.split(''),ALTS={A:'Ä',O:'Ö',U:'Ü'};var setupScreen=document.getElementById('setupScreen'),gameScreen=document.getElementById('gameScreen'),form=document.getElementById('startForm'),input=document.getElementById('secretInput'),showWord=document.getElementById('showWord'),error=document.getElementById('error'),keyboard=document.getElementById('keyboard'),word=document.getElementById('word'),wrong=document.getElementById('wrong'),lengthEl=document.getElementById('length'),remaining=document.getElementById('remaining'),progress=document.getElementById('progress'),newGame=document.getElementById('newGame'),resultOverlay=document.getElementById('resultOverlay'),emoji=document.getElementById('emoji'),resultTitle=document.getElementById('resultTitle'),resultText=document.getElementById('resultText'),again=document.getElementById('again');var secret='',guessed={},mistakes=[],finished=false,openWrap=null;
+function setVisibleHeight(){var h=window.innerHeight;if(window.visualViewport&&window.visualViewport.height)h=window.visualViewport.height;document.documentElement.style.setProperty('--app-h',Math.floor(h)+'px')}setVisibleHeight();window.addEventListener('resize',setVisibleHeight);window.addEventListener('orientationchange',function(){setTimeout(setVisibleHeight,120)});if(window.visualViewport)window.visualViewport.addEventListener('resize',setVisibleHeight);
+function isLetter(ch){return ALL_LETTERS.indexOf(ch)!==-1}function normalize(v){return v.trim().replace(/\s+/g,' ').toUpperCase()}function closeChoice(){if(openWrap){openWrap.classList.remove('open');var mb=openWrap.querySelector('.key');if(mb)mb.setAttribute('aria-expanded','false');openWrap=null}}function optionClass(letter){if(!guessed[letter])return '';return secret.indexOf(letter)!==-1?'good':'bad'}
+function makeOption(letter){var o=document.createElement('button');o.type='button';o.className='choice-option';o.textContent=letter;o.dataset.choice=letter;o.setAttribute('aria-label','Buchstabe '+letter);o.addEventListener('click',function(e){e.stopPropagation();guess(letter);closeChoice()});return o}
+function toggleChoice(wrap){if(finished)return;if(openWrap===wrap){closeChoice();return}closeChoice();openWrap=wrap;wrap.classList.add('open');var mb=wrap.querySelector('.key');if(mb)mb.setAttribute('aria-expanded','true');renderKeyboardState()}
+function buildKeyboard(){keyboard.innerHTML='';closeChoice();for(var i=0;i<KEY_LETTERS.length;i++){(function(letter,index){var alt=ALTS[letter];if(alt){var wrap=document.createElement('div');wrap.className='key-wrap';if(index%7===0)wrap.classList.add('edge-left');if(index%7===6)wrap.classList.add('edge-right');var b=document.createElement('button');b.type='button';b.className='key special-key';b.dataset.letter=letter;b.setAttribute('aria-label',letter+' oder '+alt);b.setAttribute('aria-haspopup','true');b.setAttribute('aria-expanded','false');b.innerHTML='<span>'+letter+'</span><span class="alt-hint">'+alt+'</span>';b.addEventListener('click',function(e){e.stopPropagation();toggleChoice(wrap)});var pop=document.createElement('div');pop.className='choice-pop';pop.appendChild(makeOption(letter));pop.appendChild(makeOption(alt));wrap.appendChild(b);wrap.appendChild(pop);keyboard.appendChild(wrap)}else{var k=document.createElement('button');k.type='button';k.className='key';k.dataset.letter=letter;k.textContent=letter;k.setAttribute('aria-label','Buchstabe '+letter);k.addEventListener('click',function(){guess(letter)});keyboard.appendChild(k)}})(KEY_LETTERS[i],i)}}
+function startRound(e){if(e)e.preventDefault();var value=normalize(input.value),has=false;for(var i=0;i<value.length;i++){if(isLetter(value.charAt(i))){has=true;break}}if(!value||!has){error.style.display='block';input.focus();return false}secret=value;guessed={};mistakes=[];finished=false;error.style.display='none';input.value='';input.type='password';showWord.textContent='Anzeigen';setupScreen.style.display='none';gameScreen.classList.add('on');resultOverlay.classList.remove('on');buildKeyboard();render();if(document.activeElement)document.activeElement.blur();setTimeout(setVisibleHeight,80);return false}
+function guess(letter){if(finished||guessed[letter])return;guessed[letter]=true;if(secret.indexOf(letter)===-1)mistakes.push(letter);render();if(isSolved())finish(true);else if(mistakes.length>=MAX_ERRORS)finish(false)}function isSolved(){for(var i=0;i<secret.length;i++){var c=secret.charAt(i);if(isLetter(c)&&!guessed[c])return false}return true}function setSlotSize(total){var s=24;if(total>10)s=21;if(total>14)s=18;if(total>20)s=16;word.style.setProperty('--slot',s+'px')}
+function renderKeyboardState(){var normal=keyboard.querySelectorAll('.key:not(.special-key)');for(var i=0;i<normal.length;i++){var l=normal[i].dataset.letter;normal[i].classList.remove('good','bad');normal[i].disabled=finished||!!guessed[l];if(guessed[l])normal[i].classList.add(secret.indexOf(l)!==-1?'good':'bad')}var wraps=keyboard.querySelectorAll('.key-wrap');for(i=0;i<wraps.length;i++){var main=wraps[i].querySelector('.special-key'),base=main.dataset.letter,alt=ALTS[base],opts=wraps[i].querySelectorAll('.choice-option');main.disabled=finished||(!!guessed[base]&&!!guessed[alt]);for(var j=0;j<opts.length;j++){var ch=opts[j].dataset.choice;opts[j].classList.remove('good','bad');opts[j].disabled=finished||!!guessed[ch];var c=optionClass(ch);if(c)opts[j].classList.add(c)}if(main.disabled&&openWrap===wraps[i])closeChoice()}}
+function render(){word.innerHTML='';var total=0,found=0,i;for(i=0;i<secret.length;i++)if(isLetter(secret.charAt(i)))total++;setSlotSize(total);for(i=0;i<secret.length;i++){var c=secret.charAt(i),slot=document.createElement('span');if(c===' '){slot.className='slot space';slot.innerHTML='&nbsp;'}else if(!isLetter(c)){slot.className='slot symbol';slot.textContent=c}else{slot.className='slot';if(guessed[c]){slot.textContent=c;found++}else slot.innerHTML='&nbsp;'}word.appendChild(slot)}lengthEl.textContent=String(total);remaining.textContent=String(Math.max(0,MAX_ERRORS-mistakes.length));progress.textContent=(total?Math.round(found/total*100):0)+'%';wrong.textContent=mistakes.length?mistakes.join('  '):'—';var parts=document.querySelectorAll('.part');for(i=0;i<parts.length;i++){var step=parseInt(parts[i].getAttribute('data-step'),10);parts[i].classList.toggle('show',step<=mistakes.length)}renderKeyboardState()}
+function revealWholeWord(){var children=word.children;for(var i=0;i<secret.length;i++){if(children[i]&&isLetter(secret.charAt(i)))children[i].textContent=secret.charAt(i)}}function finish(won){finished=true;closeChoice();render();if(!won)revealWholeWord();emoji.textContent=won?'🎉':'😵';resultTitle.textContent=won?'Gewonnen!':'Verloren!';resultText.textContent=won?'Du hast „'+secret+'“ erraten.':'Das gesuchte Wort war „'+secret+'“.';resultOverlay.classList.add('on')}
+function reset(){secret='';guessed={};mistakes=[];finished=false;closeChoice();resultOverlay.classList.remove('on');gameScreen.classList.remove('on');setupScreen.style.display='grid';input.value='';input.type='password';showWord.textContent='Anzeigen';error.style.display='none';buildKeyboard();setTimeout(function(){input.focus();setVisibleHeight()},60)}
+form.addEventListener('submit',startRound);showWord.addEventListener('click',function(){var hidden=input.type==='password';input.type=hidden?'text':'password';showWord.textContent=hidden?'Verbergen':'Anzeigen';input.focus()});newGame.addEventListener('click',reset);again.addEventListener('click',reset);document.addEventListener('click',function(e){if(openWrap&&!openWrap.contains(e.target))closeChoice()});buildKeyboard();})();
+</script>
 </body>
 </html>
