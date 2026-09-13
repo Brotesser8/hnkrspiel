@@ -2,98 +2,155 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#f4f5f7">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+  <meta name="theme-color" content="#f3f4f6">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Henkerspiel">
+  <meta name="format-detection" content="telephone=no">
   <title>Henkerspiel</title>
   <style>
-    :root{--bg:#f4f5f7;--card:#fff;--text:#17191d;--muted:#6b7280;--border:#e2e5e9;--dark:#111827;--green:#147447;--green-bg:#eaf7ef;--red:#b42318;--red-bg:#fff0ee}
+    :root{
+      --bg:#f3f4f6;
+      --card:#ffffff;
+      --text:#15171a;
+      --muted:#737982;
+      --line:#e2e5e9;
+      --dark:#17191d;
+      --green:#147447;
+      --green-bg:#eaf7ef;
+      --red:#b42318;
+      --red-bg:#fff0ee;
+    }
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
-    body{padding:max(18px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Arial,sans-serif}
+    body{overscroll-behavior-y:none}
     button,input{font:inherit}
-    button{touch-action:manipulation;cursor:pointer}
-    .app{width:min(760px,100%);margin:0 auto}
-    .hero{margin-bottom:16px}
-    h1{margin:0;font-size:clamp(32px,9vw,46px);letter-spacing:-.045em;line-height:1}
-    .sub{margin:8px 0 0;color:var(--muted);font-size:14px;line-height:1.4}
-    .card{background:var(--card);border:1px solid rgba(0,0,0,.05);border-radius:22px;padding:20px;box-shadow:0 10px 28px rgba(0,0,0,.06)}
-    .setup h2{margin:0 0 7px;font-size:21px}
-    .setup p{margin:0 0 16px;color:var(--muted);line-height:1.45;font-size:14px}
-    label{display:block;font-size:14px;font-weight:800;margin-bottom:7px}
-    .secret{width:100%;min-height:54px;border:1px solid var(--border);border-radius:15px;background:#fafbfc;padding:13px 15px;color:var(--text);font-size:17px;outline:none;-webkit-appearance:none;appearance:none}
-    .secret:focus{background:#fff;border-color:#aab1bb;box-shadow:0 0 0 4px rgba(17,24,39,.05)}
-    .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:11px}
-    .primary,.secondary{min-height:50px;border-radius:14px;font-weight:800;padding:0 17px}
+    button{touch-action:manipulation;cursor:pointer;-webkit-user-select:none;user-select:none}
+    .app{width:min(520px,100%);margin:0 auto;padding:max(10px,env(safe-area-inset-top)) 10px max(12px,env(safe-area-inset-bottom))}
+
+    .setup-head{padding:16px 8px 14px}
+    .setup-head h1{margin:0;font-size:clamp(34px,10vw,48px);letter-spacing:-.05em;line-height:1}
+    .setup-head p{margin:8px 0 0;color:var(--muted);font-size:14px;line-height:1.4}
+    .card{background:var(--card);border:1px solid rgba(0,0,0,.05);border-radius:22px;box-shadow:0 8px 26px rgba(0,0,0,.055)}
+    .setup{padding:20px}
+    .setup h2{font-size:21px;margin:0 0 6px}
+    .setup p{font-size:14px;line-height:1.45;color:var(--muted);margin:0 0 16px}
+    label{display:block;font-size:13px;font-weight:800;margin-bottom:7px}
+    .secret{width:100%;min-height:54px;border:1px solid var(--line);border-radius:15px;background:#fafbfc;color:var(--text);font-size:17px;padding:13px 14px;outline:none;-webkit-appearance:none;appearance:none}
+    .secret:focus{background:#fff;border-color:#aab1ba;box-shadow:0 0 0 4px rgba(17,24,39,.05)}
+    .setup-actions{display:grid;grid-template-columns:1fr;gap:9px;margin-top:10px}
+    .primary,.secondary{min-height:50px;border-radius:14px;font-weight:800;padding:0 16px}
     .primary{border:0;background:var(--dark);color:#fff}
-    .secondary{border:1px solid var(--border);background:#f4f5f7;color:var(--text)}
+    .secondary{border:1px solid var(--line);background:#f6f7f8;color:var(--text)}
     .error{display:none;margin-top:10px;color:var(--red);font-size:13px;font-weight:800}
-    .game{display:none;gap:14px}
-    .game.on{display:grid}
-    .toprow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
-    .toprow strong{font-size:16px}
-    .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}
-    .stat{text-align:center;border:1px solid var(--border);background:#f8f9fa;border-radius:14px;padding:10px 5px;min-width:0}
-    .stat b{display:block;font-size:21px;line-height:1.1}
-    .stat span{display:block;margin-top:4px;color:var(--muted);font-size:11px;line-height:1.15}
-    .hangman{display:grid;place-items:center;padding:3px 0 0}
-    svg{width:min(100%,340px);height:auto;display:block}
+    .tip{margin-top:12px;color:var(--muted);font-size:12px;line-height:1.4}
+
+    .game{display:none}
+    .game.on{display:block}
+    .game-shell{display:grid;gap:9px}
+    .game-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 2px 0}
+    .game-title{font-size:22px;font-weight:850;letter-spacing:-.03em}
+    .newbtn{min-height:40px;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:0 13px;color:var(--text);font-weight:800}
+
+    .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+    .stat{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:8px 4px;text-align:center;min-width:0}
+    .stat b{display:block;font-size:19px;line-height:1.05}
+    .stat span{display:block;margin-top:3px;color:var(--muted);font-size:10px;line-height:1.1}
+
+    .word-card{padding:14px 10px 11px;text-align:center}
+    .word{display:flex;justify-content:center;align-items:flex-end;flex-wrap:wrap;gap:7px 5px;min-height:39px}
+    .slot{width:25px;height:34px;border-bottom:2.5px solid var(--text);display:grid;place-items:center;font-size:20px;font-weight:900;text-transform:uppercase}
+    .slot.space{width:10px;border:0}.slot.symbol{width:15px;border:0}
+    .wrongline{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.3;min-height:16px}
+    .wrongletters{color:var(--red);font-weight:850;letter-spacing:.07em;margin-left:4px}
+
+    .drawing-card{padding:5px 10px 2px;display:grid;place-items:center;min-height:170px}
+    svg{width:min(100%,245px);height:auto;max-height:190px;display:block}
     .draw{fill:none;stroke:var(--text);stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
-    .part{opacity:0;transition:opacity .18s ease}
+    .part{opacity:0;transition:opacity .15s ease}
     .part.show{opacity:1}
-    .wordcard{text-align:center;padding:22px 13px 18px}
-    .word{display:flex;justify-content:center;align-items:flex-end;flex-wrap:wrap;gap:10px 7px;min-height:55px}
-    .slot{width:30px;height:42px;border-bottom:3px solid var(--text);display:grid;place-items:center;font-size:24px;font-weight:850;text-transform:uppercase}
-    .slot.space{width:14px;border:0}.slot.symbol{width:18px;border:0}
-    .wrongline{margin-top:18px;color:var(--muted);font-size:14px;overflow-wrap:anywhere}
-    .wrongletters{color:var(--red);font-weight:850;letter-spacing:.08em;margin-left:5px}
-    .keyboard{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
-    .key{min-height:45px;border:1px solid var(--border);border-radius:12px;background:#f8f9fa;color:var(--text);padding:0;font-size:15px;font-weight:850}
+
+    .keyboard-card{padding:9px;position:sticky;bottom:max(6px,env(safe-area-inset-bottom));z-index:5;background:rgba(255,255,255,.97);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+    .keyboard{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+    .key{min-width:0;min-height:44px;border:1px solid var(--line);border-radius:11px;background:#f7f8fa;color:var(--text);padding:0;font-size:15px;font-weight:900;box-shadow:0 1px 0 rgba(0,0,0,.04)}
+    .key:active{transform:translateY(1px)}
     .key.good{background:var(--green-bg);border-color:#bce0ca;color:var(--green)}
     .key.bad{background:var(--red-bg);border-color:#efc1bb;color:var(--red)}
-    .key:disabled{opacity:.72}
-    .result{display:none;text-align:center}.result.on{display:block}
-    .emoji{font-size:42px;line-height:1;margin-bottom:7px}.result h2{margin:0;font-size:24px}.result p{margin:8px 0 16px;color:var(--muted)}
-    .ready{display:inline-flex;align-items:center;gap:7px;margin-top:12px;color:var(--muted);font-size:12px}.dot{width:8px;height:8px;border-radius:50%;background:#1a8f55}
-    @media(max-width:420px){.keyboard{grid-template-columns:repeat(6,minmax(0,1fr))}.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}.slot{width:27px;font-size:22px}}
-    @media(min-width:660px){.game.on{grid-template-columns:1.05fr .95fr}.keyboard-card,.result{grid-column:1/-1}}
-    @media(prefers-reduced-motion:reduce){.part{transition:none}}
+    .key:disabled{opacity:.68}
+
+    .overlay{display:none;position:fixed;inset:0;z-index:50;background:rgba(18,20,24,.38);padding:20px;align-items:center;justify-content:center}
+    .overlay.on{display:flex}
+    .result{width:min(360px,100%);background:#fff;border-radius:24px;padding:24px 20px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+    .emoji{font-size:44px;line-height:1;margin-bottom:8px}
+    .result h2{font-size:25px;margin:0}
+    .result p{margin:8px 0 17px;color:var(--muted);line-height:1.4}
+    .result .primary{width:100%}
+
+    @media(max-width:350px){
+      .app{padding-left:7px;padding-right:7px}
+      .keyboard-card{padding:7px}
+      .keyboard{gap:4px}
+      .key{min-height:42px;font-size:14px;border-radius:10px}
+      .slot{width:22px;font-size:18px}
+      svg{max-height:165px}
+      .drawing-card{min-height:150px}
+    }
+    @media(min-width:600px){
+      .app{padding-left:16px;padding-right:16px}
+      .setup-actions{grid-template-columns:1fr auto}
+      .game-shell{grid-template-columns:1fr 1fr}
+      .game-top,.stats,.keyboard-card{grid-column:1/-1}
+      .word-card{display:flex;flex-direction:column;justify-content:center}
+      .drawing-card{min-height:250px}
+      svg{width:min(100%,300px);max-height:250px}
+    }
+    @media(prefers-reduced-motion:reduce){.part{transition:none}.key:active{transform:none}}
   </style>
 </head>
 <body>
   <main class="app">
-    <header class="hero">
-      <h1>Henkerspiel</h1>
-      <p class="sub">Errate das Wort, bevor das Männchen vollständig gezeichnet ist.</p>
-    </header>
+    <section id="setupScreen">
+      <header class="setup-head">
+        <h1>Henkerspiel</h1>
+        <p>Ein Wort festlegen, das iPhone weitergeben und losraten.</p>
+      </header>
 
-    <section class="card setup" id="setup">
-      <h2>Geheimes Wort festlegen</h2>
-      <p>Eine Person gibt ein Wort oder einen Begriff ein. Danach wird das Wort verborgen und die andere Person beginnt zu raten.</p>
-      <form id="startForm">
-        <label for="secretInput">Wort oder Begriff</label>
-        <input id="secretInput" class="secret" type="password" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" maxlength="40" placeholder="Zum Beispiel: SCHOKOLADE">
-        <div class="actions">
-          <button class="primary" type="submit">Runde starten</button>
-          <button class="secondary" id="showWord" type="button">Wort anzeigen</button>
-        </div>
-        <div class="error" id="error">Bitte gib zuerst ein Wort mit mindestens einem Buchstaben ein.</div>
-      </form>
-      <div class="ready"><span class="dot"></span><span>Spiel bereit</span></div>
+      <section class="card setup">
+        <h2>Geheimes Wort</h2>
+        <p>Gib ein Wort oder einen kurzen Begriff ein. Beim Start wird es sofort verborgen.</p>
+        <form id="startForm">
+          <label for="secretInput">Wort oder Begriff</label>
+          <input id="secretInput" class="secret" type="password" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" maxlength="40" placeholder="Zum Beispiel: SCHOKOLADE">
+          <div class="setup-actions">
+            <button class="primary" type="submit">Runde starten</button>
+            <button class="secondary" id="showWord" type="button">Wort anzeigen</button>
+          </div>
+          <div class="error" id="error">Bitte gib zuerst ein Wort mit mindestens einem Buchstaben ein.</div>
+        </form>
+        <div class="tip">Tipp: In Safari über Teilen → „Zum Home-Bildschirm“ hinzufügen. Dann startet das Spiel fast wie eine App.</div>
+      </section>
     </section>
 
     <section class="game" id="game">
-      <section class="card">
-        <div class="toprow">
-          <strong>Aktuelle Runde</strong>
-          <button class="secondary" id="newGame" type="button">Neu</button>
+      <div class="game-shell">
+        <div class="game-top">
+          <div class="game-title">Henkerspiel</div>
+          <button class="newbtn" id="newGame" type="button">Neu</button>
         </div>
+
         <div class="stats">
           <div class="stat"><b id="length">0</b><span>Buchstaben</span></div>
           <div class="stat"><b id="remaining">10</b><span>Fehler übrig</span></div>
           <div class="stat"><b id="progress">0%</b><span>gefunden</span></div>
         </div>
-        <div class="hangman">
+
+        <section class="card word-card">
+          <div class="word" id="word"></div>
+          <div class="wrongline">Falsch:<span class="wrongletters" id="wrong">—</span></div>
+        </section>
+
+        <section class="card drawing-card">
           <svg viewBox="0 0 330 310" role="img" aria-label="Henkerspiel-Männchen">
             <g class="draw">
               <line class="part" data-step="1" x1="35" y1="280" x2="150" y2="280"/>
@@ -108,33 +165,30 @@
               <line class="part" data-step="10" x1="240" y1="198" x2="273" y2="247"/>
             </g>
           </svg>
-        </div>
-      </section>
+        </section>
 
-      <section class="card wordcard">
-        <div class="word" id="word"></div>
-        <div class="wrongline">Falsche Buchstaben:<span class="wrongletters" id="wrong">—</span></div>
-      </section>
-
-      <section class="card keyboard-card">
-        <div class="keyboard" id="keyboard"></div>
-      </section>
-
-      <section class="card result" id="result">
-        <div class="emoji" id="emoji">🎉</div>
-        <h2 id="resultTitle">Gewonnen!</h2>
-        <p id="resultText"></p>
-        <button class="primary" id="again" type="button">Neue Runde</button>
-      </section>
+        <section class="card keyboard-card">
+          <div class="keyboard" id="keyboard"></div>
+        </section>
+      </div>
     </section>
   </main>
+
+  <div class="overlay" id="resultOverlay" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+    <div class="result">
+      <div class="emoji" id="emoji">🎉</div>
+      <h2 id="resultTitle">Gewonnen!</h2>
+      <p id="resultText"></p>
+      <button class="primary" id="again" type="button">Neue Runde</button>
+    </div>
+  </div>
 
   <script>
     (function(){
       'use strict';
       var MAX_ERRORS=10;
       var LETTERS='ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ'.split('');
-      var setup=document.getElementById('setup');
+      var setupScreen=document.getElementById('setupScreen');
       var game=document.getElementById('game');
       var form=document.getElementById('startForm');
       var input=document.getElementById('secretInput');
@@ -146,7 +200,7 @@
       var lengthEl=document.getElementById('length');
       var remaining=document.getElementById('remaining');
       var progress=document.getElementById('progress');
-      var result=document.getElementById('result');
+      var overlay=document.getElementById('resultOverlay');
       var emoji=document.getElementById('emoji');
       var resultTitle=document.getElementById('resultTitle');
       var resultText=document.getElementById('resultText');
@@ -195,12 +249,13 @@
         input.value='';
         input.type='password';
         showWord.textContent='Wort anzeigen';
-        setup.style.display='none';
+        setupScreen.style.display='none';
         game.classList.add('on');
-        result.classList.remove('on');
+        overlay.classList.remove('on');
         buildKeyboard();
         render();
         if(document.activeElement){document.activeElement.blur();}
+        window.scrollTo(0,0);
         return false;
       }
 
@@ -242,12 +297,14 @@
         remaining.textContent=String(Math.max(0,MAX_ERRORS-mistakes.length));
         progress.textContent=(total?Math.round(found/total*100):0)+'%';
         wrong.textContent=mistakes.length?mistakes.join('  '):'—';
+
         var parts=document.querySelectorAll('.part');
         for(var p=0;p<parts.length;p++){
           var step=parseInt(parts[p].getAttribute('data-step'),10);
           if(step<=mistakes.length){parts[p].classList.add('show');}
           else{parts[p].classList.remove('show');}
         }
+
         var buttons=keyboard.getElementsByTagName('button');
         for(var b=0;b<buttons.length;b++){
           var l=buttons[b].textContent;
@@ -273,23 +330,27 @@
         finished=true;
         render();
         if(!won){revealWholeWord();}
-        result.classList.add('on');
         emoji.textContent=won?'🎉':'😵';
         resultTitle.textContent=won?'Gewonnen!':'Verloren!';
         resultText.textContent=won?'Du hast „'+secret+'“ erraten.':'Das gesuchte Wort war „'+secret+'“.';
+        overlay.classList.add('on');
       }
 
       function reset(){
-        secret='';guessed={};mistakes=[];finished=false;
+        secret='';
+        guessed={};
+        mistakes=[];
+        finished=false;
         game.classList.remove('on');
-        result.classList.remove('on');
-        setup.style.display='block';
+        overlay.classList.remove('on');
+        setupScreen.style.display='block';
         input.value='';
         input.type='password';
         showWord.textContent='Wort anzeigen';
         error.style.display='none';
         buildKeyboard();
-        setTimeout(function(){input.focus();},50);
+        window.scrollTo(0,0);
+        setTimeout(function(){input.focus();},80);
       }
 
       form.addEventListener('submit',startRound);
