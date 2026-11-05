@@ -1,23 +1,43 @@
-# 🍟 Kartoffel-Krawall
+# 🍟 Kartoffel-Krawall 3D – POMMES PLANET!
 
-Ein kostenloses, deutschsprachiges Browser-Partyspiel für 1–8 Spieler – ohne Installation und ohne Accounts.
+**Low-Poly-Singleplayer-Spiel mit vollständiger 3D-Insel, ohne Accounts und ohne externe Laufzeitbibliotheken.**
 
-## Spielen
-Die Seite \`index.html\` im Browser öffnen. Eine Person klickt **Lobby erstellen**, teilt den sechstelligen Code oder Einladungslink, die anderen klicken **Beitreten**. Der Host startet die 90-Sekunden-Runde. Auch allein sind Trainingsrunden mit Bots möglich.
+**Spielen:** https://brotesser8.github.io/hnkrspiel/party-panik/
 
-- **WASD / Pfeiltasten**: Laufen
-- **Leertaste**: Turbo-Ramme
-- **Handy**: Joystick links, Turbo-Knopf rechts
-- **Pommes** sammeln und **in der Fritteuse in der Mitte einzahlen**. Beim Turbo-Rammen verlieren Gegner einen Teil ihrer Pommes!
-- **🌟** 3 Pommes, **🌶️** Tempoboost, **💣** Verlust und Betäubung
+## So funktioniert es
 
-## Multiplayer-Technik
-Das Spiel nutzt PeerJS und WebRTC. Ein Spieler ist Host und simuliert die Runde; Freunde verbinden sich per Lobby-Code über den öffentlichen PeerJS-Signalisierungsdienst. Es ist kein eigener Server, Konto oder API-Schlüssel nötig. Der Host muss im Spiel bleiben und alle Spieler brauchen eine Internetverbindung. Manche restriktiven Netzwerke blockieren WebRTC; der öffentliche PeerJS-Dienst hat keine Verfügbarkeitsgarantie. Das Spiel verwendet keine dauerhafte Spieldatenbank.
+Du landest auf einer bunten Insel mit Palmen, Hütten, Marktständen, Leuchtturm, Windmühle, Möbeln, Felsen, Wolken, Wasser und einer riesigen goldenen Fritteuse. Sammle Pommes-Packungen und bringe deinen Beutel zur Fritteuse in der Inselmitte. Du konkurrierst gegen KI-Rivalen, die ebenfalls Pommes sammeln und punkten.
+
+- **WASD / Pfeiltasten**: Spielfigur bewegen.
+- **Leertaste / Shift**: Turbo. Rivalen beim Rammen betäuben und deren Pommes herausschlagen.
+- **Handy und Tablet**: Touch-Joystick links, Turbo rechts.
+- **🍟 Pommes**: +1 im Beutel; **⭐ Gold**: +3; **🌶️ Chili**: Temposchub; **💣 Bombe**: verliert Pommes und betäubt.
+- **Fritteuse:** Beutel mit bis zu 8 Pommes einzahlen. Schnell aufeinanderfolgende Einzahlungen ergeben einen **Kombo-Multiplikator bis ×3**.
+- **Inselspaß**: 3 computergesteuerte Gegner.
+- **Extra scharf**: 5 schnellere Gegner.
+- **105 Sekunden** pro Runde. Wer am Ende die meisten Punkte eingezahlt hat, gewinnt.
+- Highscore wird lokal im Browser gespeichert. Pause mit Escape, eigener Soundschalter.
+
+## Technik
+
+Die Grafik wird unmittelbar mit **WebGL 1.0** aus dreidimensionalen Polygonen dargestellt. Die gesamte Spiellogik, KI, 3D-Geometrie, Kamera, Shader und Dekoration laufen lokal im Browser. **Kein Multiplayer, keine Anmeldung, kein Server, keine CDN-Abhängigkeit.** HTML/CSS/JS liegen zusammen in **`index.html`**.
+
+Benötigt einen aktuellen Browser mit aktiviertem WebGL und Grafikunterstützung.
+
+## Getestet
+
+- JavaScript-Syntaxcheck
+- Desktop- und Mobile-Oberfläche im automatisierten Headless-Browsertest
+- KI-Spieler auf beiden Schwierigkeitsgraden
+- Bewegung und Turbo
+- Sammeln von goldenen Pommes, Einzahlen und Punktestand
+- Pause/Fortsetzen, Spielende und erneuter Start
+- Validität sämtlicher generierter statischer Geometrie-Koordinaten und Softwareprojektion der 3D-Szene
+
+**Einschränkung der Testumgebung:** Ihr Chromium deaktiviert die echte WebGL-Ausgabe. Die komplette 3D-Szene wurde zusätzlich anhand der generierten Polygon- und Projektionsdaten softwareseitig dargestellt, aber ein echter GPU/WebGL-Render auf unterschiedlichen Endgeräten ist dadurch nicht vollständig nachgewiesen.
 
 ## Hosting
-Statische Dateien; geeignet für GitHub Pages oder jeden HTTPS-Webhost. Der Ordner \`party-panik/\` enthält alles Nötige. In GitHub: **Settings → Pages → Deploy from a branch → main → /(root) → Save**. Danach erreichbar unter \`https://brotesser8.github.io/hnkrspiel/party-panik/\`. Wenn Pages noch nicht eingerichtet ist, kannst du die öffentliche GitHub-Datei über einen HTML-Preview-Host testen.
 
-## Datenschutz
-Spitzname wird nur lokal im Browser gespeichert und während der Partie an die Mitspieler übertragen. Der PeerJS-Signalisierungsdienst verarbeitet Verbindungsmetadaten; Browser senden WebRTC-Verbindungsdaten direkt zwischen Teilnehmern.
+Statische GitHub-Pages-Seite unter `party-panik/index.html`. Veröffentlichungen auf `main` werden über `.github/workflows/pages.yml` automatisch deployed.
 
-MIT-Lizenz für den hier neu erstellten Spielcode.
+MIT-Lizenz. © 2026 Brotesser8.
