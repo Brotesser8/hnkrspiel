@@ -23,7 +23,7 @@ https://brotesser8.github.io/hnkrspiel/party-panik/
 | Aufheben / Abstellen | Linksklick | Greifen |
 | Station benutzen / Kochen / schneiden | E oder Leertaste | Benutzen |
 | Werfen | Q | Werfen |
-| Teller leeren | R | Zurzeit PC-only (auch über Bildschirmtastatur möglich) |
+| Teller leeren | R | Leeren |
 | Pause | Esc | ⏸ |
 
 ## Was ist enthalten?
