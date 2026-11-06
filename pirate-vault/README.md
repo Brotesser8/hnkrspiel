@@ -1,49 +1,35 @@
-# 🏴‍☠️ Pirate Vault — Chest Opening Simulator
+# ⚓ Pirate Vault — Chest Opening Simulator
 
-A polished, **free, browser-only** chest-opening fan game with animated treasure chest, particle effects, synthesised sounds, 1× / 10× / 100× openings, a persistent collection and transparent drop math.
+Ein kostenloser, **inoffizieller Fan-Simulator** für Schatztruhen mit transparenten Wahrscheinlichkeiten. Keine Echtgeldzahlungen, keine realen Fortnite-Gegenstände, kein Login.
 
-**Play:** https://brotesser8.github.io/hnkrspiel/pirate-vault/
+**Live:** https://brotesser8.github.io/hnkrspiel/pirate-vault/
 
-## Important: no real Fortnite prizes
+## Wahrscheinlichkeit pro Truhe
 
-This is an **unofficial simulation**. The Pirate Shop Access Token and Solid Gold A$AP Rocky Skin shown here are fictional, locally simulated collectibles. They **cannot** be claimed, transferred to, or redeemed in Fortnite; this site is not associated with Epic Games or A$AP Rocky. No money, payments, in-app purchases, external logins, or item transfer features are present.
+Alle 2.000 möglichen Lose sind gleich wahrscheinlich:
 
-## Exact simulated odds
+| Ergebnis | Lose | Wahrscheinlichkeit |
+| --- | ---: | ---: |
+| Pirate Shop Access Token (virtuell) | 1 | 0,05% = 1:2.000 |
+| A$AP Rocky Skin (virtuell) | 1 | 0,05% = 1:2.000 |
+| Rare Treasure (virtuell) | 18 | 0,90% |
+| Kein Gewinn | 1.980 | 99,00% |
+| **Gesamt** | **2.000** | **100,00%** |
 
-We choose **one uniformly random slot among 2,000 per chest**. The split is exactly:
+Daraus folgen: **1%** Gewinnchance, davon sind **10%** Supreme, und von den Supreme-Gewinnen sind **50%** Token bzw. **50%** Skin.
 
-| Outcome | Slots | Chance per chest |
-|---|---:|---:|
-| No event prize | 1,980 | 99.00% |
-| Standard | 14 | 0.70% |
-| Major | 4 | 0.20% |
-| Supreme: Pirate Shop Access Token | 1 | 0.05% (1 in 2,000) |
-| Supreme: Solid Gold A$AP Rocky Skin | 1 | 0.05% (1 in 2,000) |
-| **Any event prize** | **20** | **1.00%** |
+Die Ziehung verwendet `crypto.getRandomValues()` und Rejection Sampling, damit bei der Abbildung auf die Zahlen `0..1999` kein Modulo-Bias auftritt. Jedes Öffnen ist unabhängig; es gibt keine Garantien, kein Pity-System und keine versteckten Modifikatoren.
 
-This precisely models **1% treasure × 10% Supreme × 50% each Supreme item**. Every roll is independently generated with `crypto.getRandomValues`. Rejection sampling avoids modulo bias. There is **no pity timer, guaranteed drop, or duplicate protection**. 2,000 rolls do *not* guarantee the token (chance to see ≥1 token is ~63.22%).
+## Funktionen
 
-**Fortnite has not officially confirmed these drop probabilities.** These are community/leaker estimates adopted as **exact rules of this simulator**, not claims about the actual Fortnite backend. Example discussion: https://www.vice.com/en/article/fortnite-pirate-shop-token-chances-drop-rate/
+- Animierte SVG-Schatztruhe, Partikeleffekte, Sound und Drop-Enthüllung
+- Einzelöffnung und zehn unabhängige Öffnungen per Button
+- Sammlung, Statistiken und Verlauf der letzten 40 Öffnungen
+- Lokale Speicherung via `localStorage`, keine Datenbank oder Accounts
+- Responsive Smartphone- und Desktop-Oberfläche
+- Exakte Drop-Tabelle und Erklärungen im Spiel
+- Nur eine `index.html`, keine Abhängigkeiten
 
-## Run / test
+## Hinweis
 
-The deployed **`index.html` is fully self-contained**, with its stylesheet and JavaScript embedded. No build step or backend required. Hosting on GitHub Pages is already configured for this repository. The downloadable ZIP also includes the modular `style.css`, `odds.js`, and `game.js` source files and tests. Start a local web server to test in a browser:
-
-```sh
-python3 -m http.server 8080
-# visit http://localhost:8080/pirate-vault/
-```
-
-Automated unit tests (Node 18+):
-
-```sh
-node --test pirate-vault/tests/odds.test.cjs
-```
-
-The downloadable ZIP contains `tests/smoke.py` (Python Playwright) for a desktop/mobile smoke test. LocalStorage saves the collection on the current browser only. Reset from the right-hand panel clears it. There is no network sync or account data.
-
-## Implementation
-
-- Single-weight source-of-truth lookup table (`odds.js`) and crypto RNG. `Math.random` is used only for decorative particles, **never** rewards.
-- Accessible buttons, responsive mobile layout, progress feedback, sound toggle, and `prefers-reduced-motion` support.
-- Custom original SVG treasure-chest artwork, CSS animations, canvas particles. No Epic Games artwork or trademarks are represented as officially licensed.
+Dieses Fan-Projekt gewährt **keine echten Fortnite-Access-Tokens oder Skins** und steht in keiner offiziellen Verbindung zu Epic Games, Fortnite oder A$AP Rocky. Die Bezeichnungen dienen lediglich der Beschreibung fiktiver simulierter Gegenstände.
