@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#f8f8f5" />
-    <meta name="description" content="Interaktive Schweizer Karte mit PubliBike- und Velospot-Stationen und verfügbaren Velos in Echtzeit." />
-    <title>VeloFinder CH – PubliBike Stationen</title>
+    <meta name="description" content="Interaktive Schweizer Karte mit PubliBike-Stationen und geschätzten ÖV-Fahrzeugpositionen." />
+    <title>VeloFinder CH – PubliBike & Schweizer ÖV</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="transit.css" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   </head>
   <body>
@@ -78,6 +79,27 @@
             <button type="button" class="filter-button" data-filter="ebike" aria-pressed="false">E-Bikes</button>
           </div>
 
+          
+          <section class="transit-panel" aria-label="Schweizer ÖV auf der Karte">
+            <div class="transit-heading"><strong>🚆 Öffentlicher Verkehr</strong><small>ÖV-FAHRPLAN · SCHWEIZ</small></div>
+            <label class="transit-toggle">🚌 ÖV-Fahrzeuge anzeigen <input id="show-transport" type="checkbox" checked /></label>
+            <label class="transit-toggle">🚲 PubliBike-Stationen anzeigen <input id="show-bikes" type="checkbox" checked /></label>
+            <p class="transit-help">Wähle den Verkehrstyp und zoome in ein Gebiet. Klick auf ein Fahrzeug für die Route und die nächsten Halte.</p>
+            <div class="transit-options" aria-label="Verkehrsmittel auswählen">
+              <button class="active" data-transit-type="all" aria-pressed="true" type="button">Alle</button>
+              <button data-transit-type="train" aria-pressed="false" type="button">🚆 Züge</button>
+              <button data-transit-type="bus" aria-pressed="false" type="button">🚌 Busse</button>
+              <button data-transit-type="tram" aria-pressed="false" type="button">🚋 Trams</button>
+              <button data-transit-type="ship" aria-pressed="false" type="button">⛴ Schiffe</button>
+              <button data-transit-type="cableway" aria-pressed="false" type="button">🚠 Seilbahnen</button>
+              <button data-transit-type="other" aria-pressed="false" type="button">Weitere</button>
+            </div>
+            <div class="transit-stat"><strong id="transit-count">–</strong><p id="transit-status" role="status">ÖV-Verbindungen werden geladen …</p></div>
+            <div class="transit-meta"><span id="transit-updated">Warte auf die API …</span><button id="transit-refresh" type="button">↻ Aktualisieren</button></div>
+            <p id="transit-error" class="transit-error" role="alert" hidden></p>
+            <p class="transit-note"><strong>Wichtig:</strong> Punkte sind geschätzte Positionen anhand von Haltestellen und (sofern vorhanden) Echtzeitprognosen, kein GPS. Es werden ausgewählte Verbindungen im sichtbaren Kartenausschnitt geladen, nicht jedes Fahrzeug der Schweiz.</p>
+          </section>
+
           <div class="list-heading">
             <div><h2>Stationen <span id="result-count" class="count-pill">–</span></h2><p id="result-note">Daten werden geladen …</p></div>
             <button id="reset-button" class="text-button" type="button">Zurücksetzen</button>
@@ -140,12 +162,13 @@
           </div>
           <div class="detail-foot"><span id="detail-status">Aktuelle Verfügbarkeit</span><a id="detail-directions" href="#" rel="noopener noreferrer" target="_blank">Route planen <span aria-hidden="true">↗</span></a></div>
         </article>
-        <div class="map-credit">Nicht offiziell mit PubliBike verbunden · Daten: <a href="https://www.publibike.ch/de/karte" target="_blank" rel="noopener noreferrer">PubliBike</a></div>
+        <div class="map-credit">Unabhängiges Projekt · ÖV: <a href="https://transport.opendata.ch/" target="_blank" rel="noopener noreferrer">Opendata.ch</a> / <a href="https://opentransportdata.swiss/" target="_blank" rel="noopener noreferrer">opentransportdata.swiss</a> · Velos: <a href="https://www.publibike.ch/de/karte" target="_blank" rel="noopener noreferrer">PubliBike</a></div>
       </main>
     </div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script src="data.js"></script>
     <script src="app.js" defer></script>
+    <script src="transit.js" defer></script>
   </body>
 </html>
