@@ -93,3 +93,18 @@ MIT-artiges privates Demo-Projekt. Keine offizielle Beziehung zu PubliBike. Eige
 ## Veröffentlicht auf GitHub
 
 Dieses Projekt befindet sich im Unterordner `publibike-karte/` des öffentlichen Repositories `Brotesser8/hnkrspiel`. Der bestehende GitHub-Pages-Workflow veröffentlicht auch diesen Ordner. Die voraussichtliche URL ist https://brotesser8.github.io/hnkrspiel/publibike-karte/ . Die tatsächliche Pages-Auslieferung und Live-API-Verbindung müssen separat verifiziert werden.
+
+
+## Öffentlicher Verkehr (ÖV)
+
+Die Webseite zeigt neben PubliBike/Velospot eine anklickbare ÖV-Kartenebene für Züge, Busse, Trams, Schiffe, Seilbahnen und weitere Kategorien. Dazu fragt `transit.js` die öffentliche [Transport API](https://transport.opendata.ch/docs.html) über HTTPS/CORS ab; ein API-Schlüssel ist nicht nötig.
+
+- Pro Kartenausschnitt wird eine begrenzte Auswahl wichtiger und lokaler Haltestellen über `/stationboard` und `/locations` abgefragt (max. 14). **Das ist keine vollständige landesweite Fahrzeugliste.**
+- Wenn die Abfahrts- oder Ankunftsprognose vorhanden ist, wird sie für die Berechnung verwendet; andernfalls die Planzeit. Die Position wird geradlinig zwischen aufeinanderfolgenden Haltestellen interpoliert, sobald genügend Informationen über den Fahrtverlauf (`passList`) verfügbar sind.
+- Die Fahrzeugmarker sind **keine echten GPS-Positionen** und die Linien auf der Karte **keine echte Fahrweg-Geometrie**. Bei unzureichenden Informationen werden keine erfundenen bewegten Fahrzeuge eingeblendet; einzelne Haltestellenpositionen können kurz um die angegebene Zeit erscheinen.
+- Bei Klick auf ein Fahrzeug erscheinen Linie, Fahrtrichtung, Datenqualität und Haltefolge. Filter und separate Schalter für ÖV und Mietvelos stehen links.
+- Die Markerposition wird lokal alle sechs Sekunden animiert, die Fahrplandaten werden nach Möglichkeit nur etwa alle drei Minuten beziehungsweise bei einem signifikanten Kartenausschnitt-Wechsel erneuert. Bitte das offene API nicht häufig pollen.
+
+**Offene Daten:** [Opendata.ch Transport API](https://transport.opendata.ch/), Fahrplandaten und Echtzeitprognosen von [opentransportdata.swiss](https://opentransportdata.swiss/). Die nationale GTFS-RT-Schnittstelle publiziert keine Vehicle-Positions: [Dokumentation](https://opentransportdata.swiss/de/cookbook/event-cookbook/gtfs-sa/).
+
+Für eine umfassendere, öffentlich betriebene ÖV-Karte mit simulierten Fahrzeugpositionen siehe auch das [Kartenbeispiel der Transport API](https://transport.opendata.ch/examples/map.html).
