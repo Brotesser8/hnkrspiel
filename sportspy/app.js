@@ -167,7 +167,7 @@
         '<div class="home-pair">'+badge(g.leagueId,g.home,'crest-small')+badge(g.leagueId,g.away,'crest-small')+
         '<strong>'+escapeHTML(g.home.name)+' <span>vs.</span> '+escapeHTML(g.away.name)+'</strong></div>'+
         '<div class="home-match-date">'+escapeHTML(g.date===today()?(g.time&&g.time!=='–'?g.time+' Uhr':'Heute'):dateShort(g.date))+'</div>'+
-        '<a class="round-arrow" href="#liga/'+g.leagueId+'/heute" aria-label="'+escapeHTML(l.name+' öffnen')+'">'+icon.arrow+'</a></div>';
+        '<a class="round-arrow" href="#liga/'+g.leagueId+'/'+(g.date===today()?'heute':'naechste')+'" aria-label="'+escapeHTML(l.name+' öffnen')+'">'+icon.arrow+'</a></div>';
     }).join('')+'<div class="home-afterword">Wähle eine Liga, um alle ihre Partien und die Tabelle zu sehen.</div>';
   }
   function matchGroups(games,limit){
