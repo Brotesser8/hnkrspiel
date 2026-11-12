@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="de-CH">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f8f8f5" />
+    <meta name="description" content="Interaktive Schweizer Karte mit PubliBike- und Velospot-Stationen und verfügbaren Velos in Echtzeit." />
+    <title>VeloFinder CH – PubliBike Stationen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Stationssuche und Filter">
+        <div class="sidebar-inner">
+          <div class="brand-row">
+            <a class="brand" href="#" aria-label="VeloFinder CH Startseite">
+              <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 36 36" fill="none"><circle cx="10" cy="24" r="6" stroke="currentColor" stroke-width="2.3"/><circle cx="27" cy="24" r="6" stroke="currentColor" stroke-width="2.3"/><path d="M10 24l5.5-11 6 11H10zm5.5-11H21m.5 11L27 13h-4m-8.5 0-2-3h-3" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <span>velo<span class="brand-accent">finder</span><small>CH</small></span>
+            </a>
+            <span class="top-tag">LIVE MAP</span>
+          </div>
+
+          <section class="intro">
+            <div class="eyebrow"><span class="eyebrow-line"></span> UNTERWEGS IN DER SCHWEIZ</div>
+            <h1>Dein nächstes <em>Velo.</em><br />Nur einen Klick entfernt.</h1>
+            <p>Entdecke PubliBike- und Velospot-Stationen und finde verfügbare Velos in deiner Nähe.</p>
+          </section>
+
+          <div class="summary" aria-label="Übersicht">
+            <div class="summary-card">
+              <div class="summary-icon summary-icon--red" aria-hidden="true">◎</div>
+              <span id="stat-stations" class="summary-number">–</span>
+              <span class="summary-label">Stationen</span>
+            </div>
+            <div class="summary-card">
+              <div class="summary-icon summary-icon--green" aria-hidden="true">↗</div>
+              <span id="stat-bikes" class="summary-number">–</span>
+              <span class="summary-label">Velos frei</span>
+            </div>
+            <div class="summary-card">
+              <div class="summary-icon summary-icon--blue" aria-hidden="true">ϟ</div>
+              <span id="stat-ebikes" class="summary-number">–</span>
+              <span class="summary-label">E-Bikes</span>
+            </div>
+          </div>
+
+          <div class="section-line"><span>STATIONEN ENTDECKEN</span><span class="section-line-sub">01 / SUCHEN</span></div>
+          <label class="search-box" for="search-input">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.6"/><path d="m16 16 4.7 4.7"/></svg>
+            <input id="search-input" type="search" placeholder="Ort, Bahnhof oder Station suchen …" autocomplete="off" spellcheck="false" />
+            <kbd>/</kbd>
+          </label>
+
+          <div class="control-row">
+            <label class="select-wrap" for="city-select">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-7 9 7v10H3zM9 20v-7h6v7"/></svg>
+              <select id="city-select" aria-label="Ort auswählen"><option value="">Alle Orte</option></select>
+              <span class="select-arrow" aria-hidden="true">⌄</span>
+            </label>
+            <button id="locate-button" class="square-button" type="button" title="Meinen Standort anzeigen" aria-label="Meinen Standort anzeigen">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+            </button>
+          </div>
+
+          <div class="filter-label">ANZEIGEN</div>
+          <div class="segmented" role="group" aria-label="Stationen filtern">
+            <button type="button" class="filter-button is-active" data-filter="all" aria-pressed="true">Alle</button>
+            <button type="button" class="filter-button" data-filter="available" aria-pressed="false">Verfügbar</button>
+            <button type="button" class="filter-button" data-filter="ebike" aria-pressed="false">E-Bikes</button>
+          </div>
+
+          <div class="list-heading">
+            <div><h2>Stationen <span id="result-count" class="count-pill">–</span></h2><p id="result-note">Daten werden geladen …</p></div>
+            <button id="reset-button" class="text-button" type="button">Zurücksetzen</button>
+          </div>
+
+          <div id="station-list" class="station-list" aria-live="polite">
+            <div class="loading-list"><span class="spinner"></span><span>Wir laden die aktuellen Stationen …</span></div>
+          </div>
+
+          <div class="sidebar-footer">
+            <span class="status-dot" id="sidebar-status-dot"></span>
+            <div class="footer-status"><strong id="footer-status">Verbindung wird hergestellt</strong><small id="last-updated">Keine Daten geladen</small></div>
+            <button id="refresh-button" type="button" class="refresh-button" title="Daten aktualisieren" aria-label="Daten aktualisieren">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M5.6 9a7 7 0 0 1 12-2L20 11M4 13l2.4 4a7 7 0 0 0 12-2"/></svg>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="map-main" aria-label="Interaktive Karte der PubliBike-Stationen">
+        <div id="map" role="application" aria-label="Schweizer Landkarte mit anklickbaren PubliBike- und Velospot-Stationen"></div>
+
+        <div class="map-top-bar">
+          <div class="map-caption"><span class="mini-flag" aria-hidden="true">+</span><span>SCHWEIZ</span><span class="caption-separator">/</span><span>PUBLIBIKE × VELOSPOT</span></div>
+          <div class="map-live"><span class="status-dot" id="map-status-dot"></span><span id="map-live-text">Verbinde …</span></div>
+        </div>
+
+        <div class="map-tools">
+          <button id="map-home" class="map-tool" type="button" title="Ganze Schweiz anzeigen" aria-label="Ganze Schweiz anzeigen">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-7 9 7v9H3zM9 20v-7h6v7"/></svg>
+          </button>
+          <button id="map-zoom-in" class="map-tool" type="button" title="Hineinzoomen" aria-label="Hineinzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg></button>
+          <button id="map-zoom-out" class="map-tool" type="button" title="Herauszoomen" aria-label="Herauszoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+        </div>
+
+        <div class="map-legend" aria-label="Kartenlegende">
+          <div class="legend-title">VERFÜGBARKEIT</div>
+          <div class="legend-items">
+            <span><i class="legend-dot is-green"></i> 5+ Velos</span>
+            <span><i class="legend-dot is-orange"></i> 1–4 Velos</span>
+            <span><i class="legend-dot is-red"></i> 0 Velos</span>
+            <span><i class="legend-dot is-grey"></i> Unbekannt</span>
+          </div>
+          <div class="legend-hint">Zahl im Punkt = verfügbare Fahrzeuge · Clusterzahl = Stationen</div>
+        </div>
+
+        <div id="map-error" class="map-error is-hidden" role="alert">
+          <div class="map-error-icon">!</div><div><strong id="error-title">Daten konnten nicht geladen werden</strong><p id="error-description">Bitte prüfe die Verbindung und versuche es erneut.</p></div><button id="retry-button" type="button">Erneut versuchen</button>
+        </div>
+
+        <article id="detail-card" class="detail-card is-hidden" aria-label="Stationsdetails">
+          <button class="detail-close" id="close-detail" type="button" aria-label="Stationsdetails schliessen">×</button>
+          <div class="detail-eyebrow"><span class="tiny-red-dot"></span> STATIONSDATEN</div>
+          <h2 id="detail-name">Station</h2>
+          <p id="detail-address" class="detail-address"></p>
+          <div class="detail-metrics">
+            <div><span id="detail-total">–</span><small>Velos total</small></div>
+            <div><span id="detail-regular">–</span><small>Normale Velos</small></div>
+            <div><span id="detail-ebikes">–</span><small>E-Bikes</small></div>
+          </div>
+          <div class="detail-foot"><span id="detail-status">Aktuelle Verfügbarkeit</span><a id="detail-directions" href="#" rel="noopener noreferrer" target="_blank">Route planen <span aria-hidden="true">↗</span></a></div>
+        </article>
+        <div class="map-credit">Nicht offiziell mit PubliBike verbunden · Daten: <a href="https://www.publibike.ch/de/karte" target="_blank" rel="noopener noreferrer">PubliBike</a></div>
+      </main>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="data.js"></script>
+    <script src="app.js" defer></script>
+  </body>
+</html>
