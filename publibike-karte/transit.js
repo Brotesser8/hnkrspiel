@@ -22,7 +22,7 @@ var hubs=[
 ['Bellinzona',46.196,9.029],['Lugano',46.005,8.947],['Locarno',46.169,8.799],['Chiasso',45.832,9.032],['Solothurn',47.207,7.538],['Langenthal',47.213,7.784]
 ];
 var types=['train','bus','tram','ship','cableway','other'],active=new Set(types),enabled=true;
-var map,layer,routeLayer,runs=[],markers=new Map(),cache=new Map(),pending=false,lastFetch=0,lastUpdated=0,selection=null,moveTimer=null;
+var map,layer,routeLayer,runs=[],markers=new Map(),cache=new Map(),pending=false,lastFetch=0,lastUpdated=0,lastArea='',selection=null,moveTimer=null;
 var $=function(id){return document.getElementById(id);};
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function swissDate(d){var p=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Zurich',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d),a={};p.forEach(function(x){a[x.type]=x.value;});return a.year+'-'+a.month+'-'+a.day+' '+a.hour+':'+a.minute;}
@@ -98,7 +98,9 @@ async function localStops(){
 async function board(name,when){var key='board|'+name+'|'+when,old=cache.get(key);if(old&&Date.now()-old.at<REFRESH)return old.data;var j=await getJson(API+'/stationboard?station='+encodeURIComponent(name)+'&datetime='+encodeURIComponent(when)+'&limit=70');if(!Array.isArray(j.stationboard))throw new Error('Ungültige Fahrplandaten');cache.set(key,{data:j.stationboard,at:Date.now()});return j.stationboard;}
 async function refresh(force){
  if(!enabled||pending||!map)return;
- if(!force&&Date.now()-lastFetch<MIN_REFRESH)return;
+ var c=map.getCenter(),area=[Math.round(c.lat*18),Math.round(c.lng*18),map.getZoom()>=12?12:map.getZoom()>=10?10:8].join('/');
+ if(!force&&Date.now()-lastFetch<MIN_REFRESH&&(lastArea===area||Date.now()-lastFetch<22000))return;
+ lastArea=area;
  pending=true;lastFetch=Date.now();$('transit-status').textContent='Lade ÖV-Fahrten für den Kartenausschnitt …';
  try{
  var discovered=await localStops(),stations=Array.from(new Set(discovered.concat(nearbyHubs().map(function(h){return h[0];})))).slice(0,14);
@@ -123,7 +125,7 @@ function start(){
  document.querySelectorAll('[data-transit-type]').forEach(function(btn){btn.addEventListener('click',function(){var type=btn.dataset.transitType;if(type==='all'||(active.size===1&&active.has(type)))active=new Set(types);else active=new Set([type]);
  document.querySelectorAll('[data-transit-type]').forEach(function(b){var on=b.dataset.transitType==='all'?active.size===types.length:active.size===1&&active.has(b.dataset.transitType);b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});paint();});});
  $('transit-refresh').addEventListener('click',function(){refresh(true);});
- map.on('moveend',function(){if(!enabled)return;clearTimeout(moveTimer);moveTimer=setTimeout(function(){paint();if(Date.now()-lastFetch>=MIN_REFRESH)refresh(false);},750);});
+ map.on('moveend',function(){if(!enabled)return;clearTimeout(moveTimer);var delay=Math.max(750,22000-(Date.now()-lastFetch));moveTimer=setTimeout(function(){paint();refresh(false);},delay);});
  document.addEventListener('visibilitychange',function(){if(!document.hidden){paint();refresh(false);}});
  setInterval(function(){if(!document.hidden)paint();},6000);
  setInterval(function(){if(!document.hidden)refresh(false);},REFRESH);
