@@ -9,7 +9,7 @@
 | Sport | Liga | Quelle |
 | --- | --- | --- |
 | Eishockey | National League | SIHF |
-| Fussball | Super League | ESPN (öffentliche, undokumentierte Schnittstelle) |
+| Fussball | Super League | Open-Matchday (CSV-Datenfeed) + TheSportsDB (ergänzende Anspielzeiten) |
 | Eishockey | Swiss League | SIHF |
 | Eishockey | MyHockey League | SIHF |
 
@@ -44,7 +44,8 @@ Die Browseroberfläche lädt ausschliesslich `./data/snapshot.json` vom selben G
 ## API-Quellen und Einschränkungen
 
 1. **SIHF** (https://data.sihf.ch/statistic/api/cms) — `results` und `standing` mit Saison- und Ligafiltern. Die Quelle ist frei abrufbar, aber API-Verfügbarkeit und Nutzungsbedingungen können sich ändern.
-2. **ESPN** (https://site.api.espn.com/apis/site/v2/sports/soccer/sui.1/scoreboard und https://site.api.espn.com/apis/v2/sports/soccer/sui.1/standings) — frei zugängliche JSON-Endpunkte ohne Key. ESPN dokumentiert diese jedoch nicht als offiziell unterstützte Entwickler-API.
+2. **Open-Matchday** (https://github.com/oladeeayo/open-matchday) — kostenloses, täglich aktualisiertes CSV-Feed der Schweizer Super League, erreichbar über raw.githubusercontent.com; die Daten dürfen mit Quellenangabe für nicht-kommerzielle Anwendungen genutzt werden. Die Tabelle berechnet SportSpy aus den Resultaten (3/1/0 Punkte; bei punktgleichen Teams können offizielle Tiebreaker abweichen).
+3. **TheSportsDB** (https://www.thesportsdb.com/) — freie öffentliche V1-JSON-API für ergänzende Anspielzeiten der nächsten Spiele (API-Schlüssel 3 ist öffentlich). Wenn diese API ausfällt, bleiben die Ergebnisse und Spieltage von Open-Matchday verfügbar.
 
 Die Synchronisation begrenzt SIHF-Anfragen, verwendet Zeitlimits, validiert Saison und Liga und behält bei einem Ausfall ältere Daten, sofern vorhanden. Jede Datenfamilie speichert ihren letzten tatsächlichen Aktualisierungszeitpunkt.
 
