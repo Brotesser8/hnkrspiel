@@ -49,6 +49,8 @@ function initMap(){
     }
   }):L.layerGroup();
   map.addLayer(cluster);
+  window.veloMap=map;
+  window.veloClusters=cluster;
   el('map-home').addEventListener('click',()=>map.fitBounds(BOUNDS));
   el('map-zoom-in').addEventListener('click',()=>map.zoomIn());
   el('map-zoom-out').addEventListener('click',()=>map.zoomOut());
