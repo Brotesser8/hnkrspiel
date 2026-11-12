@@ -4,7 +4,7 @@
 
   const LEAGUES = [
     { id:'national', name:'National League', short:'National League', sport:'hockey', letter:'H', source:'SIHF' },
-    { id:'super', name:'Super League', short:'Super League', sport:'football', letter:'F', source:'ESPN' },
+    { id:'super', name:'Super League', short:'Super League', sport:'football', letter:'F', source:'Open-Matchday' },
     { id:'swiss', name:'Swiss League', short:'Swiss League', sport:'hockey', letter:'H', source:'SIHF' },
     { id:'myhockey', name:'MyHockey League', short:'MyHockey', sport:'hockey', letter:'H', source:'SIHF' }
   ];
@@ -64,7 +64,7 @@
   }
   function badge(team) {
     const short = String(team.short || team.name || '?').replace(/[^A-Za-zÀ-ÿ0-9]/g,'').slice(0,2).toUpperCase() || '?';
-    const logo = typeof team.logo === 'string' && /^https:\/\/(a\.espncdn\.com|cdn\.espn\.com|a\.espncdn\.com\.br)\//i.test(team.logo)
+    const logo = typeof team.logo === 'string' && /^https:\/\/(a\.espncdn\.com|cdn\.espn\.com|a\.espncdn\.com\.br|www\.thesportsdb\.com|api\.thesportsdb\.com|r2\.thesportsdb\.com)\//i.test(team.logo)
       ? '<img src="' + escAttr(team.logo) + '" alt="" loading="lazy" onerror="this.remove()">' : '';
     return '<span class="team-mark" aria-hidden="true">' + (logo || clean(short)) + '</span>';
   }
@@ -200,7 +200,7 @@
     const rows = Array.isArray(obj?.standings) ? obj.standings : [];
     const q = state.search.toLocaleLowerCase('de-CH').trim();
     find('#tableTitle').textContent = l.name;
-    find('#tableSource').textContent = 'QUELLE: ' + l.source;
+    find('#tableSource').textContent = 'QUELLE: ' + l.source + (obj?.tableCalculated ? ' · BERECHNET' : '');
     find('#seasonLabel').textContent = 'SAISON ' + (obj?.season || '–');
     renderTableChoices();
     if (!rows.length) {
