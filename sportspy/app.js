@@ -113,14 +113,14 @@
     const gameTime = m.state === 'final' ? 'Resultat' : String(m.time || '–');
     const withScore = (m.state === 'live' || m.state === 'final') && m.homeScore != null && m.awayScore != null;
     const score = (teamScore) => withScore ? clean(teamScore) : '–';
-    const favTeam = isFavorite(m.leagueId, m.home) ? m.home : (isFavorite(m.leagueId,m.away) ? m.away : m.home);
     return '<article class="match">' +
       '<div class="match-meta"><strong class="match-time">' + clean(gameTime) + '</strong><span class="match-status ' +
       (m.state === 'live' ? 'live' : '') + '">' + stateName + '</span></div>' +
       '<div class="teams"><div class="team-line">' + badge(m.home) + '<span class="team-name" title="' + escAttr(m.home.name) + '">' + clean(m.home.name) +
-      '</span></div><div class="team-line">' + badge(m.away) + '<span class="team-name" title="' + escAttr(m.away.name) + '">' + clean(m.away.name) + '</span></div></div>' +
-      '<div class="scores' + (withScore ? '' : ' scheduled') + '"><span>' + score(m.homeScore) + '</span><span>' + score(m.awayScore) + '</span></div>' +
-      favoriteButton(m.leagueId, favTeam, false) + '</article>';
+      '</span>' + favoriteButton(m.leagueId,m.home) + '</div><div class="team-line">' + badge(m.away) +
+      '<span class="team-name" title="' + escAttr(m.away.name) + '">' + clean(m.away.name) +
+      '</span>' + favoriteButton(m.leagueId,m.away) + '</div></div>' +
+      '<div class="scores' + (withScore ? '' : ' scheduled') + '"><span>' + score(m.homeScore) + '</span><span>' + score(m.awayScore) + '</span></div></article>';
   }
 
   function emptyHtml(title, message, action) {
