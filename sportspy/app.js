@@ -1,344 +1,337 @@
-/* SportSpy client — GitHub Pages / static JSON, no external browser API keys */
-(function () {
+/* SportSpy 3 — focused league pages with official badges and readable match cards */
+(() => {
   'use strict';
 
   const LEAGUES = [
-    { id:'national', name:'National League', short:'National League', sport:'hockey', letter:'H', source:'SIHF' },
-    { id:'super', name:'Super League', short:'Super League', sport:'football', letter:'F', source:'Open-Matchday' },
-    { id:'swiss', name:'Swiss League', short:'Swiss League', sport:'hockey', letter:'H', source:'SIHF' },
-    { id:'myhockey', name:'MyHockey League', short:'MyHockey', sport:'hockey', letter:'H', source:'SIHF' }
+    {id:'national',name:'National League',sport:'hockey',label:'EISHOCKEY',source:'SIHF',accent:'blue'},
+    {id:'super',name:'Super League',sport:'football',label:'FUSSBALL',source:'Open-Matchday',accent:'indigo'},
+    {id:'swiss',name:'Swiss League',sport:'hockey',label:'EISHOCKEY',source:'SIHF',accent:'blue'},
+    {id:'myhockey',name:'MyHockey League',sport:'hockey',label:'EISHOCKEY',source:'SIHF',accent:'blue'}
   ];
-  const find = sel => document.querySelector(sel);
-  const findAll = sel => [...document.querySelectorAll(sel)];
-  const clean = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-  const dateOf = d => new Intl.DateTimeFormat('sv-SE', {timeZone:'Europe/Zurich', year:'numeric', month:'2-digit', day:'2-digit'}).format(d);
-  const currentDay = () => dateOf(new Date());
-  const dayAdd = (day, n) => {
-    const d = new Date(day + 'T12:00:00Z');
-    d.setUTCDate(d.getUTCDate() + n);
-    return d.toISOString().slice(0,10);
+  const FOOTBALL_LOGOS = Object.freeze({
+    'youngboys':'bsc-young-boys','basel':'fc-basel','lugano':'fc-lugano',
+    'luzern':'fc-luzern','sion':'fc-sion','stgallen':'fc-st-gallen',
+    'thun':'fc-thun','zurich':'fc-zurich','grasshoppers':'grasshopper-club-zurich',
+    'lausanne':'lausanne-sport','servette':'servette-fc','vaduz':'vaduz'
+  });
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+  const escapeHTML = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const today = () => new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Zurich',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+  const dayShift = (day,n) => {const d=new Date(day+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+  const dateLabel = (day, opts={}) => {
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(String(day))) return 'Datum unbekannt';
+    return new Intl.DateTimeFormat('de-CH',{timeZone:'Europe/Zurich',...opts}).format(new Date(day+'T12:00:00Z'));
   };
-  const dayDate = day => new Date(day + 'T12:00:00Z');
-  const dayFormat = (day, options) => new Intl.DateTimeFormat('de-CH', Object.assign({timeZone:'Europe/Zurich'}, options)).format(dayDate(day));
-  const leagueOf = id => LEAGUES.find(l => l.id === id) || LEAGUES[0];
-  const escAttr = clean;
-  const matchDateKey = m => String(m.date || '') + 'T' + String(m.time || '');
-  const byMatchDate = (a, b) => matchDateKey(a).localeCompare(matchDateKey(b)) || a.id.localeCompare(b.id);
-  const starSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.75 6.35.92-4.6 4.49 1.09 6.34L12 17.5l-5.64 3 1.08-6.34-4.6-4.49 6.35-.92L12 3Z"/></svg>';
-  const emptySvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/></svg>';
-  const state = {
-    snapshot:null, date:currentDay(), scope:'all', sport:'all',
-    view:'day', search:'', standings:'national',
-    loading:true, error:null, favorites:new Set()
+  const formatDay = day => dateLabel(day,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const dateShort = day => dateLabel(day,{weekday:'short',day:'numeric',month:'short'});
+  const leagueOf = id => LEAGUES.find(l=>l.id===id);
+  const icon = {
+    arrow:'<svg viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>',
+    calendar:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/></svg>',
+    star:'<svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.75 6.35.92-4.6 4.49 1.09 6.34L12 17.5l-5.64 3 1.08-6.34-4.6-4.49 6.35-.92L12 3Z"/></svg>',
+    left:'<svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"/></svg>',
+    right:'<svg viewBox="0 0 24 24"><path d="m10 6 6 6-6 6"/></svg>'
   };
+  const app = {snapshot:null,loading:true,selectedDate:today(),favorites:new Set(),tableSearch:'',route:null};
 
   try {
-    const saved = JSON.parse(localStorage.getItem('sportspy-favorites-v2') || '[]');
-    if (Array.isArray(saved)) state.favorites = new Set(saved.filter(v => typeof v === 'string'));
-  } catch {}
+    const v=JSON.parse(localStorage.getItem('sportspy-favorites-v2') || '[]');
+    if(Array.isArray(v)) app.favorites=new Set(v.filter(x=>typeof x==='string'));
+  }catch(_){}
 
-  function setTheme(theme) {
-    document.documentElement.dataset.theme = theme;
-    find('#lightMode').classList.toggle('active', theme === 'light');
-    find('#darkMode').classList.toggle('active', theme === 'dark');
-    find('#lightMode').setAttribute('aria-pressed', String(theme === 'light'));
-    find('#darkMode').setAttribute('aria-pressed', String(theme === 'dark'));
-    find('#themeColor').content = theme === 'dark' ? '#0f1623' : '#f6f8fc';
-    try { localStorage.setItem('sportspy-theme', theme); } catch {}
+  function badgeUrl(leagueId,team){
+    if(!team) return null;
+    const l=leagueOf(leagueId);
+    if(l?.sport==='hockey' && /^\d{3,8}$/.test(String(team.id || ''))) {
+      return 'https://www.sihf.ch/images/team/' + encodeURIComponent(team.id) + '.png';
+    }
+    if(leagueId==='super'){
+      const key=String(team.id || '').replace(/[^a-z0-9]/gi,'').toLowerCase();
+      const slug=FOOTBALL_LOGOS[key];
+      if(slug) return 'https://www.footylogos.com/dls/logo/rgba-v1/' + slug + '.png';
+    }
+    // Only use curated sources, not arbitrary URLs inside external API data.
+    return null;
   }
-
-  function allMatches() {
-    return LEAGUES.flatMap(l => {
-      const obj = state.snapshot?.leagues?.[l.id];
-      return Array.isArray(obj?.matches) && obj.matchesAvailable ? obj.matches : [];
-    }).filter(m => m && m.date && m.home && m.away);
+  function badge(leagueId,team,cls=''){
+    const short=String(team?.short || team?.name || '?').replace(/[^A-Za-zÀ-ÿ0-9]/g,'').slice(0,2).toUpperCase();
+    const url=badgeUrl(leagueId,team);
+    return '<span class="crest '+cls+'" aria-hidden="true"><span class="crest-fallback">'+escapeHTML(short||'?')+'</span>'+
+      (url?'<img src="'+escapeHTML(url)+'" alt="" loading="lazy" decoding="async" onerror="this.remove()">':'')+'</span>';
   }
-  function isFavorite(leagueId, team) { return state.favorites.has(String(leagueId) + ':' + String(team.id)); }
-  function matchIsFavorite(m) { return isFavorite(m.leagueId,m.home) || isFavorite(m.leagueId,m.away); }
-  function favoriteButton(leagueId, team, compact) {
-    const active = isFavorite(leagueId, team);
-    return '<button class="fav-button' + (active ? ' active' : '') + '" type="button" data-favorite="' +
-      escAttr(leagueId + ':' + team.id) + '" data-team-name="' + escAttr(team.name) +
-      '" aria-label="' + escAttr(team.name + (active ? ' aus Favoriten entfernen' : ' zu Favoriten hinzufügen')) +
-      '" aria-pressed="' + active + '" title="' + escAttr(active ? 'Favorit entfernen' : 'Team merken') + '">' + starSvg + '</button>';
+  function favId(leagueId,t){return leagueId+':'+String(t.id)};
+  function isFav(leagueId,t){return app.favorites.has(favId(leagueId,t))}
+  function star(leagueId,team,cls=''){
+    if(!team)return '';
+    const selected=isFav(leagueId,team);
+    return '<button type="button" class="star-button '+cls+(selected?' is-favorite':'')+'" data-fav="'+escapeHTML(favId(leagueId,team))+'" title="'+escapeHTML(selected?'Favorit entfernen':'Als Favorit speichern')+'" aria-label="'+escapeHTML(team.name+(selected?' aus Favoriten entfernen':' zu Favoriten hinzufügen'))+'" aria-pressed="'+String(selected)+'">'+icon.star+'</button>';
   }
-  function badge(team) {
-    const short = String(team.short || team.name || '?').replace(/[^A-Za-zÀ-ÿ0-9]/g,'').slice(0,2).toUpperCase() || '?';
-    const logo = typeof team.logo === 'string' && /^https:\/\/(a\.espncdn\.com|cdn\.espn\.com|a\.espncdn\.com\.br|www\.thesportsdb\.com|api\.thesportsdb\.com|r2\.thesportsdb\.com)\//i.test(team.logo)
-      ? '<img src="' + escAttr(team.logo) + '" alt="" loading="lazy" onerror="this.remove()">' : '';
-    return '<span class="team-mark" aria-hidden="true">' + (logo || clean(short)) + '</span>';
+  function snapshotLeague(id){return app.snapshot?.leagues?.[id] || null}
+  function leagueGames(id){
+    const obj=snapshotLeague(id);
+    return Array.isArray(obj?.matches) && obj.matchesAvailable ? obj.matches.filter(g=>g?.date&&g?.home&&g?.away) : [];
   }
-
-  function renderDates() {
-    const first = dayAdd(state.date, -3);
-    const games = new Set(allMatches().map(m => m.date));
-    find('#dateInput').value = state.date;
-    find('#dayList').innerHTML = Array.from({length:7}, (_,i) => {
-      const day = dayAdd(first, i), selected = day === state.date;
-      const dayName = dayFormat(day,{weekday:'short'}).replace('.','').toUpperCase();
-      const today = day === currentDay();
-      return '<button type="button" class="day' + (selected ? ' selected' : '') + (today ? ' is-today' : '') +
-        '" data-day="' + clean(day) + '" aria-pressed="' + selected + '" aria-label="' +
-        clean(dayFormat(day,{weekday:'long',day:'numeric',month:'long'})) + '">' +
-        '<small>' + clean(dayName) + '</small><strong>' + clean(day.slice(-2).replace(/^0/,'')) + '</strong>' +
-        (games.has(day) ? '<em aria-hidden="true"></em>' : '') + '</button>';
-    }).join('');
-    find('#todayLabel').textContent = dayFormat(currentDay(), {weekday:'long',day:'numeric',month:'long'});
-  }
-
-  function updateStats() {
-    const matches = allMatches(), today = currentDay();
-    const available = LEAGUES.some(l => state.snapshot?.leagues?.[l.id]?.matchesAvailable);
-    find('#statToday').textContent = available ? String(matches.filter(m => m.date === today).length) : '–';
-    find('#statLive').textContent = available ? String(matches.filter(m => m.state === 'live').length) : '–';
-    find('#statNext').textContent = available ? String(matches.filter(m => m.state === 'scheduled' && m.date >= today && m.date <= dayAdd(today,7)).length) : '–';
-  }
-
-  function filteredMatches() {
-    const today = currentDay(), q = state.search.toLocaleLowerCase('de-CH').trim();
-    let matches = allMatches().filter(m => {
-      if (state.scope !== 'all' && state.scope !== 'favorites' && m.leagueId !== state.scope) return false;
-      if (state.scope === 'favorites' && !matchIsFavorite(m)) return false;
-      if (state.sport !== 'all' && leagueOf(m.leagueId).sport !== state.sport) return false;
-      return !q || [m.home?.name, m.away?.name, leagueOf(m.leagueId).name].some(s => String(s || '').toLocaleLowerCase('de-CH').includes(q));
+  function allGames(){return LEAGUES.flatMap(l=>leagueGames(l.id))}
+  function sortedGames(games,reverse=false){
+    return [...games].sort((a,b)=>{
+      const k = (String(a.date)+' '+String(a.time||'')).localeCompare(String(b.date)+' '+String(b.time||''));
+      return (reverse?-k:k)||String(a.id).localeCompare(String(b.id));
     });
-    if (state.view === 'day') matches = matches.filter(m => m.date === state.date).sort(byMatchDate);
-    else if (state.view === 'upcoming') matches = matches.filter(m => m.state === 'scheduled' && m.date >= today).sort(byMatchDate).slice(0,35);
-    else matches = matches.filter(m => m.state === 'final' && m.date <= today).sort((a,b) => byMatchDate(b,a)).slice(0,35);
-    return matches;
   }
-
-  function matchMarkup(m) {
-    const stateName = m.state === 'live' ? 'LIVE' : m.state === 'final' ? 'ENDE' : m.state === 'cancelled' ? 'ABGESAGT' : 'GEPLANT';
-    const gameTime = m.state === 'final' ? 'Resultat' : String(m.time || '–');
-    const withScore = (m.state === 'live' || m.state === 'final') && m.homeScore != null && m.awayScore != null;
-    const score = (teamScore) => withScore ? clean(teamScore) : '–';
-    return '<article class="match">' +
-      '<div class="match-meta"><strong class="match-time">' + clean(gameTime) + '</strong><span class="match-status ' +
-      (m.state === 'live' ? 'live' : '') + '">' + stateName + '</span></div>' +
-      '<div class="teams"><div class="team-line">' + badge(m.home) + '<span class="team-name" title="' + escAttr(m.home.name) + '">' + clean(m.home.name) +
-      '</span>' + favoriteButton(m.leagueId,m.home) + '</div><div class="team-line">' + badge(m.away) +
-      '<span class="team-name" title="' + escAttr(m.away.name) + '">' + clean(m.away.name) +
-      '</span>' + favoriteButton(m.leagueId,m.away) + '</div></div>' +
-      '<div class="scores' + (withScore ? '' : ' scheduled') + '"><span>' + score(m.homeScore) + '</span><span>' + score(m.awayScore) + '</span></div></article>';
+  function parseRoute(){
+    const bits=(location.hash || '#home').slice(1).split('/');
+    if(bits[0]==='liga'&&leagueOf(bits[1]))
+      return {page:'league',id:bits[1],tab:['heute','naechste','resultate','tabelle'].includes(bits[2])?bits[2]:'heute'};
+    if(bits[0]==='favoriten')return {page:'favorites'};
+    return {page:'home'};
   }
-
-  function emptyHtml(title, message, action) {
-    return '<div class="empty-state"><span class="empty-symbol">' + emptySvg + '</span><strong>' + clean(title) +
-      '</strong><p>' + clean(message) + '</p>' + (action ? '<button type="button" class="today-button" data-empty-upcoming>Demnächst ansehen ↗</button>' : '') + '</div>';
+  function setTheme(v){
+    const theme=v==='dark'?'dark':'light';
+    document.documentElement.dataset.theme=theme;
+    $('#themeColor').content=theme==='dark'?'#101823':'#f7f9fc';
+    for(const [id,val] of [['themeDark','dark'],['themeLight','light']]){
+      const b=$('#'+id);b.classList.toggle('selected',theme===val);b.setAttribute('aria-pressed',String(theme===val));
+    }
+    try{localStorage.setItem('sportspy-theme',theme)}catch(_){}
   }
-
-  function renderMatches() {
-    findAll('[data-view]').forEach(btn => {
-      const active = state.view === btn.dataset.view;
-      btn.classList.toggle('active', active);
-      btn.setAttribute('aria-pressed', String(active));
-    });
-    findAll('[data-sport]').forEach(btn => {
-      const active = state.sport === btn.dataset.sport;
-      btn.classList.toggle('selected', active);
-      btn.setAttribute('aria-pressed', String(active));
-    });
-    let matches = filteredMatches();
-    find('#gamesCount').textContent = matches.length + ' ' + (matches.length === 1 ? 'Spiel' : 'Spiele');
-    if (state.loading && !state.snapshot) {
-      find('#matches').innerHTML = '<div class="loading-state"><span class="loader"></span><p>Spiele werden geladen …</p></div>';
+  function closeMenu(){
+    $('#sidebar').classList.remove('mobile-open');$('#scrim').hidden=true;
+    $('#menuButton').setAttribute('aria-expanded','false');
+  }
+  function setStatus(){
+    const label=$('#dataStatus');
+    const stamp=app.snapshot?.generatedAt;
+    const time=new Date(stamp);
+    if(!stamp || !Number.isFinite(time.getTime())){
+      label.className='data-status stale';
+      label.innerHTML='<i></i>'+(app.loading?'Daten werden geladen':'Daten nicht verfügbar');
       return;
     }
-    const someAvailable = LEAGUES.some(l => state.snapshot?.leagues?.[l.id]?.matchesAvailable);
-    if (!matches.length) {
-      let title = 'Keine Spiele gefunden';
-      let message = 'Für diese Auswahl sind aktuell keine Partien hinterlegt.';
-      if (!someAvailable) {
-        title = 'Spieldaten nicht verfügbar';
-        message = 'Die kostenlosen Datenquellen konnten noch nicht geladen werden. Bitte versuche es später erneut.';
-      } else if (state.scope === 'favorites' && !state.favorites.size) {
-        title = 'Noch keine Lieblingsteams';
-        message = 'Markiere Teams über den Stern bei einer Partie oder in der Tabelle.';
-      } else if (state.view === 'day' && !state.search) {
-        title = 'An diesem Tag keine Spiele';
-        message = 'Wähle einen anderen Spieltag oder sieh dir die nächsten Partien an.';
-      }
-      find('#matches').innerHTML = emptyHtml(title, message, someAvailable && state.view === 'day');
-    } else {
-      const groups = new Map();
-      for (const match of matches) {
-        const key = match.date + '|' + match.leagueId;
-        if (!groups.has(key)) groups.set(key, []);
-        groups.get(key).push(match);
-      }
-      find('#matches').innerHTML = [...groups].map(([key, items]) => {
-        const l = leagueOf(items[0].leagueId);
-        const day = items[0].date;
-        const heading = l.name + (state.view === 'day' ? '' : ' · ' + dayFormat(day, {weekday:'short',day:'numeric',month:'short'}));
-        return '<section class="group" aria-label="' + escAttr(heading) + '"><div class="group-heading"><span class="group-name"><span class="group-icon">' +
-          l.letter + '</span>' + clean(heading) + '</span><span class="group-count">' + items.length +
-          (items.length === 1 ? ' SPIEL' : ' SPIELE') + '</span></div>' + items.map(matchMarkup).join('') + '</section>';
-      }).join('');
-    }
-    const issues = LEAGUES.filter(l => {
-      const obj = state.snapshot?.leagues?.[l.id];
-      return !obj?.matchesAvailable || (obj?.errors || []).some(e => e.startsWith('matches'));
-    }).map(l => l.name);
-    if (issues.length && state.snapshot) {
-      find('#matches').insertAdjacentHTML('beforeend', '<div class="data-warning"><strong>Datenhinweis:</strong> Der Spielplan ist für ' +
-        clean(issues.join(', ')) + ' momentan nicht vollständig verfügbar.</div>');
-    }
+    const age=Date.now()-time.getTime();
+    const incomplete=LEAGUES.some(l=>{const d=snapshotLeague(l.id);return !d?.matchesAvailable || !d?.standingsAvailable || d?.errors?.length>0;});
+    const stale=age>2*60*60*1000 || incomplete;
+    label.className='data-status '+(stale?'stale':'fresh');
+    const clock=new Intl.DateTimeFormat('de-CH',{timeZone:'Europe/Zurich',hour:'2-digit',minute:'2-digit'}).format(time);
+    label.innerHTML='<i></i>'+escapeHTML((stale?'Letzter Stand ':'Aktualisiert ')+clock);
+    label.title='Datenstand: '+time.toLocaleString('de-CH',{timeZone:'Europe/Zurich'});
   }
-
-  function renderTableChoices() {
-    find('#tableLeagueSelect').innerHTML = LEAGUES.map(l => {
-      const active = state.standings === l.id;
-      return '<button type="button" class="table-choice' + (active ? ' selected' : '') + '" data-table="' + l.id +
-        '" aria-pressed="' + active + '">' + clean(l.short) + '</button>';
+  function matchMarkup(g){
+    const finished=g.state==='final',live=g.state==='live',cancelled=g.state==='cancelled';
+    const showScore=(finished||live)&&g.homeScore!=null&&g.awayScore!=null;
+    const status=cancelled?'Abgesagt':live?'LIVE':finished?'Beendet':'Geplant';
+    const kicker=(g.time&&g.time!=='–')?g.time+' Uhr':'Anspielzeit offen';
+    const score=showScore?escapeHTML(g.homeScore)+' : '+escapeHTML(g.awayScore):'– : –';
+    const body=(t,side) => '<div class="match-side '+side+'">'+badge(g.leagueId,t,'crest-md')+
+      '<div class="match-team-copy"><strong>'+escapeHTML(t.name)+'</strong><small>'+escapeHTML(side==='home'?'HEIM':'GAST')+'</small></div>'+
+      star(g.leagueId,t,'match-star')+'</div>';
+    return '<article class="game-card"><div class="game-topline"><span>'+escapeHTML(dateShort(g.date))+' <span class="text-divider">·</span> '+escapeHTML(kicker)+'</span>'+
+      '<span class="game-state '+(live?'state-live':finished?'state-final':cancelled?'state-cancelled':'')+'">'+(live?'<i></i>':'')+status+'</span></div>'+
+      '<div class="game-body">'+body(g.home,'home')+
+      '<div class="game-score"><strong class="'+(showScore?'has-score':'')+'">'+score+'</strong><small>'+(showScore?(finished?'ENDSTAND':'ZWISCHENSTAND'):'VS')+'</small></div>'+
+      body(g.away,'away')+'</div></article>';
+  }
+  function emptyBox(title,description){
+    return '<div class="empty-box"><span class="empty-illustration">'+icon.calendar+'</span><h3>'+escapeHTML(title)+'</h3><p>'+escapeHTML(description)+'</p></div>';
+  }
+  function renderLeagueCards(){
+    const now=today();
+    $('#leagueCards').innerHTML=LEAGUES.map((l,i)=>{
+      const obj=snapshotLeague(l.id);
+      const games=leagueGames(l.id);
+      const next=games.filter(g=>g.state==='scheduled'&&g.date>=now).length;
+      const teams=(obj?.standings||[]).slice(0,3);
+      const crests=teams.map(r=>badge(l.id,r.team,'crest-preview')).join('');
+      return '<a href="#liga/'+l.id+'/heute" class="league-card league-'+l.id+'">' +
+        '<div class="card-topline"><span class="card-sport-label">'+escapeHTML(l.label)+'</span><span class="card-number">0'+(i+1)+'</span></div>'+
+        '<div class="card-emblem">'+(l.sport==='hockey'?'H':'F')+'</div>'+
+        '<div class="card-text"><h3>'+escapeHTML(l.name)+'</h3><span>'+escapeHTML(obj?.season?'Saison '+obj.season:'Schweizer Liga')+'</span></div>'+
+        '<div class="card-bottom"><div class="preview-crests">'+crests+'</div><div class="card-action">'+(app.loading?'Laden …':next+' nächste Spiele')+' '+icon.arrow+'</div></div>'+
+        '</a>';
     }).join('');
   }
-
-  function renderStandings() {
-    const l = leagueOf(state.standings);
-    const obj = state.snapshot?.leagues?.[l.id];
-    const rows = Array.isArray(obj?.standings) ? obj.standings : [];
-    const q = state.search.toLocaleLowerCase('de-CH').trim();
-    find('#tableTitle').textContent = l.name;
-    find('#tableSource').textContent = 'QUELLE: ' + l.source + (obj?.tableCalculated ? ' · BERECHNET' : '');
-    find('#seasonLabel').textContent = 'SAISON ' + (obj?.season || '–');
-    renderTableChoices();
-    if (!rows.length) {
-      find('#standingsBody').innerHTML = '<tr><td class="table-empty" colspan="5">' + (state.loading ? 'Tabelle wird geladen …' : 'Tabelle derzeit nicht verfügbar.') + '</td></tr>';
+  function renderHome(){
+    $('#currentDate').textContent=dateLabel(today(),{weekday:'long',day:'numeric',month:'long'});
+    $('#homeDate').textContent=formatDay(today());
+    renderLeagueCards();
+    const matches=sortedGames(allGames().filter(g=>g.date===today()));
+    const games=matches.length?matches.slice(0,3):sortedGames(allGames().filter(g=>g.date>today()&&g.state==='scheduled')).slice(0,3);
+    if(!games.length){
+      $('#homeMatches').innerHTML=emptyBox(app.loading?'Spiele werden geladen':'Noch keine Partien','Die Datenquellen werden regelmässig aktualisiert.');
       return;
     }
-    const filtered = rows.filter(r => !q || String(r.team?.name || '').toLocaleLowerCase('de-CH').includes(q));
-    find('#standingsBody').innerHTML = filtered.map((r,i) => {
-      const rank = r.rank ?? i + 1;
-      return '<tr><td><span class="rank' + (rank <= 4 ? ' top' : '') + '">' + clean(rank) + '</span></td>' +
-        '<td><div class="table-team">' + badge(r.team) + '<span class="table-team-name" title="' + escAttr(r.team.name) +
-        '">' + clean(r.team.name) + '</span>' + favoriteButton(l.id, r.team, true) + '</div></td><td>' +
-        clean(r.played ?? '–') + '</td><td>' + clean(r.diff == null ? '–' : (r.diff > 0 ? '+' : '') + r.diff) +
-        '</td><td>' + clean(r.points ?? '–') + '</td></tr>';
-    }).join('') || '<tr><td class="table-empty" colspan="5">Kein Team entspricht deiner Suche.</td></tr>';
+    const label=matches.length?'Heutige Spiele':'Die nächsten Partien';
+    $('#homeMatches').innerHTML='<p class="home-group-label">'+label+'</p>'+games.map(g=>{
+      const l=leagueOf(g.leagueId);
+      return '<div class="home-match-row"><div class="home-match-league"><span class="sport-tile '+(l.sport==='hockey'?'hockey-tile':'football-tile')+'">'+(l.sport==='hockey'?'H':'F')+'</span><span>'+escapeHTML(l.name)+'</span></div>'+
+        '<div class="home-pair">'+badge(g.leagueId,g.home,'crest-small')+badge(g.leagueId,g.away,'crest-small')+
+        '<strong>'+escapeHTML(g.home.name)+' <span>vs.</span> '+escapeHTML(g.away.name)+'</strong></div>'+
+        '<div class="home-match-date">'+escapeHTML(g.date===today()?(g.time&&g.time!=='–'?g.time+' Uhr':'Heute'):dateShort(g.date))+'</div>'+
+        '<a class="round-arrow" href="#liga/'+g.leagueId+'/heute" aria-label="'+escapeHTML(l.name+' öffnen')+'">'+icon.arrow+'</a></div>';
+    }).join('')+'<div class="home-afterword">Wähle eine Liga, um alle ihre Partien und die Tabelle zu sehen.</div>';
   }
-
-  function updateNavigation() {
-    findAll('[data-scope]').forEach(btn => {
-      const active = btn.dataset.scope === state.scope;
-      btn.classList.toggle('active', active);
-      if (active) btn.setAttribute('aria-current','page'); else btn.removeAttribute('aria-current');
+  function matchGroups(games,limit){
+    const subset=games.slice(0,limit);
+    const byDay=new Map();
+    for(const g of subset){if(!byDay.has(g.date))byDay.set(g.date,[]);byDay.get(g.date).push(g)}
+    return [...byDay].map(([date,rows])=>'<section class="match-day-group"><div class="group-title"><h3>'+escapeHTML(formatDay(date))+'</h3><span>'+rows.length+' '+(rows.length===1?'Spiel':'Spiele')+'</span></div><div class="game-stack">'+rows.map(matchMarkup).join('')+'</div></section>').join('');
+  }
+  function renderDayTools(){
+    const d=app.selectedDate;
+    $('#viewTools').innerHTML='<div class="date-controls">'+
+      '<button type="button" data-shift="-1" aria-label="Vorheriger Tag">'+icon.left+'</button>'+
+      '<label class="date-selector">'+icon.calendar+'<span>'+escapeHTML(dateShort(d))+'</span><input type="date" id="dayPicker" value="'+escapeHTML(d)+'" aria-label="Datum auswählen"></label>'+
+      '<button type="button" data-shift="1" aria-label="Nächster Tag">'+icon.right+'</button></div>'+
+      '<button type="button" class="today-ghost" id="resetToday">Heute</button>';
+  }
+  function renderStandings(l,obj){
+    const rows=Array.isArray(obj?.standings)?obj.standings:[];
+    if(!rows.length) return emptyBox('Tabelle nicht verfügbar','Für diese Liga liegen derzeit keine Tabellendaten vor.');
+    const filtered=rows.filter(r=>String(r.team?.name||'').toLocaleLowerCase('de-CH').includes(app.tableSearch.toLocaleLowerCase('de-CH')));
+    const football=l.sport==='football';
+    const headers='<th scope="col">#</th><th scope="col" class="team-col">Verein</th><th scope="col" title="Spiele">SP</th>'+
+      (football?'<th scope="col" class="extra-stat" title="Siege">S</th><th scope="col" class="extra-stat" title="Unentschieden">U</th><th scope="col" class="extra-stat" title="Niederlagen">N</th>':'')+
+      '<th scope="col" title="Tor-/Tordifferenz">DIFF</th><th scope="col" class="points-col" title="Punkte">PKT</th>';
+    const body=filtered.map((r,i)=>{
+      const diff=r.diff==null?'–':((Number(r.diff)>0?'+':'')+r.diff);
+      return '<tr><td><span class="rank'+(Number(r.rank)<=4?' rank-top':'')+'">'+escapeHTML(r.rank||i+1)+'</span></td>'+
+        '<td><div class="table-team">'+badge(l.id,r.team,'crest-small')+'<strong>'+escapeHTML(r.team.name)+'</strong>'+star(l.id,r.team,'table-star')+'</div></td>'+
+        '<td>'+escapeHTML(r.played??'–')+'</td>'+(football?'<td class="extra-stat">'+escapeHTML(r.wins??'–')+'</td><td class="extra-stat">'+escapeHTML(r.draws??'–')+'</td><td class="extra-stat">'+escapeHTML(r.losses??'–')+'</td>':'')+
+        '<td>'+escapeHTML(diff)+'</td><td class="points-cell">'+escapeHTML(r.points??'–')+'</td></tr>';
+    }).join('')||'<tr><td class="empty-row" colspan="'+(football?8:5)+'">Kein Team gefunden.</td></tr>';
+    return '<div class="table-shell"><div class="table-intro"><div><strong>'+escapeHTML(l.name)+'</strong><small>SAISON '+escapeHTML(obj?.season||'–')+'</small></div><label class="table-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg><input id="teamSearch" type="search" value="'+escapeHTML(app.tableSearch)+'" placeholder="Team suchen …" aria-label="Tabelle durchsuchen"></label></div>'+
+      '<div class="table-scroll"><table class="standings-table"><thead><tr>'+headers+'</tr></thead><tbody>'+body+'</tbody></table></div>'+
+      '<div class="table-bottom">SP = Spiele · DIFF = Tordifferenz · PKT = Punkte'+(obj?.tableCalculated?' · Aus Resultaten berechnet':'')+'</div></div>';
+  }
+  function renderLeague(){
+    const {id,tab}=app.route,l=leagueOf(id),obj=snapshotLeague(id),games=leagueGames(id);
+    $('#leagueIcon').className='league-hero-icon '+(l.sport==='hockey'?'hockey-cover':'football-cover');
+    $('#leagueIcon').textContent=l.sport==='hockey'?'H':'F';
+    $('#leagueTitle').textContent=l.name;
+    $('#leagueSport').textContent=l.label+' · SCHWEIZ';
+    $('#leagueSubtitle').textContent='Saison '+(obj?.season||'–')+' · '+(l.sport==='hockey'?'Schweizer Eishockey':'Schweizer Fussball');
+    $('#leagueTeams').textContent=(obj?.standings?.length||'–')+' Teams';
+    $('#leagueSource').textContent=l.source;
+    $$('#leagueTabs [data-tab]').forEach(a=>{
+      a.href='#liga/'+id+'/'+a.dataset.tab;
+      a.classList.toggle('active',a.dataset.tab===tab);
+      if(a.dataset.tab===tab)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');
     });
-    find('#favCount').textContent = String(state.favorites.size);
-  }
-
-  function renderSync() {
-    const note = find('#syncNote');
-    if (!state.snapshot?.generatedAt) {
-      note.className = 'sync-note stale';
-      note.innerHTML = '<span class="sync-dot"></span>' + (state.loading ? 'Daten werden geladen' : 'Quelle nicht erreichbar');
-      return;
+    const config={
+      heute:['SPIELTAG','Spiele am gewählten Tag','Wähle einen Spieltag und sieh nur die Partien dieser Liga.'],
+      naechste:['AUSBLICK','Nächste Spiele','Alle kommenden Partien dieser Liga, chronologisch sortiert.'],
+      resultate:['RÜCKBLICK','Letzte Resultate','Die letzten abgeschlossenen Partien dieser Liga.'],
+      tabelle:['KLASSIERUNG','Tabelle','Die aktuelle Rangliste auf einen Blick.']
+    }[tab];
+    $('#viewEyebrow').textContent=config[0];$('#viewTitle').textContent=config[1];$('#viewDescription').textContent=config[2];
+    $('#viewTools').innerHTML='';
+    if(tab==='heute')renderDayTools();
+    if(tab==='tabelle'){
+      $('#leagueContent').innerHTML=renderStandings(l,obj);
+    }else{
+      let matches=[];
+      if(tab==='heute')matches=sortedGames(games.filter(g=>g.date===app.selectedDate));
+      else if(tab==='naechste')matches=sortedGames(games.filter(g=>g.date>=today()&&g.state==='scheduled')).slice(0,36);
+      else matches=sortedGames(games.filter(g=>g.date<=today()&&(g.state==='final'||g.state==='cancelled')),true).slice(0,36);
+      const isToday=tab==='heute';
+      $('#leagueContent').innerHTML=matches.length?'<div class="results-container">'+matchGroups(matches,36)+'</div>':
+        emptyBox(app.loading?'Daten werden geladen':isToday?'An diesem Tag kein Spiel':'Keine Spiele verfügbar',
+          app.loading?'Die Sportdaten werden abgerufen.':isToday?'Nutze die Datumsauswahl, um einen anderen Spieltag anzusehen.':'Für diesen Bereich sind momentan keine Partien hinterlegt.');
     }
-    const date = new Date(state.snapshot.generatedAt);
-    const age = Date.now() - date.getTime();
-    const issues = LEAGUES.some(l => {
-      const obj = state.snapshot.leagues?.[l.id];
-      return !obj?.matchesAvailable || !obj?.standingsAvailable || (obj?.errors?.length > 0);
-    });
-    const stale = !Number.isFinite(age) || age > 2 * 60 * 60 * 1000 || issues;
-    const formatted = Number.isFinite(date.getTime())
-      ? new Intl.DateTimeFormat('de-CH', {timeZone:'Europe/Zurich',hour:'2-digit',minute:'2-digit'}).format(date) : '–';
-    note.className = 'sync-note ' + (stale ? 'stale' : 'fresh');
-    note.innerHTML = '<span class="sync-dot"></span>' + (stale ? 'Daten eingeschränkt · ' : 'Stand ') + clean(formatted) + ' Uhr';
-    note.title = 'Zeitpunkt des letzten Datenabgleichs: ' + date.toLocaleString('de-CH', {timeZone:'Europe/Zurich'});
+    const date=obj?.[tab==='tabelle'?'standingsUpdatedAt':'matchesUpdatedAt'];
+    const formatted=date&&Number.isFinite(Date.parse(date))?new Date(date).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'unbekannt';
+    const partial=(obj?.errors?.length||0)>0;
+    $('#sourceNote').textContent='Datenquelle: '+l.source+' · Letzter Abgleich: '+formatted+(partial?' · Hinweis: Einige Daten sind verzögert.':'')+
+      (obj?.tableCalculated&&tab==='tabelle'?' · Berechnete Rangliste; offizielle Tie-Breaker können abweichen.':'');
   }
-
-  function render() {
-    renderDates(); updateStats(); updateNavigation(); renderSync(); renderMatches(); renderStandings();
-  }
-
-  function selectDate(day) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
-    state.date = day;
-    state.view = 'day';
-    render();
-  }
-  function closeSidebar() {
-    find('#sidebar').classList.remove('open');
-    find('#overlay').classList.remove('show');
-    find('#menuButton').setAttribute('aria-expanded','false');
-  }
-  function saveFavorites() {
-    try { localStorage.setItem('sportspy-favorites-v2', JSON.stringify([...state.favorites])); } catch {}
-  }
-  function applyScope(scope) {
-    state.scope = scope;
-    if (LEAGUES.some(l => l.id === scope)) {
-      state.standings = scope;
-      state.sport = 'all';
+  function favoriteRecords(){
+    const records=[];
+    for(const l of LEAGUES){
+      const obj=snapshotLeague(l.id);
+      const seen=new Map();
+      for(const row of obj?.standings||[]) if(row.team)seen.set(String(row.team.id),row.team);
+      for(const g of obj?.matches||[])for(const t of [g.home,g.away])if(t)seen.set(String(t.id),t);
+      for(const t of seen.values())if(isFav(l.id,t))records.push({league:l,team:t});
     }
-    closeSidebar();
-    render();
-    if (window.innerWidth < 870) find('#gamesHeading').scrollIntoView({behavior:'smooth', block:'start'});
+    return records;
   }
-
-  function bind() {
-    find('#lightMode').addEventListener('click', () => setTheme('light'));
-    find('#darkMode').addEventListener('click', () => setTheme('dark'));
-    find('#prevDays').addEventListener('click', () => selectDate(dayAdd(state.date,-7)));
-    find('#nextDays').addEventListener('click', () => selectDate(dayAdd(state.date,7)));
-    find('#goToday').addEventListener('click', () => selectDate(currentDay()));
-    find('#dateInput').addEventListener('change', e => { if (e.target.value) selectDate(e.target.value); });
-    find('#search').addEventListener('input', e => { state.search = e.target.value; renderMatches(); renderStandings(); });
-    find('#menuButton').addEventListener('click', () => {
-      const open = find('#sidebar').classList.toggle('open');
-      find('#overlay').classList.toggle('show',open);
-      find('#menuButton').setAttribute('aria-expanded',String(open));
+  function renderFavorites(){
+    const selected=favoriteRecords();
+    $('#favoriteTeams').innerHTML=selected.length?selected.map(({league:l,team:t})=>'<div class="favorite-team">'+badge(l.id,t,'crest-lg')+
+      '<div class="favorite-copy"><strong>'+escapeHTML(t.name)+'</strong><small>'+escapeHTML(l.name)+'</small></div>'+
+      star(l.id,t)+'</div>').join(''):
+      emptyBox('Noch keine Lieblingsteams','Wähle in einer Liga den Stern neben einem Verein aus.');
+    const games=sortedGames(allGames().filter(g=>g.date>=today()&&g.state==='scheduled'&&(isFav(g.leagueId,g.home)||isFav(g.leagueId,g.away)))).slice(0,12);
+    $('#favoriteMatches').innerHTML=games.length?matchGroups(games,12):emptyBox('Noch keine kommenden Partien','Sobald deine Teams einen Spielplan haben, erscheinen ihre nächsten Spiele hier.');
+  }
+  function render(){
+    app.route=parseRoute();
+    const p=app.route;
+    $('#homePage').hidden=p.page!=='home';$('#leaguePage').hidden=p.page!=='league';$('#favoritesPage').hidden=p.page!=='favorites';
+    $('#breadcrumb').textContent=p.page==='home'?'ÜBERSICHT':p.page==='favorites'?'MEINE TEAMS':leagueOf(p.id)?.name.toUpperCase();
+    $$('[data-nav]').forEach(a=>{
+      const key=p.page==='league'?p.id:p.page;
+      const active=a.dataset.nav===key;
+      a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');
     });
-    find('#overlay').addEventListener('click',closeSidebar);
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') closeSidebar();
-      if (e.key === '/' && !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) {
-        e.preventDefault(); find('#search').focus();
+    $('#favoriteCount').textContent=app.favorites.size;
+    setStatus();closeMenu();
+    if(p.page==='home')renderHome();
+    else if(p.page==='league')renderLeague();
+    else renderFavorites();
+  }
+  function selectDay(value){
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(Date.parse(value+'T12:00:00Z')))return;
+    app.selectedDate=value;renderLeague();
+  }
+  function events(){
+    $('#themeLight').addEventListener('click',()=>setTheme('light'));
+    $('#themeDark').addEventListener('click',()=>setTheme('dark'));
+    $('#menuButton').addEventListener('click',()=>{
+      const opened=$('#sidebar').classList.toggle('mobile-open');
+      $('#scrim').hidden=!opened;
+      $('#menuButton').setAttribute('aria-expanded',String(opened));
+    });
+    $('#scrim').addEventListener('click',closeMenu);
+    window.addEventListener('hashchange',()=>{render();window.scrollTo({top:0,behavior:'instant'})});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu()});
+    document.addEventListener('change',e=>{
+      if(e.target?.id==='dayPicker')selectDay(e.target.value);
+    });
+    document.addEventListener('input',e=>{
+      if(e.target?.id==='teamSearch'){
+        app.tableSearch=e.target.value;
+        const index=e.target.selectionStart;
+        renderLeague();
+        const next=$('#teamSearch');
+        if(next){next.focus();next.setSelectionRange(index,index)}
       }
     });
-    document.addEventListener('click', e => {
-      const fav = e.target.closest('[data-favorite]');
-      if (fav) {
-        const id = fav.dataset.favorite;
-        if (state.favorites.has(id)) state.favorites.delete(id);
-        else state.favorites.add(id);
-        saveFavorites(); render();
-        return;
+    document.addEventListener('click',e=>{
+      const shift=e.target.closest('[data-shift]');
+      if(shift){selectDay(dayShift(app.selectedDate,Number(shift.dataset.shift)));return}
+      if(e.target.closest('#resetToday')){selectDay(today());return}
+      const fav=e.target.closest('[data-fav]');
+      if(fav){
+        const id=fav.dataset.fav;
+        if(app.favorites.has(id))app.favorites.delete(id);
+        else app.favorites.add(id);
+        try{localStorage.setItem('sportspy-favorites-v2',JSON.stringify([...app.favorites]))}catch(_){}
+        render();
       }
-      const date = e.target.closest('[data-day]');
-      if (date) { selectDate(date.dataset.day); return; }
-      const scope = e.target.closest('[data-scope]');
-      if (scope) { applyScope(scope.dataset.scope); return; }
-      const view = e.target.closest('[data-view]');
-      if (view) { state.view = view.dataset.view; renderMatches(); return; }
-      const sport = e.target.closest('[data-sport]');
-      if (sport) { state.sport = sport.dataset.sport; renderMatches(); return; }
-      const table = e.target.closest('[data-table]');
-      if (table) { state.standings = table.dataset.table; renderStandings(); return; }
-      if (e.target.closest('[data-empty-upcoming]')) { state.view='upcoming'; renderMatches(); }
     });
   }
-
-  async function load() {
-    try {
-      const response = await fetch('./data/snapshot.json?v=' + Date.now(), {cache:'no-store',headers:{Accept:'application/json'}});
-      if (!response.ok) throw new Error('HTTP ' + response.status);
-      const data = await response.json();
-      if (!data || !data.leagues || typeof data.leagues !== 'object') throw new Error('Ungültige Daten');
-      state.snapshot = data;
-      state.error = null;
-    } catch (error) {
-      state.error = String(error?.message || error);
-    } finally {
-      state.loading = false;
-      render();
-    }
+  async function load(){
+    try{
+      const res=await fetch('./data/snapshot.json?v='+Date.now(),{cache:'no-store'});
+      if(!res.ok)throw Error('HTTP '+res.status);
+      const data=await res.json();
+      if(!data||!data.leagues||typeof data.leagues!=='object')throw Error('Ungültiger Daten-Snapshot');
+      app.snapshot=data;
+    }catch(error){console.warn('SportSpy: Daten konnten nicht geladen werden',error)}
+    finally{app.loading=false;render()}
   }
-
-  setTheme(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
-  bind();
-  render();
-  load();
-  setInterval(() => { if (!document.hidden) load(); }, 120000);
+  setTheme(document.documentElement.dataset.theme);
+  events();render();load();
+  setInterval(()=>{if(!document.hidden)load()},120000);
 })();
