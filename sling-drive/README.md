@@ -1,28 +1,23 @@
-# SLING DRIVE 🏎️ — Launch. Upgrade. Win.
+# ROAD EVOLVE — Open-World-3D-Autospiel
 
-**Ein neues, eigenständiges 3D-Mobile-Arcade-Spiel** im freundlichen Low-Poly-Stil. In diesem Projekt tritt ein Auto gegen immer grössere Distanzen an: mit einer Schleuder losschiessen, Münzen auf der Strecke sammeln, Hindernissen ausweichen, upgraden und das Levelziel erreichen.
+Eigenständiges, vollständig selbst programmiertes Mobile-Arcade-Spiel, inspiriert vom Genre der Car-Evolve-Slingshot-Spiele. Keine Originalgrafiken, keine kopierten Assets und keine Verbindung zu Car Evolve / Heseri Games.
 
 ## Spielen
 
-Unter `https://brotesser8.github.io/hnkrspiel/sling-drive/` oder die Datei `index.html` auf einem lokalen Webserver öffnen (z. B. `python3 -m http.server 8000`, dann `/sling-drive/`).
+Seite `index.html` öffnen. Die Welt wird vollständig mit **WebGL** gerendert – ohne externe JavaScript-Bibliotheken, CDN, Downloads oder API-Keys.
 
-### Steuerung
-
-- **Handy:** Auf die 3D-Szene drücken, nach unten ziehen und loslassen, um den Schleuderschub zu bestimmen. Während der Fahrt über die Szene seitwärts ziehen oder die grossen Pfeiltasten verwenden, um das Auto zu lenken.
-- **Computer:** In die Szene klicken und loslassen oder die Leertaste zum Starten drücken. Danach Pfeiltasten nach links/rechts verwenden.
-
-## Fortschritt
-
-- **Schleuder:** Mehr Startgeschwindigkeit.
-- **Auto:** Weniger Verzögerung, längere Strecke.
-- **Einkommen:** Mehr Münzen am Ende eines Versuchs.
-
-Alle Upgrades, freigeschalteten Level und Münzen werden lokal im Browser (`localStorage`) gespeichert. Bei jedem abgeschlossenen Level wird ein längeres Ziel freigeschaltet. Das Spiel ist kostenlos, ohne Werbung und ohne Tracking.
+- **Start:** Finger / Maustaste auf der Szene halten und loslassen; länger halten gibt mehr Schub. Auf PC auch Leertaste halten und loslassen.
+- **Lenken:** Während der Fahrt seitlich auf der Szene ziehen oder A/D/Pfeiltasten verwenden; die Wiesen neben der Strasse sind befahrbar.
+- **Ziel:** So weit wie möglich fahren, Münzen einsammeln, Rampen überspringen und die Zielmarke erreichen.
+- **Upgrades:** Schleuder (Launch-Power), Auto (Motor und sichtbar stärkerer Sportwagen), Einkommen (mehr Münzen). Fortschritt bleibt mit `localStorage` im Browser gespeichert.
+- **Neue Level:** Nach Erreichen des Ziels wird die nächste längere Strecke freigeschaltet.
 
 ## Technik
 
-- Reines HTML/CSS/JavaScript mit **Three.js 0.160.1** als Browser-Modul von jsDelivr oder Unpkg.
-- Die 3D-Fahrzeuge, Schleuder, Münzen, Strasse, Bäume und Hügel werden zur Laufzeit geometrisch erzeugt. Es werden keine urheberrechtlich fremden Spielmodelle oder Texturen genutzt.
-- Kompatibel mit GitHub Pages. Eine Internetverbindung wird zum Laden von Three.js benötigt; kein Server, kein API-Key.
+Reales, perspektivisches WebGL 3D: Vertexbeleuchtung, Tiefentest, Nebel, laufend generierte Hügellandschaften und Strassen, Bäume, Felsen, Goldmünzen, sichtbare 3D-Räder, Kamera-Nachführung, Schwerkraft und Sprungrampen. Mobiles Responsive-Layout, deutscher UI-Text und Einstellungen.
 
-Version 1.0.0 — 12. November 2026
+### Hosting
+
+Die drei Dateien `index.html`, `style.css`, `game.js` im selben öffentlichen GitHub-Pages-Ordner ablegen. Keine Build-Tools erforderlich.
+
+**Hinweis:** Das Spiel ist eine eigenständige Hommage an das Genre, kein Nachbau der Original-App und keine vollständige physikalische Fahrzeug-Simulation.
