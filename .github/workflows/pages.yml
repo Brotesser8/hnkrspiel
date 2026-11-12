@@ -31,7 +31,9 @@ jobs:
         with:
           node-version: '22'
       - name: Check SportSpy snapshot generator
-        run: node --check sportspy/scripts/refresh.mjs
+        run: |
+          node --check sportspy/scripts/refresh.mjs
+          node --check sportspy/app.js
       - name: Refresh SportSpy sports data (free public endpoints)
         run: node sportspy/scripts/refresh.mjs
         continue-on-error: true
