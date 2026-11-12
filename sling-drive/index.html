@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+  <meta name="theme-color" content="#8bc4ff" />
+  <meta name="description" content="SLING DRIVE — schleudere dein Auto durch eine bunte 3D-Welt, sammle Münzen und verbessere dein Fahrzeug!" />
+  <title>SLING DRIVE — Launch · Upgrade · Win</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+  <canvas id="game-canvas" aria-label="Dreidimensionales Autospiel mit Schleuder, Strasse und Landschaft"></canvas>
+  <div class="sun-glow" aria-hidden="true"></div>
+
+  <header class="hud">
+    <div class="money" aria-label="Deine Münzen"><span class="coin-big">●</span><strong id="coins">100</strong><span class="money-plus">+</span></div>
+    <div class="stage-heading"><span>SLING DRIVE</span><strong id="level-label">LEVEL 01</strong></div>
+    <button id="settings-btn" class="round-button" aria-label="Einstellungen öffnen" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4l.7 2.2 1.7.7 2.1-1 2.8 2.8-1 2.1.7 1.7L23 11v4l-2.2.7-.7 1.7 1 2.1-2.8 2.8-2.1-1-1.7.7L14 24h-4l-.7-2.2-1.7-.7-2.1 1-2.8-2.8 1-2.1-.7-1.7L1 15v-4l2.2-.7.7-1.7-1-2.1 2.8-2.8 2.1 1 1.7-.7z" transform="translate(0 -1) scale(.97)"/><circle cx="12" cy="12" r="3.3"/></svg></button>
+  </header>
+
+  <div class="progress-wrap"><span class="progress-label" id="distance-label">0 m</span><div class="progress-track"><div id="progress-fill" class="progress-fill"></div><div class="checkpoints"><i></i><i></i><i></i></div></div><span class="flag"><span>⚑</span><b id="goal-label">450 m</b></span></div>
+
+  <div class="car-tag" id="car-tag"><div class="car-mini">🏎️</div><span>SPORT CAR</span><span class="badge-speed"><strong id="speed-label">0</strong><small>KM/H</small></span></div>
+  <div id="floating-text" class="floating-text" aria-live="polite"></div>
+
+  <div id="intro-prompt" class="intro-prompt"><div class="touch-arrow">↓</div><strong>ZIEH &amp; LASS LOS!</strong><span>Auto aufladen und losschleudern</span><div class="power-line"><div id="power-fill"></div></div></div>
+  <div id="run-hint" class="run-hint hidden">← ZIEHEN ZUM LENKEN →</div>
+
+  <section id="shop" class="shop" aria-label="Verbesserungen kaufen">
+    <div class="shop-title"><div class="shop-chip"><span class="sparkle">✦</span> UPGRADES</div><span class="shop-sub">WERDE STÄRKER BEI JEDEM VERSUCH</span></div>
+    <div class="upgrade-grid">
+      <button class="upgrade-card" data-upgrade="sling" type="button" aria-label="Schleuder verbessern">
+        <div class="upgrade-heading"><span>SCHLEUDER</span><span class="upgrade-level" id="level-sling">LV 1</span></div>
+        <div class="upgrade-art art-sling"><svg viewBox="0 0 110 94" aria-hidden="true"><ellipse cx="54" cy="86" rx="35" ry="6" fill="#b99557" opacity=".3"/><path d="M55 77 37 17 M55 77 77 17" stroke="#7d431c" stroke-width="13" stroke-linecap="round"/><path d="M55 77 37 17 M55 77 77 17" stroke="#c77a2b" stroke-width="8" stroke-linecap="round"/><path d="M39 18 55 37 76 18" fill="none" stroke="#e9573d" stroke-width="6" stroke-linecap="round"/><circle cx="56" cy="35" r="9" fill="#ffcd36" stroke="#ad6d14" stroke-width="2"/><path d="M53 29 58 35 54 40" stroke="#fff2b0" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg></div>
+        <div class="upgrade-impact" id="effect-sling">MEHR POWER</div>
+        <div class="pips" id="pips-sling"></div>
+        <div class="price-button"><small>UPGRADE</small><strong id="cost-sling">140</strong><span>●</span></div>
+      </button>
+      <button class="upgrade-card" data-upgrade="car" type="button" aria-label="Auto verbessern">
+        <div class="upgrade-heading"><span>AUTO</span><span class="upgrade-level" id="level-car">LV 1</span></div>
+        <div class="upgrade-art art-car"><svg viewBox="0 0 110 94" aria-hidden="true"><ellipse cx="56" cy="75" rx="47" ry="8" fill="#699bab" opacity=".2"/><path d="M14 54 26 44 39 32 71 32 84 45 96 50 96 65 15 65Z" fill="#ec3c32" stroke="#af221a" stroke-width="2"/><path d="M42 34 69 34 80 46 34 46Z" fill="#65cbe7"/><path d="M42 34 52 34 47 46 34 46Z" fill="#bdedf7"/><path d="M14 54H97" stroke="#ff8a53" stroke-width="5"/><circle cx="33" cy="65" r="12" fill="#293543"/><circle cx="33" cy="65" r="6" fill="#b7d5d9"/><circle cx="77" cy="65" r="12" fill="#293543"/><circle cx="77" cy="65" r="6" fill="#b7d5d9"/><path d="M89 49h7v5h-7" fill="#ffed9a"/></svg></div>
+        <div class="upgrade-impact" id="effect-car">MEHR REICHWEITE</div>
+        <div class="pips" id="pips-car"></div>
+        <div class="price-button"><small>UPGRADE</small><strong id="cost-car">155</strong><span>●</span></div>
+      </button>
+      <button class="upgrade-card" data-upgrade="income" type="button" aria-label="Einkommen verbessern">
+        <div class="upgrade-heading"><span>EINKOMMEN</span><span class="upgrade-level" id="level-income">LV 1</span></div>
+        <div class="upgrade-art art-income"><svg viewBox="0 0 110 94" aria-hidden="true"><ellipse cx="56" cy="79" rx="41" ry="7" fill="#7f7850" opacity=".2"/><rect x="20" y="59" width="66" height="13" rx="6" fill="#c27c19"/><ellipse cx="53" cy="57" rx="33" ry="9" fill="#ffcf38" stroke="#c58420" stroke-width="3"/><rect x="25" y="43" width="57" height="13" rx="6" fill="#e39a21"/><ellipse cx="53" cy="41" rx="29" ry="8" fill="#ffe16b" stroke="#c58420" stroke-width="3"/><circle cx="58" cy="27" r="21" fill="#ffbd23" stroke="#d88c11" stroke-width="3"/><circle cx="58" cy="27" r="14" fill="none" stroke="#ffe58e" stroke-width="3"/><path d="M56 16v22m-7-16h13m-13 9h13" stroke="#fff5bd" stroke-width="4" stroke-linecap="round"/></svg></div>
+        <div class="upgrade-impact" id="effect-income">MÜNZEN ×1.0</div>
+        <div class="pips" id="pips-income"></div>
+        <div class="price-button"><small>UPGRADE</small><strong id="cost-income">110</strong><span>●</span></div>
+      </button>
+    </div>
+  </section>
+
+  <div id="run-controls" class="run-controls hidden"><button class="steer-button" data-dir="-1" aria-label="Nach links lenken" type="button">◀</button><div class="run-center"><span id="speed-live">0 km/h</span><small>AUTO LENKEN</small></div><button class="steer-button" data-dir="1" aria-label="Nach rechts lenken" type="button">▶</button></div>
+
+  <div id="result" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="result-title"><div class="result-modal"><div class="result-stars" id="result-stars">⭐ ⭐ ⭐</div><div class="result-eyebrow" id="result-eyebrow">VERSUCH BEENDET</div><h1 id="result-title">GUTER FLUG!</h1><p id="result-copy">Du kommst deinem Ziel näher!</p><div class="result-stats"><div><span>DISTANZ</span><strong id="result-distance">0 m</strong></div><div><span>VERDIENT</span><strong class="gold" id="result-coins">+0 ●</strong></div></div><div class="result-track"><div id="result-progress"></div></div><div id="result-next" class="result-next"></div><button id="result-button" class="primary-button" type="button">WEITER SPIELEN <span>➜</span></button></div></div>
+
+  <div id="settings" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title"><div class="settings-modal"><button class="close" id="settings-close" type="button" aria-label="Schliessen">✕</button><div class="settings-emoji">⚙️</div><h2 id="settings-title">EINSTELLUNGEN</h2><p>SLING DRIVE — ein kleines Arcade-Spiel für zwischendurch.</p><label class="toggle-row">Ton <input id="sound-toggle" type="checkbox" checked><span class="toggle-ui"></span></label><button class="danger-button" id="reset-button" type="button">Spielfortschritt zurücksetzen</button><div class="settings-footer">Touch: Halten &amp; loslassen zum Starten, danach ziehen zum Lenken. Tastatur: Leertaste und ← →.</div></div></div>
+  <div class="load-error hidden" id="load-error">3D-Spiel konnte nicht geladen werden. Bitte Internetverbindung prüfen und die Seite neu laden.</div>
+</div>
+<script type="module" src="game.js"></script>
+</body>
+</html>
