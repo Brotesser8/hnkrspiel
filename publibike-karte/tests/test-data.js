@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict');
+const D=require('../data.js');
+const stations=D.normalizeAll({velospot:{responseData:[{station_id:'1',station_name:'Test',lat:46.9,lng:7.4,totalBike:3,totalElectricalBike:1,totalNonElectricalBike:2}]},publibike:{stations:[{id:'2',name:'Bern',latitude:46.95,longitude:7.45,vehicles:[{type:{id:2}},{type:{id:1}}]}]}});
+assert.equal(stations.length,2);
+assert.deepEqual([stations[0].total,stations[0].ebikes,stations[0].regular],[3,1,2]);
+assert.deepEqual([stations[1].total,stations[1].ebikes,stations[1].regular],[2,1,1]);
+assert.equal(D.normalizeAll({stations:[{id:3,name:'Unbekannt',latitude:47.5,longitude:8.5}]} )[0].total,null);
+assert.equal(D.normalizeAll({stations:[{id:4,latitude:13,longitude:11}]}).length,0);
+assert.equal(D.normalizeGbfs({data:{stations:[{station_id:'A',name:'A',lat:46.9,lon:7.4}]}},{data:{stations:[{station_id:'A',num_bikes_available:4}]}})[0].total,4);
+console.log('Datenparser-Tests erfolgreich');
