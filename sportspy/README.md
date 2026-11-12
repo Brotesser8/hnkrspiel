@@ -68,3 +68,16 @@ Die JSON-Datei wird beim automatischen GitHub-Pages-Deploy erzeugt und für den 
 ## GitHub Pages
 
 Die bereits vorhandene GitHub-Pages-Workflowdatei wird weiterverwendet. Änderungen an `main`, manuelle `workflow_dispatch`-Starts sowie das 30-Minuten-Schedule starten die Veröffentlichung. Der bisherige Henkerspiel-Startbildschirm und die bestehenden Websites bleiben unverändert.
+
+
+## Design-Version 3: Liga für Liga statt überfülltes Dashboard
+
+- **Startseite:** vier übersichtliche Liga-Karten und maximal drei Spiel-Vorschauen.
+- **Liga-Detailseite:** getrennte Tabs für **Heute**, **Nächste Spiele**, **Resultate** und **Tabelle**.
+- **Teamwappen:** SIHF-Bilder für Eishockeyteams anhand ihrer SIHF-Team-ID und die Swiss-Super-League-Logos von [FootyLogos](https://www.footylogos.com/competition/swiss-football-league). Die Wappen bleiben Marken der jeweiligen Vereine. Bei fehlenden/beschädigten Bilddateien wird ein lesbares Teamkürzel angezeigt.
+- **Light/Dark:** gespeicherte Auswahl im lokalen Browser, mit Rückfall auf die Systempräferenz.
+- **Direkte Links:** z. B. `#liga/national/tabelle` oder `#liga/super/naechste`; Browser-Zurück funktioniert.
+- **Favoriten:** Sterne neben jedem Team und auf Tabellenzeilen; gespeichert im Browser.
+- **GitHub Pages:** weiterhin 100 % statisch; bestehende Spiele im Hauptrepo werden nicht verändert.
+
+Die Website lädt Teamwappen als Bilder von externen Hosts. Falls ein Drittanbieter die URL-Struktur oder Hotlink-Regeln ändert, erscheinen automatisch die Teamkürzel statt defekter Bilder.
