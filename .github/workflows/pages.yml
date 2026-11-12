@@ -1,12 +1,15 @@
-name: Publish browser games to GitHub Pages
+name: Publish browser games and SportSpy
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # Refresh the public sports snapshot twice per hour.
+    - cron: '17,47 * * * *'
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -16,16 +19,38 @@ concurrency:
 
 jobs:
   deploy:
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
-      - name: Check out the games
+      - name: Check out the websites
         uses: actions/checkout@v4
-      - name: Set up GitHub Pages
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check SportSpy snapshot generator
+        run: node --check sportspy/scripts/refresh.mjs
+      - name: Refresh SportSpy sports data (free public endpoints)
+        run: node sportspy/scripts/refresh.mjs
+        continue-on-error: true
+      - name: Keep a daily fallback snapshot
+        # Save only daily, so the repo won't receive 48 data commits per day.
+        # The Pages artifact still contains fresh data on every scheduled run.
+        run: |
+          if [ -f sportspy/data/snapshot.json ] && { [ "$GITHUB_EVENT_NAME" = "push" ] || [ "$(date -u +%H)" = "00" ]; }; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add sportspy/data/snapshot.json
+            if ! git diff --cached --quiet; then
+              git commit -m "chore(sportspy): save latest public sports snapshot"
+              git push origin HEAD:main || echo "Could not save fallback; deploying the fresh artifact instead."
+            fi
+          fi
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
-      - name: Upload static website
+      - name: Upload all static websites
         uses: actions/upload-pages-artifact@v4
         with:
           path: .
