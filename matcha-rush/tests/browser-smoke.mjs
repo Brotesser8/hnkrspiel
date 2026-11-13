@@ -67,7 +67,8 @@ try{
     assert.equal(await page.locator("#boostChip").isVisible(),true);
   });
   await step("mouth magnet attracts and collects neighboring 3D matchas",async()=>{
-    await page.evaluate(()=>window.__MATCHA_QA__.setPower("magnet"));
+    await page.evaluate(()=>window.__MATCHA_QA__.grantPower("magnet"));
+    await page.waitForFunction(()=>window.__MATCHA_QA__.snapshot().powers.magnet>0,null,{timeout:4000});
     await page.waitForFunction(()=>window.__MATCHA_QA__.snapshot().mouthOpen>.5,null,{timeout:3000});
     const before=(await get(page)).cups;
     await page.evaluate(()=>window.__MATCHA_QA__.spawnMatcha(0));
@@ -75,7 +76,8 @@ try{
     await page.locator("#magnetChip").waitFor({state:"visible",timeout:4000});
   });
   await step("2× multiplier doubles matcha score",async()=>{
-    await page.evaluate(()=>window.__MATCHA_QA__.setPower("x2"));
+    await page.evaluate(()=>window.__MATCHA_QA__.grantPower("x2"));
+    await page.waitForFunction(()=>window.__MATCHA_QA__.snapshot().powers.x2>0,null,{timeout:4000});
     const previous=(await get(page)).score;
     await page.evaluate(()=>window.__MATCHA_QA__.collect());
     const next=(await get(page)).score;
@@ -83,7 +85,8 @@ try{
     await page.locator("#x2Chip").waitFor({state:"visible",timeout:4000});
   });
   await step("double-matcha jetpack creates flight and visible 3D equipment",async()=>{
-    await page.evaluate(()=>window.__MATCHA_QA__.setPower("jetpack"));
+    await page.evaluate(()=>window.__MATCHA_QA__.grantPower("jetpack"));
+    await page.waitForFunction(()=>window.__MATCHA_QA__.snapshot().powers.jetpack>0,null,{timeout:4000});
     await page.waitForFunction(()=>window.__MATCHA_QA__.snapshot().jetsVisible,null,{timeout:3000});
     assert.ok((await get(page)).y>=5);
     await page.screenshot({path:"matcha-rush/test-artifacts/matcha-jetpack.png",fullPage:true});
@@ -112,6 +115,13 @@ try{
     assert.equal((await get(page)).mode,"playing");
     assert.equal((await get(page)).lane,1);
     assert.equal((await get(page)).cups,0);
+    // This one is a REAL collision with a rendered train, not a scripted game-over.
+    await page.evaluate(()=>window.__MATCHA_QA__.clearObstacles());
+    await page.evaluate(()=>window.__MATCHA_QA__.spawnHazard("train"));
+    await page.waitForFunction(()=>window.__MATCHA_QA__.snapshot().mode==="gameover",null,{timeout:3500});
+    assert.equal(await page.locator("#gameOverPanel").isVisible(),true);
+    await page.locator("#restartButton").click();
+    assert.equal((await get(page)).mode,"playing");
   });
   await step("touch controls on mobile",async()=>{
     const phone=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1,reducedMotion:"reduce"});
