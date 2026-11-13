@@ -51,7 +51,7 @@ function syncHud(){
   ui.questCounter.textContent=Math.min(3,state.hitCount)+" / 3";
   ui.questProgress.style.width=(Math.min(3,state.hitCount)/3*100)+"%";
   ui.questText.textContent=state.questDone?"Street-Challenge abgeschlossen. +$30!":
-    "Triff 3 Passanten mit Tomaten und filme deine Reaktion.";
+    "Triff 3 Passanten mit Tomaten und verdiene den Bonus.";
   ui.districtCode.textContent={city:"01",festival:"02",summit:"03"}[state.saved.zone];
   ui.districtName.textContent=ZONES[state.saved.zone].name.toUpperCase();
   ui.districtSubtitle.textContent=state.saved.zone==="city"?"STREET LIFE • OPEN WORLD":
@@ -156,7 +156,7 @@ function movement(dt){
   };
   if(canStand(tryX,camera.position.z))camera.position.x=tryX;
   if(canStand(camera.position.x,tryZ))camera.position.z=tryZ;
-  camera.position.y=CAMERA_HEIGHT + Math.sin(state.time*12)*(keys.size||touch.size?.03:0);
+  camera.position.y=CAMERA_HEIGHT+Math.sin(state.time*12)*.028;
 }
 function findTarget(){
   if(!state.started || state.menu || !state.world)return null;
@@ -591,6 +591,7 @@ async function post(){
   state.saved.cash+=item.earned;
   state.saved.followers+=item.newFollowers;
   state.saved.totalViews+=item.views;state.saved.totalLikes+=item.likes;
+  state.saved.totalEarnings+=item.earned;
   state.postsVideo.set(item.id,clip.url);
   persist();syncHud();
   state.pending=null;
@@ -603,7 +604,7 @@ async function post(){
 }
 ui.discardClip.addEventListener("click",discard);
 ui.postClip.addEventListener("click",post);
-function sumEarned(){return state.saved.posts.reduce((n,p)=>n+p.earned,0);}
+function sumEarned(){return state.saved.totalEarnings;}
 function renderSocial(){
   ui.socialFollowers.textContent=compact(state.saved.followers);
   ui.socialViews.textContent=compact(state.saved.totalViews);
@@ -696,6 +697,7 @@ function returningViews(){
   state.saved.cash+=update.earned;
   state.saved.totalViews+=update.totalViews;
   state.saved.totalLikes+=update.totalLikes;
+  state.saved.totalEarnings+=update.earned;
   persist();syncHud();
   if(state.menu==="social")renderSocial();
   if(update.totalViews>0)announce("Deine Follower schauen ältere Videos erneut · +"+compact(update.totalViews)+" Views",2200);
