@@ -39,6 +39,7 @@ try{
     permissions:[],reducedMotion:"reduce"
   });
   page.on("pageerror",error=>errors.push(error.message));
+  page.on("console",message=>{if(["error","warning"].includes(message.type()))console.log("BROWSER "+message.type()+": "+message.text().slice(0,400));});
   await page.goto("http://127.0.0.1:"+port+"/tomato-takeover/",{waitUntil:"domcontentloaded"});
   await page.waitForFunction(()=>!document.querySelector("#startButton")?.disabled,null,{timeout:55000});
   assert.match(await page.locator("#introStatus").innerText(),/bereit/);
@@ -53,11 +54,14 @@ try{
   await page.keyboard.press("Space");
   await page.waitForFunction(()=>document.querySelector("#tomatoCount")?.textContent==="17");
   console.log("PASS: movement and first-person tomato throw");
+  await mkdir("tomato-takeover/test-artifacts",{recursive:true});
+  await page.screenshot({path:"tomato-takeover/test-artifacts/world-start.png",fullPage:true});
   await page.locator("#recordButton").click();
   await page.waitForSelector("#filmFrame:not([hidden])");
   await page.waitForTimeout(1600);
   await page.locator("#recordButton").click();
-  await page.waitForSelector("#previewView:not([hidden])",{timeout:20000});
+  try{await page.waitForSelector("#previewView:not([hidden])",{timeout:15000});}
+  catch(error){console.error("REC DIAGNOSTIC:",await page.evaluate(()=>({notice:document.querySelector("#notification")?.textContent,recLabel:document.querySelector("#recordLabel")?.textContent,frameHidden:document.querySelector("#filmFrame")?.hidden,menuHidden:document.querySelector("#menuOverlay")?.hidden,previewHidden:document.querySelector("#previewView")?.hidden})));throw error;}
   assert.ok((await page.locator("#previewVideo").getAttribute("src"))?.startsWith("blob:"));
   console.log("PASS: real canvas.captureStream & MediaRecorder footage preview");
   await page.locator("#postClip").click();
