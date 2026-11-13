@@ -86,7 +86,7 @@ test("duration and day filter are respected", () => {
   const hours = buildHours(weather);
   assert.equal(windowsFor(hours, "walk", 2).length, 8);
   assert.equal(windowsFor(hours, "walk", 2, "2026-06-13").length, 0);
-  assert.equal(windowTime(windowsFor(hours, "walk", 2)[0]), "09:00–11:00");
+  assert.equal(windowTime(windowsFor(hours, "walk", 2).find(window => window.start === 0)), "09:00–11:00");
 });
 
 test("weather labels and dates remain human-readable", () => {
