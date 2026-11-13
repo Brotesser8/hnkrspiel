@@ -1,0 +1,31 @@
+name: Tomato Takeover checks
+on:
+  push:
+    branches: [main, feat/tomato-takeover-game]
+    paths:
+      - 'tomato-takeover/**'
+      - '.github/workflows/tomato-checks.yml'
+  pull_request:
+    paths:
+      - 'tomato-takeover/**'
+      - '.github/workflows/tomato-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    name: Check 3D game logic and project structure
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript syntax
+        run: |
+          node --check tomato-takeover/app.js
+          node --check tomato-takeover/world.js
+          node --check tomato-takeover/logic.mjs
+      - name: Test the social economy, viral odds and UI structure
+        run: node --test tomato-takeover/tests/*.test.mjs
