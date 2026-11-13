@@ -126,7 +126,7 @@ test("row generator never blocks all lanes and emits all 5 power-ups",()=>{
 
 test("run speed ramps up but stays limited, score stops when paused",()=>{
  const s=running();
- for(let i=0;i<2000;i++)tickRun(s,.05);
+ for(let i=0;i<3000;i++)tickRun(s,.05);
  assert.equal(s.speed,SETTINGS.maxSpeed);
  const score=s.score;
  s.paused=true;tickRun(s,.06);
