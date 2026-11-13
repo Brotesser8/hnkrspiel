@@ -396,8 +396,10 @@ async function runSearch(query) {
 dom.search.addEventListener("input", () => {
   clearTimeout(searchTimer);
   searchController?.abort();
+  searchItems = [];
+  hideSearch();
   const query = dom.search.value.trim();
-  if (query.length < 2) { hideSearch(); return; }
+  if (query.length < 2) return;
   searchTimer = setTimeout(() => runSearch(query), 350);
 });
 dom.search.addEventListener("keydown", event => {
