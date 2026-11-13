@@ -132,11 +132,14 @@ export function createRunner(){
     const cup=matchaPickup();cup.position.set(side*.46,.78,.76);cup.scale.setScalar(.88);
     cup.rotation.z=side*.20;jets.add(cup);
     cyl(jets,.19,.12,.24,9,C.darkJade,side*.47,.74,.76);
-    const flame=add(jets,new THREE.ConeGeometry(.18,.89,7),
-      new THREE.MeshBasicMaterial({color:0xb6ffb7,transparent:true,opacity:.83,depthWrite:false}),
-      side*.47,.22,.80);
-    flame.rotation.x=Math.PI;
+    // Propulsion trails stream BACKWARD (+Z) from both Vanilla-Matcha cups.
+    const flame=add(jets,new THREE.ConeGeometry(.20,1.15,7),
+      new THREE.MeshBasicMaterial({color:0xb6ffb7,transparent:true,opacity:.88,depthWrite:false}),
+      side*.47,.73,1.33);
+    flame.rotation.x=-Math.PI/2;
     flame.userData.flame=true;
+    const vapor=orb(jets,.17,C.pale,side*.47,.74,2.05);
+    vapor.userData.flameParticle=true;
   }
   const halo=torus(body,.64,.047,C.greenGlow,0,2.17,0);
   halo.rotation.x=Math.PI/2;halo.visible=false;
@@ -159,8 +162,13 @@ export function createRunner(){
       this.boosted.visible=run.powers.boost>0;
       this.jets.visible=run.powers.jetpack>0;
       if(this.jets.visible){
-        for(const flame of this.jets.children)if(flame.userData.flame)
-          flame.scale.y=.8+Math.sin(time*31)*.23;
+        for(const flame of this.jets.children){
+          if(flame.userData.flame)flame.scale.y=.8+Math.sin(time*31)*.23;
+          if(flame.userData.flameParticle){
+            flame.position.z=1.92+Math.sin(time*18)*.32;
+            flame.scale.setScalar(.65+Math.abs(Math.sin(time*16))*.65);
+          }
+        }
       }
       const magnet=run.powers.magnet>0;
       this.halo.visible=magnet;this.mouthBeam.visible=magnet;
