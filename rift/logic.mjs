@@ -88,16 +88,19 @@ export function hemisphereHint(q) {
   return (q.lat >= 0 ? "Nordhalbkugel" : "Südhalbkugel") + " · " +
     (q.lng >= 0 ? "östliche Länge" : "westliche Länge");
 }
-export function pickMissions(quakes, count = 5) {
-  // Prefer well-described and reasonably large quakes. Spread across the planet
-  // to avoid giving players five variations of the same island chain.
+export function pickMissions(quakes, count = 5, seed = 0) {
+  // Prefer reasonably large quakes, but rotate the pool for replay variety.
+  // A seed keeps the choices repeatable in tests.
   const unique = new Map();
   quakes.filter(e => e.type === "quake" && finite(e.magnitude) && e.magnitude >= 4.5 &&
     typeof e.title === "string" && finite(e.lat) && finite(e.lng)).forEach(e => unique.set(e.id, e));
   const pool = [...unique.values()].sort((a, b) => b.magnitude - a.magnitude || b.time - a.time);
+  const eligible = pool.slice(0, Math.max(count, Math.ceil(pool.length * .8)));
+  const start = eligible.length ? Math.abs(Math.trunc(seed || 0)) % eligible.length : 0;
+  const candidates = [...eligible.slice(start), ...eligible.slice(0, start), ...pool.slice(eligible.length)];
   const selected = [];
   for (const minDistance of [2300, 1100, 0]) {
-    for (const q of pool) {
+    for (const q of candidates) {
       if (selected.length >= count) break;
       if (!selected.some(s => s.id === q.id) && selected.every(s => haversineKm(s, q) >= minDistance)) selected.push(q);
     }
