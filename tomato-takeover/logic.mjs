@@ -8,7 +8,7 @@ export const ZONES = Object.freeze({
   festival: { id:"festival", name:"PixelFest", label:"KONZERT", travel:24, ticket:95, access:"Konzertticket", icon:"♫" },
   summit: { id:"summit", name:"Capitol Plaza", label:"PRESSE-EVENT", travel:32, ticket:180, access:"Pressepass", icon:"★" }
 });
-export const START = Object.freeze({ cash:145, followers:180, tomatoes:18, totalViews:0, totalLikes:0, passes:[], posts:[], zone:"city", lastGift:0 });
+export const START = Object.freeze({ cash:145, followers:180, tomatoes:18, totalViews:0, totalLikes:0, totalEarnings:0, passes:[], posts:[], zone:"city", lastGift:0 });
 export const MAX_POSTS = 18;
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const safeNumber = (x, fallback = 0) => typeof x === "number" && Number.isFinite(x) ? x : fallback;
@@ -32,7 +32,7 @@ export function restoreSave(raw) {
     return {
       cash:asInt(o.cash,0,1e10), followers:asInt(o.followers,0,1e9),
       tomatoes:asInt(o.tomatoes,0,100), totalViews:asInt(o.totalViews),
-      totalLikes:asInt(o.totalLikes), passes, posts,
+      totalLikes:asInt(o.totalLikes), totalEarnings:asInt(o.totalEarnings ?? posts.reduce((sum,p)=>sum+p.earned,0)), passes, posts,
       zone:ZONES[o.zone] ? o.zone : "city",
       lastGift:asInt(o.lastGift)
     };
