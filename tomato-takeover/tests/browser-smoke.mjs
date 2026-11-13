@@ -84,6 +84,20 @@ try{
   console.log("PASS: travel costs & distinct 3D concert level");
   await mkdir("tomato-takeover/test-artifacts",{recursive:true});
   await page.screenshot({path:"tomato-takeover/test-artifacts/browser-smoke.png",fullPage:true});
+  // Also cover touch-sized layouts and the on-screen throw/travel controls.
+  const phone=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1,reducedMotion:"reduce"});
+  phone.on("pageerror",error=>errors.push("mobile: "+error.message));
+  await phone.goto("http://127.0.0.1:"+port+"/tomato-takeover/",{waitUntil:"domcontentloaded"});
+  await phone.waitForFunction(()=>!document.querySelector("#startButton")?.disabled,null,{timeout:55000});
+  await phone.locator("#startButton").click();
+  await phone.locator("#touchControls").waitFor({state:"visible"});
+  await phone.locator("#throwButton").click();
+  await phone.waitForFunction(()=>document.querySelector("#tomatoCount")?.textContent==="17");
+  await phone.locator("#mapButton").click();
+  await phone.waitForSelector("#travelView:not([hidden])");
+  await phone.screenshot({path:"tomato-takeover/test-artifacts/mobile-smoke.png",fullPage:true});
+  await phone.close();
+  console.log("PASS: mobile touch HUD, throw button and travel menu");
   if(errors.length)throw Error("Browser JavaScript errors: "+errors.join(" | "));
   console.log("ALL END-TO-END SMOKE TESTS PASSED");
 }catch(error){
