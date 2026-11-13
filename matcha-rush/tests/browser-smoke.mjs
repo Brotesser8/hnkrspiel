@@ -72,7 +72,7 @@ try{
     const before=(await get(page)).cups;
     await page.evaluate(()=>window.__MATCHA_QA__.spawnMatcha(0));
     await page.waitForFunction(n=>window.__MATCHA_QA__.snapshot().cups>n,before,{timeout:4000});
-    assert.equal(await page.locator("#magnetChip").isVisible(),true);
+    await page.locator("#magnetChip").waitFor({state:"visible",timeout:4000});
   });
   await step("2× multiplier doubles matcha score",async()=>{
     await page.evaluate(()=>window.__MATCHA_QA__.setPower("x2"));
@@ -80,7 +80,7 @@ try{
     await page.evaluate(()=>window.__MATCHA_QA__.collect());
     const next=(await get(page)).score;
     assert.ok(next-previous>=24);
-    assert.equal(await page.locator("#x2Chip").isVisible(),true);
+    await page.locator("#x2Chip").waitFor({state:"visible",timeout:4000});
   });
   await step("double-matcha jetpack creates flight and visible 3D equipment",async()=>{
     await page.evaluate(()=>window.__MATCHA_QA__.setPower("jetpack"));
