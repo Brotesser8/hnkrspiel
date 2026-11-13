@@ -17,10 +17,9 @@ const MIME={".html":"text/html; charset=utf-8",".css":"text/css; charset=utf-8",
 const server=createServer(async(req,res)=>{
   try{
     const url=new URL(req.url,"http://localhost");
-    let file=resolve(root,"."+decodeURIComponent(url.pathname));
-    if(file===root)file=resolve(root,"index.html");
+    const pathname=decodeURIComponent(url.pathname);
+    let file=resolve(root,"."+pathname+(pathname.endsWith("/")?"index.html":""));
     if(!file.startsWith(root+sep)){res.writeHead(403);res.end("Forbidden");return;}
-    if(file.endsWith(sep))file=resolve(file,"index.html");
     const data=await readFile(file);
     res.writeHead(200,{"Content-Type":MIME[extname(file)]||"application/octet-stream","Cache-Control":"no-store"});
     res.end(data);
