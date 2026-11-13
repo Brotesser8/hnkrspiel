@@ -373,7 +373,7 @@ function showIntro() {
 }
 function startGame() {
   if (!state.globe) { notify("3D-Globus benötigt. Bitte Browser/WebGL prüfen."); return; }
-  const missions = pickMissions(state.quakes, 5);
+  const missions = pickMissions(state.quakes, 5, Math.floor(Math.random() * state.quakes.length));
   if (missions.length < 5) { notify("Aktuell zu wenige echte Erdbeben für fünf Missionen."); return; }
   state.game = { missions, index: 0, total: 0, hint: false, guess: null, status: "aim" };
   dom.huntIntro.hidden = true;
