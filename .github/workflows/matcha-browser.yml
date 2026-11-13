@@ -1,0 +1,36 @@
+name: MATCHA RUSH browser gameplay
+on:
+  push:
+    branches: [main, feat/matcha-rush-3d]
+    paths:
+      - 'matcha-rush/**'
+      - '.github/workflows/matcha-browser.yml'
+  pull_request:
+    paths:
+      - 'matcha-rush/**'
+      - '.github/workflows/matcha-browser.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test runtime
+        run: npm install --no-save playwright@1.58.2
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Exercise genuine WebGL, all five powerups and mobile layout
+        run: node matcha-rush/tests/browser-smoke.mjs
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: matcha-rush-browser
+          path: matcha-rush/test-artifacts/
+          if-no-files-found: ignore
