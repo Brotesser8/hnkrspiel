@@ -33,7 +33,7 @@ Alle dargestellten Charaktere, Prominenten und Orte sind **frei erfunden**. Das 
 ### Filme & SplatStream
 
 - **R** startet/stopp eine Aufnahme von maximal **18 Sekunden**.
-- Die tatsächlichen 3D-Frames werden via `HTMLCanvasElement.captureStream()` + `MediaRecorder` als Videodatei aufgenommen. Das ist **kein Fake-Video**.
+- Die tatsächlichen 3D-Frames werden für stabile Videoaufnahmen in ein separates 2D-Canvas gezeichnet. `HTMLCanvasElement.captureStream()` und `MediaRecorder` erzeugen daraus ein echtes Video mit eingebranntem Trefferzähler und Creator-Wasserzeichen (kein Fake-Video).
 - Nach Ende: Video im Vorschauplayer ansehen, **posten** oder **verwerfen**.
 - Beim Posten werden simulierte Views, Likes, Follower und Einnahmen berechnet. Ein Fame-Multiplikator gilt für Streamer, Sänger und fiktive Politiker.
 - **Genau 5 % Chance** auf extrem viral **bei Clips mit mindestens einem Passanten-Treffer und ohne bekannte Person**. Die Berechnung ist als pure Funktion getestet. Clips mit Prominenten haben höhere Basisreichweite, aber nicht die zusätzliche 5-%-Lotterie für normale Clips.
