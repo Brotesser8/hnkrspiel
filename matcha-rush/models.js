@@ -69,12 +69,16 @@ export function createMatcha(){
   const leaf2=orb(g,.07,C.darkJade,.055,.46,.395);leaf2.scale.set(.6,1,.32);leaf2.rotation.z=-.45;
   // Under-cup mint disk gives contrast even against the pale track.
   const foot=cyl(g,.34,.36,.07,14,C.pale,0,.04,0);
+  // Soft luminous ground-level ring makes the drink readable from far away,
+  // while all of the cup, straw and whipped vanilla remain real 3D geometry.
+  const ring=torus(g,.53,.031,C.greenGlow,0,.10,0);
+  ring.rotation.x=Math.PI/2;
   return g;
 }
 const lattePrototype=typeof document!=="undefined"?createMatcha():null;
 export function matchaPickup(){
   const group=lattePrototype.clone(true);
-  group.scale.setScalar(.83);group.name="COLLECTIBLE_MATCHA";return group;
+  group.scale.setScalar(1.05);group.name="COLLECTIBLE_MATCHA";return group;
 }
 export function createRunner(){
   const root=new THREE.Group();root.name="matcha-hero";
