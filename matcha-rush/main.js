@@ -448,7 +448,7 @@ if(state.qa && ["localhost","127.0.0.1"].includes(location.hostname)){
   window.__MATCHA_QA__={
     snapshot:()=>({
       mode:state.mode,score:Math.floor(state.run.score),cups:state.run.matchas,
-      lane:state.run.lane,y:state.run.y,slide:state.run.slide,
+      lane:state.run.lane,y:state.run.y,vy:state.run.vy,slide:state.run.slide,
       powers:{...state.run.powers},jetsVisible:state.hero?.jets.visible,
       boostersVisible:state.hero?.boosted.visible,mouthOpen:state.hero?.mouth.scale.y,
       items:state.items.length,record:state.records.best,
@@ -467,6 +467,9 @@ if(state.qa && ["localhost","127.0.0.1"].includes(location.hostname)){
     },
     spawnMatcha:(lane=state.run.lane)=>{
       spawnItem("cup",SETTINGS.playerZ-.5,lane,null,state.run.y<1?.12:state.run.y);
+    },
+    clearObstacles:()=>{
+      for(let i=state.items.length-1;i>=0;i--)if(state.items[i].type==="obstacle")removeAt(i);
     },
     setPower:type=>activatePower(state.run,type),
     collect:()=>takeMatcha(state.run,1),
