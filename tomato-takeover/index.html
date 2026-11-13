@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#101e23">
+  <meta name="description" content="TOMATO TAKEOVER – ein kostenloses 3D-First-Person-Arcade-Spiel mit Low-Poly-Stadt, Tomatenwurf, Videodreh und simuliertem Social Media.">
+  <title>TOMATO TAKEOVER — Become Viral</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="stylesheet" href="./style.css">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js"}}</script>
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+<div id="game" class="game">
+  <div id="viewport" class="viewport" aria-label="3D-Spielwelt in First Person">
+    <canvas id="gameCanvas" tabindex="0" aria-label="Low-Poly-3D-Spiel. Bewege dich mit WASD und schaue mit der Maus."></canvas>
+    <div id="reticle" class="reticle" aria-hidden="true"><span></span><span></span><span></span><span></span><i></i></div>
+    <div class="film-frame" id="filmFrame" hidden aria-hidden="true">
+      <span class="frame-corner tl"></span><span class="frame-corner tr"></span><span class="frame-corner bl"></span><span class="frame-corner br"></span>
+      <div class="record-hud"><span class="red-dot"></span> REC <strong id="recClock">00:00</strong><span>•</span><span id="recHits">0 HITS</span></div>
+      <span class="film-caption">TOMATO CAM // LIVE FOOTAGE</span>
+    </div>
+    <div id="damageFlash" class="damage-flash" aria-hidden="true"></div>
+    <div id="screenFade" class="screen-fade" aria-hidden="true"></div>
+  </div>
+
+  <header class="hud-top">
+    <div class="logo"><span class="logo-mark">◕</span><div><strong>TOMATO<span>!</span></strong><small>TAKEOVER / 3D</small></div></div>
+    <div class="wealth-row" aria-label="Spielstand">
+      <div class="wealth-chip"><span class="chip-symbol gold">●</span><span><small>BALANCE</small><strong id="cashValue">$145</strong></span></div>
+      <div class="wealth-chip"><span class="chip-symbol cyan">✳</span><span><small>FOLLOWERS</small><strong id="followersValue">180</strong></span></div>
+      <div class="wealth-chip views-chip"><span class="chip-symbol pink">◉</span><span><small>TOTAL VIEWS</small><strong id="viewsValue">0</strong></span></div>
+    </div>
+    <div class="top-actions"><button id="mapButton" class="top-btn" type="button" title="Reisekarte öffnen (M)"><span>◈</span> <b>REISEN</b></button><button id="feedButton" class="top-btn" type="button" title="Social Feed öffnen (F)"><span>▣</span> <b>SOCIAL</b><i id="postDot"></i></button><button id="shopButton" class="top-btn" type="button" title="Tomaten kaufen (B)"><span>◕</span> <b>SHOP</b></button><button id="helpButton" class="top-btn icon-only" type="button" title="Steuerung">?</button></div>
+  </header>
+
+  <div class="hud-left">
+    <div class="location-card"><span class="live-pill"><i></i> OPEN WORLD</span><span class="district-label">CURRENT LOCATION / <span id="districtCode">01</span></span><strong id="districtName">NEON DISTRICT</strong><small id="districtSubtitle">DIE STADT GEHÖRT DIR</small></div>
+    <div class="quest-card"><div class="quest-top"><span>◈ DAILY HUSTLE</span><strong id="questCounter">0 / 3</strong></div><p id="questText">Triff 3 Passanten mit Tomaten und verdiene den Bonus.</p><div class="quest-progress"><span id="questProgress"></span></div></div>
+  </div>
+
+  <div id="targetCard" class="target-card" hidden><span id="targetKind">TARGET SPOTTED</span><strong id="targetName">PASSANT</strong><small id="targetDistance">— METER</small></div>
+  <div id="hitToast" class="hit-toast" role="status" aria-live="polite"></div>
+
+  <div class="hud-bottom">
+    <div class="inventory-card"><span class="hud-label">INVENTORY / 01</span><div class="inventory-main"><span class="tomato-emoji" aria-hidden="true">🍅</span><div><strong id="tomatoCount">18</strong><small>TOMATOES LEFT</small></div></div><button id="buyQuick" type="button" class="micro-link">+ 6 FÜR $18</button></div>
+    <div class="camera-toolbar">
+      <div class="toolbar-heading"><span class="live-dot"></span> CREATOR MODE <span class="creator-line"></span> FILM • POST • PROFIT</div>
+      <div class="toolbar-buttons"><button type="button" class="main-tool tomato-tool" id="throwButton"><span class="tool-icon">◕</span><span><b>WERFEN</b><small>LINKSKLICK / SPACE</small></span></button><button type="button" class="main-tool record-tool" id="recordButton"><span class="tool-icon" id="recordIcon">◉</span><span><b id="recordLabel">AUFNAHME</b><small>R / MAX. 18 SEK.</small></span></button></div>
+    </div>
+    <div class="tips-card"><span class="hud-label">HOW TO PLAY</span><div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <span>BEWEGEN</span></div><div><span class="mouse-glyph">⌖</span><span>MAUS / ZIELEN</span></div><div><kbd>R</kbd><span>VIDEO AUFNEHMEN</span></div></div>
+  </div>
+  <div class="touch-controls" id="touchControls" hidden>
+    <div class="dpad" role="group" aria-label="Bewegung">
+      <button type="button" data-move="forward" class="move-up" aria-label="Vorwärts">▲</button>
+      <button type="button" data-move="left" class="move-left" aria-label="Links">◀</button>
+      <button type="button" data-move="backward" class="move-down" aria-label="Rückwärts">▼</button>
+      <button type="button" data-move="right" class="move-right" aria-label="Rechts">▶</button>
+    </div><p class="touch-tip">Rechts wischen: umsehen</p>
+  </div>
+
+  <div class="intro-overlay" id="introOverlay">
+    <div class="intro-art" aria-hidden="true"><div class="art-ring r1"></div><div class="art-ring r2"></div><div class="intro-tomato">🍅</div><span class="art-star one">✳</span><span class="art-star two">✦</span></div>
+    <div class="intro-content">
+      <span class="intro-eyebrow">✳ OPEN WORLD CREATOR SIMULATOR ✳</span>
+      <h1>THROW.<br>FILM.<br><em>GO VIRAL.</em></h1>
+      <p>Eine komplett verrückte 3D-Stadt. Wirf Tomaten auf <strong>fiktive</strong> Passanten und Stars, filme deine Stunts und werde mit deinem eigenen Social-Media-Imperium reich.</p>
+      <div class="intro-tags"><span>◉ FIRST PERSON 3D</span><span>▣ IN-GAME SOCIAL MEDIA</span><span>✦ LOW POLY WORLD</span></div>
+      <button type="button" id="startButton" class="start-button" disabled><span id="startText">LADE 3D-WELT …</span><span>↗</span></button>
+      <small id="introStatus">Three.js wird geladen. Internetverbindung erforderlich.</small>
+    </div>
+    <div class="intro-bottom"><span>AN UNHINGED LITTLE ARCADE GAME</span><span>NO ACCOUNT · PLAY IN BROWSER</span></div>
+  </div>
+
+  <div class="overlay" id="menuOverlay" hidden>
+    <button class="overlay-shade" type="button" id="closeShade" aria-label="Menü schliessen"></button>
+    <div class="menu-panel" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+      <div class="panel-head"><div><span id="panelIndex" class="panel-overline">THE CITY IS YOURS</span><h2 id="menuTitle">—</h2></div><button id="closeMenu" class="close-btn" type="button" aria-label="Schliessen">✕</button></div>
+      <div id="travelView" class="menu-view" hidden>
+        <p class="panel-lead">Fahre mit dem öffentlichen Verkehr zu Events. VIP-Zugänge zahlst du einmal, Fahrten kosten jedes Mal. Die Rückfahrt in die Stadt ist kostenlos.</p>
+        <div class="destination-grid" id="destinations"></div>
+        <div class="panel-note"><span>🚇</span> Fahrpreise werden vor der Abreise abgebucht. Alle bekannten Personen sind fiktiv.</div>
+      </div>
+      <div id="storeView" class="menu-view" hidden>
+        <p class="panel-lead">Mehr Tomaten, mehr Clips. Behalte genügend Munition, um vor dem nächsten Event neue Views zu sammeln.</p>
+        <div class="shop-hero"><div class="shop-tomato">🍅</div><div><span>FRESH FROM THE MARKET</span><h3>TOMATO PACK</h3><p>6 erstklassige Arcade-Tomaten.</p></div><strong>$18</strong></div>
+        <button class="purchase-btn" id="buyPack" type="button">6 TOMATEN KAUFEN <span>↗</span></button><div class="panel-note" id="giftNote"></div>
+        <button class="gift-btn" id="claimGift" type="button" hidden>NOTFALL-STARTERPACK HOLEN</button>
+      </div>
+      <div id="socialView" class="menu-view" hidden>
+        <div class="social-brand"><span class="social-icon">▶</span><div><strong>SPLAT<span>STREAM</span></strong><small>SIMULATED CREATOR NETWORK</small></div><span class="social-badge">LIVE</span></div>
+        <div class="social-stats"><div><span>FOLLOWERS</span><strong id="socialFollowers">0</strong></div><div><span>ALL-TIME VIEWS</span><strong id="socialViews">0</strong></div><div><span>TOTAL EARNED</span><strong id="socialEarnings">$0</strong></div></div>
+        <div class="feed-header"><span>YOUR VIDEOS</span><small>Neue Uploads bringen auch alten Videos Zuschauer zurück.</small></div>
+        <div id="socialPosts" class="social-posts"></div>
+        <div class="panel-note">Werbeerlöse: simulierte $8 pro 1.000 Aufrufe. Nur deine Ingame-Zuschauer sehen die Videos.</div>
+      </div>
+      <div id="previewView" class="menu-view" hidden>
+        <div class="preview-top"><span class="preview-live"><i></i> FOOTAGE CAPTURED</span><span id="clipLength">— SEK.</span></div>
+        <div class="preview-video-wrap"><video id="previewVideo" controls playsinline preload="metadata"></video></div>
+        <div id="previewSummary" class="preview-summary">Dein Clip ist bereit.</div>
+        <div class="preview-buttons"><button id="discardClip" class="secondary-btn" type="button">VERWERFEN</button><button id="postClip" class="purchase-btn" type="button">AUF SPLATSTREAM POSTEN ↗</button></div>
+        <p class="preview-note">Dein Video bleibt auf diesem Gerät gespeichert, sofern der Browser lokalen Videospeicher zulässt.</p>
+      </div>
+      <div id="helpView" class="menu-view" hidden>
+        <p class="panel-lead">Mach aus jedem Tomatenwurf eine Szene. Es ist Slapstick: Alle Figuren sind fiktiv und bleiben unverletzt.</p>
+        <div class="help-list"><div><kbd>W A S D</kbd><span>In First Person bewegen</span></div><div><kbd>MAUS</kbd><span>Mit der Maus umsehen (ins Bild klicken)</span></div><div><kbd>LINKSKLICK / SPACE</kbd><span>Tomate werfen</span></div><div><kbd>R</kbd><span>Videoaufnahme starten / stoppen</span></div><div><kbd>F</kbd><span>SplatStream öffnen</span></div><div><kbd>M</kbd><span>Reisekarte öffnen</span></div><div><kbd>B</kbd><span>Markt / Tomaten kaufen</span></div><div><kbd>ESC</kbd><span>Maus freigeben oder Menü schliessen</span></div><div><kbd>SHIFT</kbd><span>Sprinten</span></div></div>
+        <div class="panel-note">Mobil: Links das Steuerkreuz gedrückt halten, rechts im Bild wischen, mit WERFEN zielen und mit AUFNAHME filmen.</div>
+      </div>
+    </div>
+  </div>
+  <div class="player-overlay" id="playerOverlay" hidden><div class="player-dialog" role="dialog" aria-modal="true" aria-label="Video abspielen"><button type="button" id="closePlayer" class="close-player" aria-label="Video schliessen">✕</button><video id="feedVideo" controls playsinline preload="metadata"></video><p id="feedVideoTitle">SPLATSTREAM CLIP</p></div></div>
+  <div class="notification" id="notification" role="status" aria-live="polite" hidden></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,37 @@
+name: Tomato Takeover browser smoke
+on:
+  push:
+    branches: [feat/tomato-takeover-game, main]
+    paths:
+      - 'tomato-takeover/**'
+      - '.github/workflows/tomato-browser.yml'
+  pull_request:
+    paths:
+      - 'tomato-takeover/**'
+      - '.github/workflows/tomato-browser.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    name: 3D WebGL + record + publish + travel
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright test runtime (not shipped with game)
+        run: npm install --no-save playwright@1.58.2
+      - name: Install headless Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Exercise actual browser gameplay
+        run: node tomato-takeover/tests/browser-smoke.mjs
+      - name: Upload gameplay screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tomato-takeover-browser
+          path: tomato-takeover/test-artifacts/
+          if-no-files-found: ignore
