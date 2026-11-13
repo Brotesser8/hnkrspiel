@@ -43,7 +43,7 @@ try{
   await page.waitForFunction(()=>!document.querySelector("#startButton")?.disabled,null,{timeout:55000});
   assert.match(await page.locator("#introStatus").innerText(),/bereit/);
   await page.locator("#startButton").click();
-  await page.waitForSelector("#introOverlay[hidden]");
+  await page.locator("#introOverlay").waitFor({state:"hidden"});
   const canvas=page.locator("#gameCanvas");
   assert.ok(await canvas.evaluate(el=>el.width>0&&el.height>0),"3D canvas has dimensions");
   console.log("PASS: WebGL initialized, first-person game started");
