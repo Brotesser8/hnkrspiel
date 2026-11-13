@@ -243,7 +243,7 @@ export function createPowerup(type){
       box(g,.72,.11,1.0,C.cream,side*.4,.67,-.1);
       orb(g,.24,C.vanilla,side*.4,1.19,.19);
     }
-  }else{
+  }else if(type==="x2"){
     const disk=cyl(g,.77,.77,.22,12,C.darkJade,0,1.13,0);
     disk.rotation.x=Math.PI/2;
     const label=sign("×2",1.32,.95,"#b1e9b0","#235447");label.position.set(0,1.13,.18);g.add(label);
