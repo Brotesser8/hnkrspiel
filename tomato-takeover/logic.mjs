@@ -81,7 +81,7 @@ export function returningAudience(posts, followers, rng = Math.random) {
   let earned = 0, totalViews = 0, totalLikes = 0;
   const updated = clean.map(post => {
     const r = clamp(safeNumber(rng(), .5),0,1);
-    const views = asInt((Math.max(0, safeNumber(followers)) * .015 + 12) * (.55 + .9 * r),0,200000);
+    const views = asInt((Math.max(0, safeNumber(followers)) * .12 + 50) * (.55 + .9 * r),0,200000);
     const likes = asInt(views * (.075 + .05 * r),0,views);
     const money = asInt(views * .008,0,30000);
     earned += money; totalViews += views; totalLikes += likes;
