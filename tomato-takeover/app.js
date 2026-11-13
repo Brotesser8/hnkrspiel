@@ -25,7 +25,7 @@ const state = {
   saved:restoreSave(safeStorage(SAVE_KEY)), started:false, menu:null, recording:false,
   world:null, keys:new Set(), touchKeys:new Set(), sessionShots:[], pending:null,
   postsVideo:new Map(), dbPromise:null, playerSpeed:6, yaw:0, pitch:0, lastThrow:0,
-  recorder:null, stream:null, recordingChunks:[], recordingStart:0, recordTimer:null,
+  recorder:null, stream:null, recordCanvas:null, recordCtx:null, recordingChunks:[], recordingStart:0, recordTimer:null,
   hitCount:0, questDone:false, toastTimer:null, sparks:[], projectiles:[], time:0,
   pointerLocked:false, touchLook:null, touches:new Map(), lastReturn:Date.now()
 };
@@ -62,7 +62,7 @@ function syncHud(){
 let renderer, scene, camera, sun, clock;
 function createEngine(){
   try {
-    renderer=new THREE.WebGLRenderer({canvas:ui.gameCanvas,antialias:true,alpha:false,powerPreference:"high-performance"});
+    renderer=new THREE.WebGLRenderer({canvas:ui.gameCanvas,antialias:true,alpha:false,powerPreference:"high-performance",preserveDrawingBuffer:true});
     renderer.outputColorSpace=THREE.SRGBColorSpace;
     renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.18;
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1,1.65));
@@ -305,8 +305,8 @@ function frame(){
     movement(dt);
     updateProjectiles(dt);
     updateTarget();
-    if(state.recording)updateRecordClock();
     renderer.render(scene,camera);
+    if(state.recording){captureRecordingFrame();updateRecordClock();}
   }
 }
 function start(){
@@ -491,7 +491,32 @@ function chooseMime(){
 }
 function cleanRecordingStream(){
   if(state.stream){for(const track of state.stream.getTracks())track.stop();state.stream=null;}
+  state.recordCtx=null;state.recordCanvas=null;
   clearTimeout(state.recordTimer);state.recordTimer=null;
+}
+function captureRecordingFrame(){
+  const ctx=state.recordCtx,canvas=state.recordCanvas;
+  if(!ctx||!canvas)return;
+  try{
+    const w=canvas.width,h=canvas.height;
+    ctx.drawImage(ui.gameCanvas,0,0,w,h);
+    // These labels are genuinely burned into the captured video frames.
+    const unit=Math.max(13,Math.min(w,h)*.03);
+    ctx.fillStyle="#081c23aa";ctx.fillRect(0,0,w,unit*2.1);
+    ctx.fillStyle="#ff6574";ctx.beginPath();ctx.arc(unit*.9,unit,unit*.24,0,Math.PI*2);ctx.fill();
+    ctx.font="bold "+Math.round(unit*.68)+"px sans-serif";
+    ctx.fillStyle="#ffffff";ctx.fillText("TOMATO TAKEOVER  •  REC",unit*1.55,unit*1.22);
+    ctx.textAlign="right";
+    ctx.fillText(state.sessionShots.length+" HITS",w-unit,unit*1.22);
+    ctx.textAlign="left";
+    // A smaller in-video crosshair helps viewers follow the action.
+    ctx.strokeStyle="#ffffffb9";ctx.lineWidth=Math.max(1,w/650);
+    const cx=w/2,cy=h/2,r=unit*.5;
+    ctx.beginPath();ctx.moveTo(cx-r*1.8,cy);ctx.lineTo(cx-r*.65,cy);
+    ctx.moveTo(cx+r*.65,cy);ctx.lineTo(cx+r*1.8,cy);
+    ctx.moveTo(cx,cy-r*1.8);ctx.lineTo(cx,cy-r*.65);
+    ctx.moveTo(cx,cy+r*.65);ctx.lineTo(cx,cy+r*1.8);ctx.stroke();
+  }catch(error){console.warn("Capture frame failed",error);}
 }
 function updateRecordClock(){
   const elapsed=Math.min(RECORD_LIMIT,Date.now()-state.recordingStart);
@@ -500,12 +525,25 @@ function updateRecordClock(){
 }
 function startRecording(){
   if(state.recording||state.menu||!renderer)return;
-  if(!ui.gameCanvas.captureStream || typeof MediaRecorder==="undefined"){
+  if(!HTMLCanvasElement.prototype.captureStream || typeof MediaRecorder==="undefined"){
     announce("Dein Browser unterstützt Canvas-Videoaufnahmen nicht. Verwende Chrome, Firefox oder Safari in aktueller Version.",6200);return;
   }
   let stream=null;
   try{
-    stream=ui.gameCanvas.captureStream(24);
+    const recordCanvas=document.createElement("canvas");
+    const ratio=ui.gameCanvas.width/Math.max(1,ui.gameCanvas.height);
+    // Encode an efficient 960p-wide maximum; portrait videos cap at 960px high.
+    recordCanvas.width=Math.round(Math.min(960,Math.max(360,ui.gameCanvas.width)));
+    recordCanvas.height=Math.round(recordCanvas.width/ratio);
+    if(recordCanvas.height>960){
+      recordCanvas.height=960;
+      recordCanvas.width=Math.round(960*ratio);
+    }
+    const ctx=recordCanvas.getContext("2d",{alpha:false});
+    if(!ctx)throw Error("2D recording canvas unavailable");
+    state.recordCanvas=recordCanvas;state.recordCtx=ctx;
+    captureRecordingFrame();
+    stream=recordCanvas.captureStream(24);
     const mime=chooseMime();
     const opts=mime?{mimeType:mime,videoBitsPerSecond:1_350_000}:{videoBitsPerSecond:1_350_000};
     const recorder=new MediaRecorder(stream,opts);
