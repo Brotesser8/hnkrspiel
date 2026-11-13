@@ -1,0 +1,31 @@
+name: MATCHA RUSH checks
+on:
+  push:
+    branches: [main, feat/matcha-rush-3d]
+    paths:
+      - 'matcha-rush/**'
+      - '.github/workflows/matcha-checks.yml'
+  pull_request:
+    paths:
+      - 'matcha-rush/**'
+      - '.github/workflows/matcha-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript modules
+        run: |
+          node --check matcha-rush/main.js
+          node --check matcha-rush/models.js
+          node --check matcha-rush/world.js
+          node --check matcha-rush/logic.mjs
+      - name: Test runner logic and 3D interface structure
+        run: node --test matcha-rush/tests/logic.test.mjs matcha-rush/tests/structure.test.mjs

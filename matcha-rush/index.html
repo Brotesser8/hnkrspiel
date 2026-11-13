@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#112e29">
+  <meta name="description" content="MATCHA RUSH — ein echtes 3D-Endless-Runner-Spiel. Sammle wunderschöne Vanilla-Matcha-Becher, weiche Zügen aus und aktiviere fünf Matcha-Power-ups.">
+  <title>MATCHA RUSH — Vanilla Run</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="stylesheet" href="./style.css">
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js"}}</script>
+  <script type="module" src="./main.js"></script>
+</head>
+<body>
+<div class="app" id="app">
+  <canvas id="gameCanvas" aria-label="Interaktive 3D-Endless-Runner-Welt mit drei Spuren, Vanilla-Matchas und Hindernissen" tabindex="0"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <header class="top-hud" aria-label="Spielstand">
+    <div class="identity"><div class="identity-mark"><span>◕</span></div><div><strong>MATCHA<span>RUSH.</span></strong><small>THE VANILLA RUN</small></div></div>
+    <div class="hud-stats">
+      <div class="stat"><small>SCORE</small><strong id="scoreValue">0</strong></div>
+      <div class="stat"><small>BEST</small><strong id="bestValue">0</strong></div>
+      <div class="stat cups-stat"><span class="tiny-cup">🍵</span><div><small>VANILLA MATCHAS</small><strong id="cupValue">0</strong></div></div>
+      <div class="stat distance-stat"><small>DISTANZ</small><strong><span id="distanceValue">0</span> <span class="unit">m</span></strong></div>
+    </div>
+    <div class="top-actions"><button id="soundButton" type="button" title="Ton ein-/ausschalten" aria-label="Ton ein-/ausschalten" aria-pressed="true"><span id="soundIcon">♫</span></button><button id="pauseButton" type="button" title="Pause (P oder Esc)" aria-label="Spiel pausieren"><span id="pauseIcon">Ⅱ</span></button></div>
+  </header>
+  <div class="powers-hud" id="powersHud" aria-label="Aktive Power-ups">
+    <div class="power-chip" id="boostChip" hidden><span>↟</span><div><strong>VANILLA BOOST</strong><i><b id="boostBar"></b></i></div></div>
+    <div class="power-chip" id="jetpackChip" hidden><span>✦</span><div><strong>DOUBLE MATCHA JET</strong><i><b id="jetpackBar"></b></i></div></div>
+    <div class="power-chip" id="magnetChip" hidden><span>◉</span><div><strong>MATCHA MOUTH</strong><i><b id="magnetBar"></b></i></div></div>
+    <div class="power-chip" id="x2Chip" hidden><span>×2</span><div><strong>2× MULTIPLIER</strong><i><b id="x2Bar"></b></i></div></div>
+  </div>
+  <div class="side-info"><span class="live-light"></span><span>ENDLESS / 3D</span><span class="line">—</span><span id="speedValue">17 KM/H</span></div>
+  <div id="pickupToast" class="pickup-toast" aria-live="polite" role="status"></div>
+  <div id="nearNotice" class="near-notice" hidden>SO CLOSE!</div>
+  <div class="bottom-hud">
+    <div class="control-hint"><span class="hint-eyebrow">HOW TO PLAY</span><div><kbd>←</kbd><kbd>→</kbd><span>SPUR WECHSELN</span></div><div><kbd>↑</kbd><span>SPRINGEN</span><kbd>↓</kbd><span>ROLLEN</span></div></div>
+    <div class="run-streak"><div class="streak-circle">🍵</div><div><span id="multiLabel">1× SCORE</span><strong id="streakText">KEEP RUNNING!</strong></div></div>
+    <div class="swipe-hint">SWIPE TO MOVE <span>↗</span></div>
+  </div>
+  <div class="touch-pad" id="touchPad" hidden role="group" aria-label="Touch-Steuerung">
+    <button type="button" id="touchLeft" aria-label="Nach links">←</button>
+    <button type="button" id="touchJump" aria-label="Springen">↑</button>
+    <button type="button" id="touchSlide" aria-label="Rollen">↓</button>
+    <button type="button" id="touchRight" aria-label="Nach rechts">→</button>
+  </div>
+  <div class="screen" id="screen">
+    <div class="screen-blur" aria-hidden="true"></div>
+    <div class="screen-inner">
+      <div class="screen-pill"><span class="pill-dot"></span><span id="screenEyebrow">THE SWEETEST ENDLESS RUNNER</span></div>
+      <div class="screen-art" aria-hidden="true"><span class="art-halo one"></span><span class="art-halo two"></span><span class="art-cup">🍵</span><span class="spark one">✦</span><span class="spark two">✳</span></div>
+      <div id="homePanel">
+        <h1>RUN FOR<br><em>THE MATCHA<span>.</span></em></h1>
+        <p>Aus drei Spuren wird eine Mission: Weiche Zügen aus, sammle wunderschöne Vanilla-Matchas und verwandle jede Runde in einen neuen Highscore.</p>
+        <div class="home-tags"><span>◈ TRUE 3D</span><span>🍵 VANILLA MATCHAS</span><span>✦ 5 POWER-UPS</span></div>
+        <button id="startButton" class="play-button" type="button" disabled><span id="startLabel">3D WELT WIRD GELADEN …</span><span>↗</span></button>
+        <span id="loadStatus" class="load-status">THREE.JS INITIALISIERUNG</span>
+      </div>
+      <div id="pausePanel" hidden>
+        <h1>TAKE A<br><em>MATCHA BREAK<span>.</span></em></h1>
+        <p>Die Welt bleibt stehen. Dein Run wartet auf dich.</p>
+        <button id="resumeButton" class="play-button" type="button">WEITERLAUFEN <span>↗</span></button>
+        <button id="restartPaused" class="secondary-button" type="button">RUN NEU STARTEN</button>
+      </div>
+      <div id="gameOverPanel" hidden>
+        <h1>ONE MORE<br><em>MATCHA RUN<span>?</span></em></h1>
+        <p id="gameOverReason">Ein Hindernis war schneller.</p>
+        <div class="results"><div><span>SCORE</span><strong id="finalScore">0</strong></div><div><span>MATCHAS</span><strong id="finalCups">0</strong></div><div><span>DISTANZ</span><strong id="finalDistance">0 m</strong></div></div>
+        <div id="newRecord" class="new-record" hidden>✳ NEW PERSONAL BEST ✳</div>
+        <button id="restartButton" class="play-button" type="button">NOCHMAL LAUFEN <span>↗</span></button>
+      </div>
+      <div class="mini-instructions"><div><kbd>A</kbd><kbd>D</kbd> SPUR</div><div><kbd>W</kbd><kbd>SPACE</kbd> SPRUNG</div><div><kbd>S</kbd> ROLLEN</div><div><kbd>P</kbd> PAUSE</div></div>
+    </div>
+    <div class="screen-footer"><span>VANILLA ENERGY · INFINITE POSSIBILITIES</span><span>AN ORIGINAL LITTLE 3D GAME</span></div>
+  </div>
+  <div class="fallback" id="fallback" hidden role="alert"><strong>3D nicht verfügbar.</strong><p>Für MATCHA RUSH brauchst du einen aktuellen WebGL-fähigen Browser und eine Verbindung zur Three.js-Bibliothek.</p></div>
+</div>
+</body>
+</html>
