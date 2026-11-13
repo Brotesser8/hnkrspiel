@@ -124,7 +124,7 @@ input[type=search]::-webkit-search-cancel-button{cursor:pointer}
 .legend-dot:first-child{margin-left:0}
 .legend-dot.good{background:#b9de74}.legend-dot.okay{background:#9caaa1}.legend-dot.poor{background:#e2e6df}
 .chart-hint{font-size:9px;letter-spacing:.12em;color:#a7afa7;font-weight:800}
-.chart-viewport{width:100%;overflow-x:auto;padding-bottom:14px;scrollbar-color:#c9d5bf #f1f4ee;scrollbar-width:thin;scroll-behavior:smooth}
+.chart-viewport{width:100%;overflow-x:auto;padding-bottom:28px;scrollbar-color:#c9d5bf #f1f4ee;scrollbar-width:thin;scroll-behavior:smooth}
 .chart{height:166px;display:flex;align-items:flex-end;gap:5px;min-width:850px;padding-top:17px}
 .chart-hour{position:relative;display:flex;flex:1 0 13px;min-width:13px;align-items:center;justify-content:flex-end;flex-direction:column;height:100%;border:0;background:transparent;padding:0;color:#889188}
 .chart-hour .bar{display:block;width:100%;max-width:21px;min-height:4px;background:#e2e8df;border-radius:5px 5px 2px 2px;transition:height .3s,background .2s;flex-shrink:0}
