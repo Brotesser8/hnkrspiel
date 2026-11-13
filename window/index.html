@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f7f8f5">
+  <meta name="description" content="WINDOW findet das beste Zeitfenster zum Spazieren, Joggen oder Velofahren – mit Wetter, Regen, Wind, UV und Luftqualität. Kostenlos, ohne Account.">
+  <title>WINDOW — Geh raus, wenn's gut ist.</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="WINDOW Startseite"><span class="brand-mark" aria-hidden="true"><span></span></span>window<span class="brand-dot">.</span></a>
+      <div class="top-right"><span class="eyebrow desktop-only"><i class="live-dot"></i> LIVE FORECAST</span><a class="source-link" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Powered by Open-Meteo <span aria-hidden="true">↗</span></a></div>
+    </header>
+
+    <main>
+      <div class="page-heading">
+        <div><p class="kicker"><span class="kicker-line"></span> DEIN OUTDOOR-KOMPASS</p><h1>Geh raus,<br><em>wenn's gut ist.</em></h1><p class="intro">Wetter ist mehr als eine Temperatur. WINDOW verbindet Regen, Wind, Luftqualität und UV-Strahlung und findet deine besten Stunden draussen.</p></div>
+        <div class="top-annotation" aria-hidden="true"><span>01 / SMART FORECAST</span><div class="orbit"><span class="orbit-sun"></span><span class="orbit-ring"></span></div></div>
+      </div>
+
+      <section class="location-row" aria-label="Standort wählen">
+        <div class="search-wrap" id="searchWrap">
+          <label class="sr-only" for="citySearch">Ort suchen</label>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.7" cy="10.7" r="6.7"/><path d="m16 16 5 5"/></svg>
+          <input id="citySearch" type="search" placeholder="Ort suchen – z. B. Zürich, Wien, Berlin" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="searchResults" aria-autocomplete="list" spellcheck="false">
+          <div id="searchResults" class="search-results" role="listbox" hidden></div>
+        </div>
+        <button class="icon-button location-button" type="button" id="locateButton" title="Meinen Standort verwenden" aria-label="Meinen Standort verwenden">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.1"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+          <span class="desktop-only">Standort</span>
+        </button>
+        <button class="icon-button refresh-button" type="button" id="refreshButton" title="Prognose aktualisieren" aria-label="Prognose aktualisieren">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5 10a7.5 7.5 0 0 1 13-3l2 5M4 12l2 5a7.5 7.5 0 0 0 13-3"/></svg>
+        </button>
+      </section>
+      <p class="status" id="statusMessage" role="status" aria-live="polite">Lade Prognose für Zürich …</p>
+
+      <section class="preferences" aria-label="Aktivität und Dauer">
+        <div class="preference-group"><span class="pref-label">WAS HAST DU VOR?</span><div class="choice-list" id="activityChoices" role="group" aria-label="Aktivität"><button type="button" class="choice active" data-activity="walk" aria-pressed="true">Spazieren</button><button type="button" class="choice" data-activity="run" aria-pressed="false">Joggen</button><button type="button" class="choice" data-activity="bike" aria-pressed="false">Velofahren</button><button type="button" class="choice" data-activity="terrace" aria-pressed="false">Draussen sitzen</button></div></div>
+        <div class="preference-group duration-group"><span class="pref-label">WIE LANGE?</span><div class="choice-list" id="durationChoices" role="group" aria-label="Dauer"><button type="button" class="choice" data-hours="1" aria-pressed="false">1 h</button><button type="button" class="choice active" data-hours="2" aria-pressed="true">2 h</button><button type="button" class="choice" data-hours="3" aria-pressed="false">3 h</button></div></div>
+      </section>
+
+      <div class="feature-grid">
+        <section class="recommendation" aria-labelledby="bestHeading">
+          <div class="recommendation-top"><div class="eyebrow eyebrow-light"><span class="mini-sun" aria-hidden="true">✳</span> DEIN BESTES ZEITFENSTER</div><span id="recommendedDay" class="recommendation-day">–</span></div>
+          <div class="recommendation-body">
+            <p id="bestLocation" class="recommendation-place">Zürich, Schweiz</p>
+            <h2 id="bestHeading" class="best-time">–<span class="time-dash">—</span>–</h2>
+            <div class="best-caption"><span class="result-indicator" id="resultIndicator"></span><span id="bestLabel">Wird berechnet …</span></div>
+          </div>
+          <div class="recommendation-bottom">
+            <div id="insights" class="insights"><span>Wetterdaten werden geladen</span></div>
+            <div class="score-badge" aria-label="Zeitfenster-Bewertung"><div class="score-number"><span id="bestScore">–</span><small>/100</small></div><div class="score-caption">WINDOW<br>SCORE</div></div>
+          </div>
+          <div class="rec-decor" aria-hidden="true"><div class="rec-orbit"></div><div class="rec-core"></div></div>
+        </section>
+
+        <section class="current-panel" aria-labelledby="currentHeading">
+          <div class="panel-header"><p class="kicker">JETZT IN <span id="currentCity">ZÜRICH</span></p><h2 id="currentHeading">Das Wetter<br><span>auf einen Blick.</span></h2></div>
+          <div class="current-main"><span id="currentIcon" class="weather-symbol" aria-hidden="true">◌</span><span class="current-temperature" id="currentTemperature">–°</span><div class="current-summary"><strong id="currentDescription">Wird geladen</strong><span id="currentFeels">Gefühlt –°</span></div></div>
+          <div class="current-metrics">
+            <div class="metric"><span class="metric-label">REGENRISIKO</span><strong id="currentRain">– %</strong></div>
+            <div class="metric"><span class="metric-label">WIND</span><strong id="currentWind">– km/h</strong></div>
+            <div class="metric"><span class="metric-label">LUFT (US-AQI)</span><strong id="currentAqi">–</strong><small id="currentAqiLabel">Keine Daten</small></div>
+            <div class="metric"><span class="metric-label">UV-INDEX</span><strong id="currentUv">–</strong></div>
+          </div>
+        </section>
+      </div>
+
+      <section class="timeline-section" aria-labelledby="timelineHeading">
+        <div class="section-heading"><div><p class="kicker">02 / DIE DETAILS</p><h2 id="timelineHeading">48 Stunden. <span>Ein klarer Plan.</span></h2><p>Jeder Balken steht für eine Stunde. Höher bedeutet besser für deine Aktivität. Wähle einen Balken für Details.</p></div><div class="filter" role="group" aria-label="Zeitraum" id="dayChoices"><button class="filter-option active" type="button" data-day="all" aria-pressed="true">48 h</button><button class="filter-option" type="button" data-day="today" aria-pressed="false">Heute</button><button class="filter-option" type="button" data-day="tomorrow" aria-pressed="false">Morgen</button></div></div>
+        <div class="chart-card">
+          <div class="chart-top"><div class="chart-legend"><span class="legend-dot good"></span> Ideal <span class="legend-dot okay"></span> Mittel <span class="legend-dot poor"></span> Ungünstig</div><span class="chart-hint">← HORIZONTAL SCROLLEN →</span></div>
+          <div class="chart-viewport" id="chartViewport"><div class="chart" id="chart" role="group" aria-label="Stündliche Outdoor-Bewertung"></div></div>
+          <div class="selected-details" id="selectedDetails"><span class="selected-loading">Stündliche Details werden geladen …</span></div>
+        </div>
+      </section>
+
+      <section class="alternatives-section" aria-labelledby="alternativesHeading"><div class="section-heading simple"><div><p class="kicker">03 / PLAN B</p><h2 id="alternativesHeading">Auch eine <span>gute Option.</span></h2></div><span class="muted-note">Die besten nicht überlappenden Zeitfenster</span></div><div class="alternative-grid" id="alternatives"><div class="alternative loading-state">Wird berechnet …</div></div></section>
+    </main>
+
+    <footer class="footer"><div><span class="footer-brand">window<span>.</span></span><p>Gute Entscheidungen brauchen kein schlechtes Wetter.</p></div><div class="footer-right"><p>Prognosen, keine Garantie. WINDOW bewertet stündliche Wetter- und modellierte Luftdaten heuristisch und ersetzt keine amtlichen Warnungen.</p><a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Daten: Open-Meteo · CC BY 4.0 ↗</a></div></footer>
+  </div>
+</body>
+</html>
