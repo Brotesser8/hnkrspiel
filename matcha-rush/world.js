@@ -5,9 +5,9 @@ import { sign } from "./models.js";
 const standard=(c,extra={})=>new THREE.MeshStandardMaterial({color:c,roughness:.94,metalness:0,flatShading:true,...extra});
 const flat=(c)=>new THREE.MeshBasicMaterial({color:c});
 const MAT={
-  road:standard("#a2b4a9"),rail:standard("#4b7771",{metalness:.22,roughness:.44}),
-  sleeper:standard("#668278"),cream:standard("#e8e5ce"),light:standard("#f6ecd8"),
-  paving:standard("#c4d0b6"),soil:standard("#87b58f"),jade:standard("#699a81"),
+  road:standard("#809f94"),rail:standard("#4b7771",{metalness:.22,roughness:.44}),
+  sleeper:standard("#52796e"),cream:standard("#e8e5ce"),light:standard("#f6ecd8"),
+  paving:standard("#b8c9ae"),soil:standard("#87b58f"),jade:standard("#699a81"),
   dark:standard("#2d5c58"),tree:standard("#7ba981"),tree2:standard("#9fbc7d"),
   bark:standard("#8b8668"),amber:standard("#eacb9b"),accent:standard("#edb9a6"),
   glass:standard("#78b5ac"), mint:standard("#bad9a5")
