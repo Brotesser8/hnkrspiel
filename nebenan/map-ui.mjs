@@ -39,15 +39,16 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
   }).setView([22,8],2);
   map.getContainer().setAttribute("aria-label","Interaktive Weltkarte: ziehen, scrollen, mit Plus und Minus zoomen. Länderflächen und Ereignis-Punkte sind anklickbar.");
   const countryStyle=(isActive=false)=>({
-    color:isActive?"#e7e975":"#2e6456",
-    weight:isActive?2.6:1,
-    opacity:isActive?1:.56,
-    fillColor:isActive?"#dfe884":"#648e7a",
-    fillOpacity:isActive?.18:.035,
-    smoothFactor:1.1
+    color:isActive?"#516632":"#587966",
+    weight:isActive?2.4:1.1,
+    opacity:isActive?1:.84,
+    fillColor:isActive?"#e4f073":"#ede5ba",
+    fillOpacity:isActive?.66:.42,
+    smoothFactor:1
   });
   map.createPane("countryPane");map.getPane("countryPane").style.zIndex="350";
   map.createPane("eventsPane");map.getPane("eventsPane").style.zIndex="480";
+  const countryRenderer=L.svg({pane:"countryPane",padding:.35});
   L.control.scale({position:"bottomleft",imperial:false,maxWidth:130}).addTo(map);
   quakes=L.layerGroup();nature=L.layerGroup();
 
@@ -161,7 +162,7 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
       const features=topologyFeatures(await response.json());
       countryFeatures=features;
       borders=L.geoJSON(features,{
-        pane:"countryPane",style:selectedCountryStyle,
+        pane:"countryPane",renderer:countryRenderer,style:selectedCountryStyle,
         interactive:true,
         onEachFeature(feature,layer){
           const name=String(feature.properties?.name||"Land");
@@ -169,7 +170,7 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
           layer.on("mouseover",()=>{
             lastHover=layer;
             const country=countryForFeature(feature,getCountries());
-            layer.setStyle({weight:2,color:"#294b3f",fillOpacity:.23});
+            layer.setStyle({weight:2,color:"#294b3f",fillOpacity:.62});
             $("mapHoverLabel").textContent="LAND / "+(country?country.name:name);
           });
           layer.on("mouseout",()=>{

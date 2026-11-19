@@ -129,3 +129,9 @@ body.map-modal-open{overflow:hidden}
 
 /* Selected location halo is decorative: never block country polygon clicks. */
 .selected-country-icon{pointer-events:none!important}
+
+
+/* Geographic data stays visible even if public raster tiles are unavailable. */
+.map-shell .leaflet-container{background:#c4dcda!important}
+.map-shell .leaflet-country-pane svg path.leaflet-interactive{cursor:pointer;transition:fill-opacity .18s ease,stroke-width .18s ease}
+@media(prefers-reduced-motion:reduce){.map-shell .leaflet-country-pane svg path{transition:none!important}}

@@ -69,6 +69,7 @@ try{
  await page.locator("#musicContent .track").first().waitFor({timeout:20000});
  await page.locator("#mapLoading").waitFor({state:"hidden",timeout:15000});
  await page.locator("#borderStatus").getByText(/Länderflächen/).waitFor({timeout:15000});
+ assert.ok(await page.locator(".leaflet-country-pane svg path").count()>=2,"SVG land polygons must actually be rendered, not just parsed");
  assert.equal(await page.locator("#worldMap #mapFallback").count(),0,"map container must not include blocking fallback overlays");
  assert.ok(await page.evaluate(()=>window.__NEBENAN_QA__.map()?.getZoom()>=2),"Leaflet initialized");
  assert.equal(await page.locator("#mapQuakeCount").textContent(),"1");
@@ -117,6 +118,10 @@ try{
  await page.locator("#countryInput").fill("Japan");
  await page.locator(".search-submit").click();
  await page.locator("#countryName").getByText("Japan").waitFor();
+ await mkdir("nebenan/test-artifacts",{recursive:true});
+ await page.locator("#mapShell").scrollIntoViewIfNeeded();
+ await page.waitForTimeout(350);
+ await page.screenshot({path:"nebenan/test-artifacts/map-focused.png"});
  assert.equal(await page.locator("#currencyFrom").inputValue(),"JPY");
  await page.locator("#amountInput").fill("20");
  await page.locator("#exchangeForm button[type=submit]").click();
