@@ -87,3 +87,7 @@ Alle Commits in \`nebenan/\` starten den automatisierten GitHub-Actions-Lauf [ne
 Das Repository \`Brotesser8/hnkrspiel\` hat bereits einen GitHub-Pages-Workflow, der alle Unterordner publiziert. NEBENAN. liegt deshalb automatisch unter \`/hnkrspiel/nebenan/\`; andere Projekte werden nicht verändert.
 
 Quellcode im Ordner unter MIT-Lizenz. Für Transitous: nichtkommerzielle Nutzung, Attribution [Transitous Datenquellen](https://transitous.org/sources/), Quellcode öffentlich auf GitHub, Kontakt via [GitHub Issues](https://github.com/Brotesser8/hnkrspiel/issues). Für Karten: © OpenStreetMap-Mitwirkende / ODbL. Inhalte externer APIs behalten die jeweiligen Rechte ihrer Anbieter; insbesondere Albumcover und Pokémon-Abbildungen sind **nicht** durch MIT neu lizenziert.
+
+## Überarbeitung der Karte (19. November 2026)
+
+Die Weltkarte ist nun der zentrale Teil der Seite. Es gibt einen kachelunabhängigen Vektormodus, eine regionale Schnellnavigation, Zoom- und Richtungstasten, eine vergrösserte Kartenfläche und kontextbezogene Hilfe. Bei Fehlern der Rasterkacheln wechselt die Karte in den klaren Länder-Modus, ohne ein blockierendes Fenster über den Ländern einzublenden. Die Kartengeometrien können von zwei öffentlichen CDN-Mirrors bezogen werden. Geografische Auswahl bleibt auf Länderflächen beschränkt (keine ungenaue Mittelpunkt-Schätzung für Klicks im Meer).

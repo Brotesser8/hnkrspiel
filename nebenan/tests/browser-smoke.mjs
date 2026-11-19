@@ -44,10 +44,12 @@ try{
   ],
   objects:{countries:{type:"GeometryCollection",geometries:[
     {id:"756",type:"Polygon",arcs:[[0]],properties:{name:"Switzerland"}},
-    {id:"392",type:"Polygon",arcs:[[1]],properties:{name:"Japan"}}
+    {id:"392",type:"Polygon",arcs:[[1]],properties:{name:"Japan"}},
+    ...Array.from({length:151},(_,i)=>({id:String(1000+i),type:"Polygon",arcs:[[0]],properties:{name:"Mock "+i}}))
   ]}}
  };
  await page.route("https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json",route=>route.fulfill({json:bordersMock}));
+ await page.route("https://unpkg.com/world-atlas@2.0.2/countries-110m.json",route=>route.fulfill({json:bordersMock}));
  await page.route("https://countries.dev/countries**",route=>route.fulfill({json:entries}));
  await page.route("https://rss.marketingtools.apple.com/api/v2/**",route=>route.fulfill({json:{feed:{results:[{name:"Demo-Song eins",artistName:"Band A",url:"https://music.apple.com/"},{name:"Demo-Song zwei",artistName:"Band B",url:"https://music.apple.com/"}]}}}));
  await page.route("https://api.frankfurter.dev/v2/rate/**",route=>route.fulfill({json:{rate:.9,date:"2026-11-19"}}));
@@ -81,6 +83,14 @@ try{
  await page.locator('[data-map-mode="all"]').click();
  await page.locator("#mapContrast").click();
  assert.equal(await page.locator("#mapShell").evaluate(x=>x.classList.contains("map-high-contrast")),true);
+ await page.locator("#mapTilesOff").click();
+ assert.equal(await page.locator("#mapShell").evaluate(x=>x.classList.contains("vector-only")),true);
+ assert.equal(await page.locator("#mapLoading").isHidden(),true);
+ await page.locator('[data-map-jump="europe"]').click();
+ assert.equal(await page.locator('[data-map-jump="europe"]').getAttribute("aria-pressed"),"true");
+ await page.locator("#mapPanEast").click();
+ await page.locator("#mapTilesOn").click();
+ await page.locator("#mapLoading").waitFor({state:"hidden",timeout:12000});
  await page.locator("#mapContrast").click();
  await page.locator("#mapHelp").click();
  assert.equal(await page.locator("#mapHelpPanel").isVisible(),true);

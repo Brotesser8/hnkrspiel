@@ -18,7 +18,7 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
   const topStatus=$("mapMessage");
   let map=null,tile=null,borders=null,selected=null,selectedMarker=null,quakes=null,nature=null;
   let visibleMode="all",points={quakes:[],nature:[]},countryFeatures=[],boundariesReady=false;
-  let tileErrors=0,tilesOK=false,timeout=null,lastHover=null;
+  let tileErrors=0,tilesOK=false,timeout=null,lastHover=null,vectorOnly=false;
   if(!L){
     loading.hidden=false;
     $("mapLoadingTitle").textContent="Kartenbibliothek nicht verfügbar";
@@ -67,6 +67,32 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
     setCoordinates(center.lat,center.lng);
   }
   map.on("zoomend moveend",updateZoom);
+  const REGIONS={
+    world:{center:[22,8],zoom:2},europe:{center:[51,13],zoom:4},
+    america:{center:[12,-85],zoom:3},asia:{center:[32,103],zoom:3},
+    africa:{center:[2,19],zoom:3},oceania:{center:[-24,145],zoom:4}
+  };
+  function activeRegion(name){
+    for(const button of document.querySelectorAll("[data-map-jump]")){
+      const active=button.dataset.mapJump===name;
+      button.classList.toggle("active",active);
+      button.setAttribute("aria-pressed",String(active));
+    }
+  }
+  function jump(name){
+    const target=REGIONS[name];if(!target)return;
+    map.stop();
+    if(reduced())map.setView(target.center,target.zoom,{animate:false});
+    else map.flyTo(target.center,target.zoom,{duration:.65});
+    activeRegion(name);
+    mapHint(name==="world"?"Weltkarte · ziehe, zoome oder wähle ein Land.":"Region geöffnet · Länder direkt antippen.");
+  }
+  document.querySelectorAll("[data-map-jump]").forEach(button=>button.addEventListener("click",()=>jump(button.dataset.mapJump)));
+  function pan(dx,dy){map.stop();map.panBy([dx,dy],{animate:!reduced(),duration:.3});activeRegion("");}
+  $("mapPanNorth").addEventListener("click",()=>pan(0,-150));
+  $("mapPanSouth").addEventListener("click",()=>pan(0,150));
+  $("mapPanWest").addEventListener("click",()=>pan(-150,0));
+  $("mapPanEast").addEventListener("click",()=>pan(150,0));
   map.on("mousemove",e=>{
     if(!Number.isFinite(e.latlng.lat)||!Number.isFinite(e.latlng.lng))return;
     setCoordinates(e.latlng.lat,e.latlng.lng);
@@ -108,25 +134,42 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
   updateZoom();
 
   function showTileError(){
-    loading.hidden=false;
-    root.classList.add("map-has-error");
-    $("mapLoadingTitle").textContent="Kartenhintergrund nicht erreichbar";
-    $("mapLoadingText").textContent="Ländergrenzen und Ereignisse bleiben nutzbar. Du kannst die Karte erneut laden.";
-    $("mapLoadingRetry").hidden=false;
-    mapHint("Hintergrundkarte zurzeit eingeschränkt · Länder und Marker bleiben aktiv");
+    // Do not block usable vector countries with a modal when raster tiles fail.
+    vectorMode(true);
+    mapHint("Strassenkarte derzeit nicht erreichbar · klare Länderkarte aktiv.");
   }
   function tileReady(){
     tilesOK=true;tileErrors=0;
     loading.hidden=true;root.classList.remove("map-has-error");
     clearTimeout(timeout);
-    mapHint("Länderflächen antippen oder einen Ereignis-Layer wählen.");
+    if(!vectorOnly)mapHint("Länderflächen antippen oder einen Ereignis-Layer wählen.");
   }
   function tileError(){
     tileErrors++;
-    if(tileErrors>=5&&!tilesOK)showTileError();
+    if(tileErrors>=5&&!tilesOK&&!vectorOnly)showTileError();
   }
+  function vectorMode(enabled){
+    vectorOnly=enabled;
+    root.classList.toggle("vector-only",enabled);
+    $("mapTilesOn").classList.toggle("active",!enabled);
+    $("mapTilesOff").classList.toggle("active",enabled);
+    $("mapTilesOn").setAttribute("aria-pressed",String(!enabled));
+    $("mapTilesOff").setAttribute("aria-pressed",String(enabled));
+    if(enabled){
+      if(tile&&map.hasLayer(tile))map.removeLayer(tile);
+      loading.hidden=true;root.classList.remove("map-has-error");
+      clearTimeout(timeout);
+      mapHint("Klare Länderkarte · keine Hintergrundkacheln erforderlich.");
+    }else{
+      addTiles();
+      mapHint("Strassenkarte wird erneut geladen …");
+    }
+  }
+  $("mapTilesOn").addEventListener("click",()=>{if(!vectorOnly)return;vectorMode(false);});
+  $("mapTilesOff").addEventListener("click",()=>vectorMode(true));
   function addTiles(){
     if(tile)map.removeLayer(tile);
+    vectorOnly=false;root.classList.remove("vector-only");
     tilesOK=false;tileErrors=0;
     $("mapLoadingTitle").textContent="Weltkarte wird geladen";
     $("mapLoadingText").textContent="OSM-Kartenteile werden geladen …";
@@ -154,12 +197,21 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
   }
   async function loadBorders() {
     $("borderStatus").textContent="Grenzen werden geladen …";
-    const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(),16000);
+    let features=null;
+    // Independent mirrors; one failed CDN must not make the atlas unusable.
+    for(const url of [WORLD_DATA,"https://unpkg.com/world-atlas@2.0.2/countries-110m.json"]){
+      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),11000);
+      try{
+        const response=await fetch(url,{signal:controller.signal,cache:"force-cache"});
+        if(!response.ok)throw Error("HTTP "+response.status);
+        const data=topologyFeatures(await response.json());
+        if(data.length<150)throw Error("Boundary dataset incomplete");
+        features=data;break;
+      }catch{/* Another public mirror can supply the same world-atlas data. */}
+      finally{clearTimeout(timer);}
+    }
     try{
-      const response=await fetch(WORLD_DATA,{signal:controller.signal,cache:"force-cache"});
-      if(!response.ok)throw Error("HTTP "+response.status);
-      const features=topologyFeatures(await response.json());
+      if(!features)throw Error("No border data available");
       countryFeatures=features;
       borders=L.geoJSON(features,{
         pane:"countryPane",renderer:countryRenderer,style:selectedCountryStyle,
@@ -188,8 +240,8 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
       renderSelected();
     }catch{
       $("borderStatus").textContent="Grenzen nicht verfügbar";
-      mapHint("Ländergrenzen sind nicht geladen. Länder weiterhin über das Suchfeld auswählen.");
-    }finally{clearTimeout(timer);}
+      mapHint("Ländergrenzen sind nicht geladen. Bitte Länder über das Suchfeld auswählen.");
+    }
   }
   loadBorders();
 
@@ -210,6 +262,7 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
     $("mapSelectedLabel").textContent=country.name;
     if(fly) {
       map.stop(); // Cancel older movements before navigating to the next country.
+      activeRegion("");
       const match=borders?.getLayers().find(l=>countryForFeature(l.feature,getCountries())?.alpha2Code===country.alpha2Code);
       if(match&&match.getBounds().isValid()){
         const options={maxZoom:6,padding:[30,30]};
@@ -318,7 +371,7 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
     document.body.classList.remove("map-modal-open");
     $("mapExpand").setAttribute("aria-pressed","false");
     $("mapExpand").textContent="⛶ Grossansicht";
-    setTimeout(()=>map.invalidateSize(),90);
+    setTimeout(()=>map.invalidateSize({pan:false}),90);
   }
   function expand(){
     const active=!root.classList.contains("map-expanded");
@@ -327,7 +380,7 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
     document.body.classList.add("map-modal-open");
     $("mapExpand").setAttribute("aria-pressed","true");
     $("mapExpand").textContent="✕ Schliessen";
-    setTimeout(()=>map.invalidateSize(),90);
+    setTimeout(()=>map.invalidateSize({pan:false}),90);
   }
   function toggleHelp(force){
     const panel=$("mapHelpPanel");
@@ -340,11 +393,7 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
   );
   $("mapZoomIn").addEventListener("click",()=>map.zoomIn());
   $("mapZoomOut").addEventListener("click",()=>map.zoomOut());
-  $("mapReset").addEventListener("click",()=>{
-    map.stop();
-    if(reduced())map.setView([22,8],2,{animate:false});
-    else map.flyTo([22,8],2,{duration:.65});
-  });
+  $("mapReset").addEventListener("click",()=>jump("world"));
   $("mapExpand").addEventListener("click",expand);
   $("mapContrast").addEventListener("click",()=>{
     const active=root.classList.toggle("map-high-contrast");
@@ -357,10 +406,11 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
   document.addEventListener("keydown",e=>{
     if(e.key==="Escape"){toggleHelp(false);if(root.classList.contains("map-expanded"))closeExpanded();}
   });
-  const obs=typeof ResizeObserver!=="undefined"?new ResizeObserver(()=>map.invalidateSize()):null;
+  const obs=typeof ResizeObserver!=="undefined"?new ResizeObserver(()=>map.invalidateSize({pan:false})):null;
   obs?.observe($("worldMap"));
-  window.addEventListener("orientationchange",()=>setTimeout(()=>map.invalidateSize(),220));
+  window.addEventListener("orientationchange",()=>setTimeout(()=>map.invalidateSize({pan:false}),220));
   applyMode("all");
+  activeRegion("world");
   return {selectCountry,setEarthquakes,setNatureEvents,focusEvent,getMap(){return map;},destroy(){
     clearTimeout(timeout);obs?.disconnect();map.getContainer().removeEventListener("click",onNativeMapClick,true);map.remove();
   }};

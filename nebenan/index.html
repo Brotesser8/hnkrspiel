@@ -56,6 +56,14 @@
         <button type="button" class="map-mode" data-map-mode="countries" aria-pressed="false"><span class="mode-symbol">◇</span> Nur Länder</button>
       </div>
       <div id="worldMap" class="world-map" aria-label="Interaktive Weltkarte mit auswählbaren Länderflächen und Ereignissen" tabindex="0"></div>
+      <div class="map-quick-regions" role="group" aria-label="Schnell zu einer Weltregion springen">
+        <button type="button" data-map-jump="world" class="active" aria-pressed="true">🌐 Welt</button>
+        <button type="button" data-map-jump="europe" aria-pressed="false">Europa</button>
+        <button type="button" data-map-jump="america" aria-pressed="false">Amerika</button>
+        <button type="button" data-map-jump="asia" aria-pressed="false">Asien</button>
+        <button type="button" data-map-jump="africa" aria-pressed="false">Afrika</button>
+        <button type="button" data-map-jump="oceania" aria-pressed="false">Ozeanien</button>
+      </div>
       <div id="mapLoading" class="map-loading" role="status">
         <span class="map-loading-icon" aria-hidden="true">✳</span>
         <strong id="mapLoadingTitle">Weltkarte wird geladen</strong>
@@ -67,15 +75,21 @@
         <span class="rail-north" aria-hidden="true">↑ N</span>
         <button id="mapZoomIn" type="button" title="Karte vergrössern" aria-label="Karte vergrössern">+</button>
         <button id="mapZoomOut" type="button" title="Karte verkleinern" aria-label="Karte verkleinern">−</button>
+        <button id="mapPanNorth" type="button" title="Nach Norden bewegen" aria-label="Karte nach Norden bewegen" class="map-pan">↑</button>
+        <div class="map-pan-pair"><button id="mapPanWest" type="button" title="Nach Westen bewegen" aria-label="Karte nach Westen bewegen" class="map-pan">←</button><button id="mapPanEast" type="button" title="Nach Osten bewegen" aria-label="Karte nach Osten bewegen" class="map-pan">→</button></div>
+        <button id="mapPanSouth" type="button" title="Nach Süden bewegen" aria-label="Karte nach Süden bewegen" class="map-pan">↓</button>
         <button id="mapContrast" type="button" aria-pressed="false" title="Höheren Kartenkontrast einschalten">◐ Kontrast</button>
       </div>
       <div class="map-crosshair-label"><span id="mapHoverLabel">LAND ANKLICKEN</span><strong id="mapSelectedLabel">Schweiz</strong></div>
+      <div class="map-basemap-switch" role="group" aria-label="Kartenhintergrund wählen"><button type="button" id="mapTilesOn" class="active" aria-pressed="true">Strassenkarte</button><button type="button" id="mapTilesOff" aria-pressed="false">Klare Länderkarte</button></div>
       <div class="map-help-panel" id="mapHelpPanel" hidden>
         <div class="map-help-title"><strong>Karte bedienen</strong><button id="mapHelpClose" type="button" aria-label="Kartenhilfe schliessen">✕</button></div>
         <p><b>Land wählen:</b> Länderfläche antippen oder oben suchen. Meerflächen wählen kein Land.</p>
         <p><b>Erkunden:</b> Ziehen zum Verschieben; Mausrad, +/− oder zwei Finger zum Zoomen.</p>
         <p><b>Ereignisse:</b> Erdbeben (orange) und Naturereignisse (grün) öffnen Details beim Antippen.</p>
         <p><b>Grossansicht:</b> Ein- und ausblenden mit ⛶; Escape schliesst die Ansicht.</p>
+        <p><b>Navigation:</b> Weltregionen unten direkt öffnen und mit den Richtungspfeilen die Karte bewegen.</p>
+        <p><b>Kartendarstellung:</b> «Klare Länderkarte» funktioniert ohne externe Hintergrundkacheln, sobald Grenzen geladen sind.</p>
         <p>Die Grenzdaten sind vereinfacht und nicht rechtsverbindlich.</p>
       </div>
       <div class="map-bottom">
