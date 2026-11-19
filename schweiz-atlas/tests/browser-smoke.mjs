@@ -51,6 +51,7 @@ try{
   await mkdir("schweiz-atlas/test-artifacts",{recursive:true});
   await page.screenshot({path:"schweiz-atlas/test-artifacts/desktop.png",fullPage:true});
   await page.locator("#profileButton").click();
+  await page.locator("#map").scrollIntoViewIfNeeded();
   const box=await page.locator("#map").boundingBox();
   if(box){
     await page.mouse.click(box.x+box.width*.45,box.y+box.height*.54);

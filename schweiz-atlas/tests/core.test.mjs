@@ -21,7 +21,7 @@ test("official Swiss coordinate conversion is in reasonable survey range",()=>{
   assert.ok(Math.abs(p.e-2683304)<25);
   assert.ok(Math.abs(p.n-1247926)<25);
   assert.match(heightUrl(PRESETS.bern.lat,PRESETS.bern.lng),/sr=2056/);
-  assert.match(geoAdminMapUrl(46.948,7.447),"center=");
+  assert.match(geoAdminMapUrl(46.948,7.447),/center=/);
 });
 test("profile uses a GeoJSON line in LV95",()=>{
   const u=new URL(profileUrl(PRESETS.bern,PRESETS.zuerich));

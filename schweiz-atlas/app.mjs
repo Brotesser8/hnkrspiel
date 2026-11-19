@@ -137,7 +137,6 @@ function startRoute(){
   $("profileButton").textContent="Profil auswählen …";
   $("cancelProfile").hidden=false;
   $("mapHint").textContent="1 / 2 — Startpunkt für das Höhenprofil setzen";
-  $("profileCard").scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 function endRoute(){
   state.drawing=false;
