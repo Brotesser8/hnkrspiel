@@ -25,9 +25,11 @@ jobs:
           node --check nebenan/core.mjs
           node --check nebenan/api.mjs
           node --check nebenan/app.mjs
+          node --check nebenan/map-ui.mjs
+          node --check nebenan/map-data.mjs
           node --check nebenan/tests/browser-smoke.mjs
       - name: Run pure unit tests
-        run: node --test nebenan/tests/core.test.mjs
+        run: node --test nebenan/tests/*.test.mjs
   browser:
     runs-on: ubuntu-24.04
     timeout-minutes: 15

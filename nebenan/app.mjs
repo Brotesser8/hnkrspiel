@@ -1,3 +1,4 @@
+import {createWorldExplorer} from "./map-ui.mjs";
 import {CITIES,COUNTRY_DEFAULTS,SOURCES,fmtNumber,fmtDate,normalizedName,normalizeCountries,nearestCountry,localOffsetTime,randomInt,chooseQuiz,currencyCode,countryByCode,upcomingHolidays,parseJpl,parseJourney,formatClock,escapeLink} from "./core.mjs";
 import * as API from "./api.mjs";
 
@@ -6,7 +7,7 @@ const el=(tag,cls="",value)=>{const e=document.createElement(tag);if(cls)e.class
 const link=(url,title,cls="")=>{const a=el("a",cls,title);a.href=escapeLink(url)||"https://www.wikipedia.org/";a.target="_blank";a.rel="noopener noreferrer";return a;};
 const note=(id,txt,cls="empty-text")=>$(id).replaceChildren(el("p",cls,txt));
 const load=id=>note(id,"Daten werden geladen …","loading");
-const state={countries:normalizeCountries(COUNTRY_DEFAULTS),country:null,token:0,map:null,marker:null,eventMarkers:[],quiz:null,score:0,answered:false,pokemon:null,shown:false,lastAsteroid:0};
+const state={countries:normalizeCountries(COUNTRY_DEFAULTS),country:null,token:0,explorer:null,quiz:null,score:0,answered:false,pokemon:null,shown:false,lastAsteroid:0};
 const title=c=>{try{return new Intl.DisplayNames(["de"],{type:"region"}).of(c.alpha2Code)||c.name;}catch{return c.name;}};
 function addList(id,rows){
   const ul=el("ul","data-list");
@@ -47,12 +48,7 @@ function pickCountry(c,{fly=true,reason="Land ausgewählt"}={}){
   $("countryWiki").href="https://de.wikipedia.org/wiki/Spezial:Suche?"+new URLSearchParams({search:c.name});
   status(reason+" · "+title(c));
   clock();
-  if(state.map){
-    const L=window.L;
-    if(!state.marker)state.marker=L.marker([c.lat,c.lon],{icon:L.divIcon({className:"",html:'<span class="place-marker"></span>',iconSize:[21,21],iconAnchor:[10,10]})}).addTo(state.map);
-    else state.marker.setLatLng([c.lat,c.lon]);
-    if(fly)state.map.flyTo([c.lat,c.lon],Math.min(5,Math.max(3,state.map.getZoom())),{duration:.65});
-  }
+  state.explorer?.selectCountry(c,{fly});
   if($("regionSelect").value!=="all"&&$("regionSelect").value!==c.region)$("regionSelect").value="all";
   ensureCurrency(currencyCode(c));
   load("musicContent");load("holidayContent");load("worldBankContent");
@@ -86,31 +82,16 @@ async function countries(){
   fillCountries();quiz();
 }
 function mapInit(){
-  if(!window.L){$("mapMessage").textContent="Kartenbibliothek nicht erreichbar. Die Landessuche funktioniert weiter.";return;}
-  try{
-    const L=window.L;
-    state.map=L.map("worldMap",{worldCopyJump:true,zoomControl:false,minZoom:2,maxZoom:12,scrollWheelZoom:false}).setView([24,12],2);
-    L.control.zoom({position:"bottomright"}).addTo(state.map);
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{minZoom:2,maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(state.map);
-    state.map.on("click",e=>{
-      const c=nearestCountry(state.countries,e.latlng.lat,e.latlng.lng);
-      if(c)pickCountry(c,{reason:"Nächstgelegener Länder-Mittelpunkt"});
-    });
-    state.map.on("tileerror",()=>{$("mapMessage").textContent="Einige Kartenteile konnten nicht geladen werden.";});
-    $("mapReset").addEventListener("click",()=>state.map.setView([24,12],2));
-    if(state.country)pickCountry(state.country,{fly:false});
-  }catch{$("mapMessage").textContent="Kartenansicht nicht verfügbar. Suche und Datenmodule funktionieren unabhängig.";}
+  state.explorer=createWorldExplorer({
+    getCountries:()=>state.countries,
+    onChooseCountry:country=>pickCountry(country,{fly:false,reason:"Auf der Karte ausgewählt"})
+  });
+  state.explorer?.selectCountry(state.country,{fly:false});
 }
 function focus(lat,lon,name,isQuake=false){
-  if(!state.map||!Number.isFinite(Number(lat))||!Number.isFinite(Number(lon)))return;
-  const L=window.L;
-  const m=L.circleMarker([lat,lon],{radius:9,color:isQuake?"#a24b39":"#345c46",fillColor:isQuake?"#f5a27c":"#d0ea82",fillOpacity:.9,weight:3}).addTo(state.map);
-  m.bindPopup(el("strong","",name)).openPopup();
-  state.eventMarkers.push(m);
-  if(state.eventMarkers.length>9)state.map.removeLayer(state.eventMarkers.shift());
-  state.map.flyTo([lat,lon],Math.max(5,state.map.getZoom()),{duration:.75});
-  $("atlas").scrollIntoView({behavior:"smooth",block:"start"});
+  state.explorer?.focusEvent(lat,lon,name,isQuake?"quake":"nature");
 }
+
 async function music(c,token){
   try{
     const tracks=await API.music(c.alpha2Code);if(token!==state.token)return;
@@ -173,6 +154,7 @@ async function quakes(){
   const range=$("quakeRange").value;load("quakeContent");
   try{
     const features=await API.quakes(range);if(range!==$("quakeRange").value)return;
+    state.explorer?.setEarthquakes(features);
     const base=$("quakeContent");base.replaceChildren(el("p","quakes-summary",fmtNumber(features.length)+" Beben mit M ≥ 2,5 im Feed."));
     const ul=el("ul","data-list");
     for(const q of features.slice(0,4)){
@@ -193,7 +175,9 @@ function eventLocation(event){
 async function nasa(){
   load("nasaContent");
   try{
-    const events=(await API.nasaEvents()).map(x=>({data:x,at:eventLocation(x)})).filter(x=>x.at).slice(0,4);
+    const all=await API.nasaEvents();
+    state.explorer?.setNatureEvents(all);
+    const events=all.map(x=>({data:x,at:eventLocation(x)})).filter(x=>x.at).slice(0,4);
     if(!events.length){note("nasaContent","Keine Naturereignisse mit Punkt-Koordinaten gefunden.");return;}
     const ul=el("ul","data-list");
     for(const event of events){
@@ -311,6 +295,9 @@ function init(){
   state.country=countryByCode(state.countries,"CH");
   pickCountry(state.country,{fly:false});
   mapInit();cityOptions();fillCountries();sources();quiz();
+  if(new URLSearchParams(location.search).has("qa"))window.__NEBENAN_QA__={
+    map:()=>state.explorer?.getMap(),selected:()=>state.country?.alpha2Code
+  };
   $("countryForm").addEventListener("submit",e=>{e.preventDefault();const c=findCountry($("countryInput").value);if(c)pickCountry(c,{reason:"Über die Suche ausgewählt"});else status("Kein passendes Land. Probiere Name oder ISO-Code.");});
   $("regionSelect").addEventListener("change",()=>{if($("regionSelect").value!=="all")randomCountry(false);});
   $("heroRandom").addEventListener("click",()=>randomCountry());

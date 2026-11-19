@@ -17,7 +17,7 @@ const server=createServer(async(req,res)=>{
  }catch{res.writeHead(404);res.end("Not found");}
 });
 await new Promise(ok=>server.listen(0,"127.0.0.1",ok));
-const base="http://127.0.0.1:"+server.address().port+"/nebenan/";
+const base="http://127.0.0.1:"+server.address().port+"/nebenan/?qa=1";
 let browser;
 const svgTile='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="#dce8db"/><path d="M0 80 Q60 30 120 110 T256 90 M0 160 Q80 100 144 175 T256 170 M40 0 Q95 75 50 145 T80 256" stroke="#c2d2c1" stroke-width="3" fill="none"/><path d="M10 240 Q100 190 170 220 T280 225" stroke="#f9f9ed" stroke-width="10" fill="none"/></svg>';
 const svgDog='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200"><rect width="320" height="200" fill="#e8d6bd"/><ellipse cx="160" cy="110" rx="69" ry="71" fill="#8b684c"/><path d="M112 61 Q60 22 75 126 L117 105 M208 61 Q260 22 245 126 L203 105" fill="#634a39"/><circle cx="137" cy="104" r="8" fill="#191d1a"/><circle cx="184" cy="104" r="8" fill="#191d1a"/><ellipse cx="160" cy="135" rx="19" ry="12" fill="#2c2927"/><path d="M145 155 Q160 170 176 155" stroke="#2c2927" stroke-width="4" fill="none"/></svg>';
@@ -34,8 +34,20 @@ try{
   if(code==="CH"||code==="JP")continue;
   entries.push({name:"Land "+code,alpha2Code:code,alpha3Code:code+"A",latlng:[0+i-65,0+j-65],capital:"Hauptstadt "+code,region:"Asia",currencies:[{code:"USD"}],flag:"🌐",timezones:["UTC+02:00"],population:20000,area:40000});
  }
- entries[0]={name:"Schweiz",alpha2Code:"CH",alpha3Code:"CHE",latlng:[46.8182,8.2275],capital:"Bern",region:"Europe",currencies:[{code:"CHF"}],timezones:["UTC+01:00"],flag:"🇨🇭",population:9000000,area:41285};
- entries[1]={name:"Japan",alpha2Code:"JP",alpha3Code:"JPN",latlng:[36,138],capital:"Tokyo",region:"Asia",currencies:[{code:"JPY"}],timezones:["UTC+09:00"],flag:"🇯🇵",population:124000000,area:377975};
+ entries[0]={name:"Schweiz",alpha2Code:"CH",alpha3Code:"CHE",numericCode:"756",latlng:[46.8182,8.2275],capital:"Bern",region:"Europe",currencies:[{code:"CHF"}],timezones:["UTC+01:00"],flag:"🇨🇭",population:9000000,area:41285};
+ entries[1]={name:"Japan",alpha2Code:"JP",alpha3Code:"JPN",numericCode:"392",latlng:[36,138],capital:"Tokyo",region:"Asia",currencies:[{code:"JPY"}],timezones:["UTC+09:00"],flag:"🇯🇵",population:124000000,area:377975};
+ const bordersMock={
+  type:"Topology",
+  arcs:[
+    [[5.5,45.4],[5,0],[0,2.8],[-5,0],[0,-2.8]],
+    [[127,29],[21,0],[0,18],[-21,0],[0,-18]]
+  ],
+  objects:{countries:{type:"GeometryCollection",geometries:[
+    {id:"756",type:"Polygon",arcs:[[0]],properties:{name:"Switzerland"}},
+    {id:"392",type:"Polygon",arcs:[[1]],properties:{name:"Japan"}}
+  ]}}
+ };
+ await page.route("https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json",route=>route.fulfill({json:bordersMock}));
  await page.route("https://countries.dev/countries**",route=>route.fulfill({json:entries}));
  await page.route("https://rss.marketingtools.apple.com/api/v2/**",route=>route.fulfill({json:{feed:{results:[{name:"Demo-Song eins",artistName:"Band A",url:"https://music.apple.com/"},{name:"Demo-Song zwei",artistName:"Band B",url:"https://music.apple.com/"}]}}}));
  await page.route("https://api.frankfurter.dev/v2/rate/**",route=>route.fulfill({json:{rate:.9,date:"2026-11-19"}}));
@@ -55,6 +67,41 @@ try{
  await page.goto(base,{waitUntil:"domcontentloaded"});
  await page.locator("#countryName").getByText("Schweiz").waitFor({timeout:20000});
  await page.locator("#musicContent .track").first().waitFor({timeout:20000});
+ await page.locator("#mapLoading").waitFor({state:"hidden",timeout:15000});
+ await page.locator("#borderStatus").getByText(/Länderflächen/).waitFor({timeout:15000});
+ assert.equal(await page.locator("#worldMap #mapFallback").count(),0,"map container must not include blocking fallback overlays");
+ assert.ok(await page.evaluate(()=>window.__NEBENAN_QA__.map()?.getZoom()>=2),"Leaflet initialized");
+ assert.equal(await page.locator("#mapQuakeCount").textContent(),"1");
+ assert.equal(await page.locator("#mapNatureCount").textContent(),"1");
+ await page.locator('[data-map-mode="quakes"]').click();
+ assert.equal(await page.locator('[data-map-mode="quakes"]').getAttribute("aria-pressed"),"true");
+ await page.locator('[data-map-mode="nature"]').click();
+ assert.equal(await page.locator("#mapLegendQuakes").isHidden(),true);
+ await page.locator('[data-map-mode="all"]').click();
+ await page.locator("#mapContrast").click();
+ assert.equal(await page.locator("#mapShell").evaluate(x=>x.classList.contains("map-high-contrast")),true);
+ await page.locator("#mapContrast").click();
+ await page.locator("#mapHelp").click();
+ assert.equal(await page.locator("#mapHelpPanel").isVisible(),true);
+ await page.keyboard.press("Escape");
+ assert.equal(await page.locator("#mapHelpPanel").isHidden(),true);
+ await page.locator("#mapExpand").click();
+ assert.equal(await page.locator("#mapShell").evaluate(x=>x.classList.contains("map-expanded")),true);
+ await page.keyboard.press("Escape");
+ assert.equal(await page.locator("#mapShell").evaluate(x=>x.classList.contains("map-expanded")),false);
+ await page.locator("#mapZoomIn").click();
+ assert.ok((await page.locator("#mapZoomLevel").textContent()).startsWith("ZOOM "));
+ await page.evaluate(()=>window.__NEBENAN_QA__.map().setView([46.8,8.0],6,{animate:false}));
+ const landClick=await page.evaluate(()=>{
+   const map=window.__NEBENAN_QA__.map();
+   const p=map.latLngToContainerPoint([46.8,8.0]);
+   const box=document.getElementById("worldMap").getBoundingClientRect();
+   return {x:box.left+p.x,y:box.top+p.y};
+ });
+ await page.mouse.click(landClick.x,landClick.y);
+ await page.locator("#countryName").getByText("Schweiz").waitFor();
+ await page.locator("#countryStatus").getByText(/Auf der Karte ausgewählt/).waitFor();
+ await page.locator("#mapReset").click();
  assert.equal(await page.locator(".source-item").count(),12);
  assert.equal(await page.locator("#musicContent .track").count(),2);
  await page.locator("#countryInput").fill("Japan");

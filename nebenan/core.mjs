@@ -19,13 +19,13 @@ export const CITIES=Object.freeze({
   sydney:{name:"Sydney",lat:-33.8688,lon:151.2093}
 });
 export const COUNTRY_DEFAULTS=[
- {name:"Schweiz",alpha2Code:"CH",alpha3Code:"CHE",capital:"Bern",population:8990000,region:"Europe",latlng:[46.8182,8.2275],currencies:[{code:"CHF"}],languages:[{name:"Deutsch"}],timezones:["UTC+01:00"],flag:"🇨🇭",area:41285},
- {name:"Japan",alpha2Code:"JP",alpha3Code:"JPN",capital:"Tokyo",region:"Asia",latlng:[36,138],currencies:[{code:"JPY"}],timezones:["UTC+09:00"],flag:"🇯🇵"},
- {name:"Brasilien",alpha2Code:"BR",alpha3Code:"BRA",capital:"Brasília",region:"Americas",latlng:[-10,-55],currencies:[{code:"BRL"}],timezones:["UTC-03:00"],flag:"🇧🇷"},
- {name:"Island",alpha2Code:"IS",alpha3Code:"ISL",capital:"Reykjavík",region:"Europe",latlng:[65,-18],currencies:[{code:"ISK"}],timezones:["UTC+00:00"],flag:"🇮🇸"},
- {name:"Südafrika",alpha2Code:"ZA",alpha3Code:"ZAF",capital:"Pretoria",region:"Africa",latlng:[-29,24],currencies:[{code:"ZAR"}],timezones:["UTC+02:00"],flag:"🇿🇦"},
- {name:"Neuseeland",alpha2Code:"NZ",alpha3Code:"NZL",capital:"Wellington",region:"Oceania",latlng:[-41,174],currencies:[{code:"NZD"}],timezones:["UTC+12:00"],flag:"🇳🇿"},
- {name:"Südkorea",alpha2Code:"KR",alpha3Code:"KOR",capital:"Seoul",region:"Asia",latlng:[37,127.5],currencies:[{code:"KRW"}],timezones:["UTC+09:00"],flag:"🇰🇷"}
+ {name:"Schweiz",alpha2Code:"CH",alpha3Code:"CHE",numericCode:"756",capital:"Bern",population:8990000,region:"Europe",latlng:[46.8182,8.2275],currencies:[{code:"CHF"}],languages:[{name:"Deutsch"}],timezones:["UTC+01:00"],flag:"🇨🇭",area:41285},
+ {name:"Japan",alpha2Code:"JP",alpha3Code:"JPN",numericCode:"392",capital:"Tokyo",region:"Asia",latlng:[36,138],currencies:[{code:"JPY"}],timezones:["UTC+09:00"],flag:"🇯🇵"},
+ {name:"Brasilien",alpha2Code:"BR",alpha3Code:"BRA",numericCode:"076",capital:"Brasília",region:"Americas",latlng:[-10,-55],currencies:[{code:"BRL"}],timezones:["UTC-03:00"],flag:"🇧🇷"},
+ {name:"Island",alpha2Code:"IS",alpha3Code:"ISL",numericCode:"352",capital:"Reykjavík",region:"Europe",latlng:[65,-18],currencies:[{code:"ISK"}],timezones:["UTC+00:00"],flag:"🇮🇸"},
+ {name:"Südafrika",alpha2Code:"ZA",alpha3Code:"ZAF",numericCode:"710",capital:"Pretoria",region:"Africa",latlng:[-29,24],currencies:[{code:"ZAR"}],timezones:["UTC+02:00"],flag:"🇿🇦"},
+ {name:"Neuseeland",alpha2Code:"NZ",alpha3Code:"NZL",numericCode:"554",capital:"Wellington",region:"Oceania",latlng:[-41,174],currencies:[{code:"NZD"}],timezones:["UTC+12:00"],flag:"🇳🇿"},
+ {name:"Südkorea",alpha2Code:"KR",alpha3Code:"KOR",numericCode:"410",capital:"Seoul",region:"Asia",latlng:[37,127.5],currencies:[{code:"KRW"}],timezones:["UTC+09:00"],flag:"🇰🇷"}
 ];
 export const SOURCES=[
  {name:"countries.dev",topic:"Länder und Geografie",url:"https://countries.dev/docs",note:"Länderdaten, Flaggen, Sprachen, Zeitzonen und Länderzentrum.",mode:"online"},
@@ -60,6 +60,7 @@ export function normalizeCountries(raw){
     const flag=typeof source.flag==="string"&&source.flag.length<=7?source.flag:(typeof source.flags?.emoji==="string"?source.flags.emoji:"🌐");
     result.set(alpha2Code,{
       name:String(name),alpha2Code,alpha3Code:String(source.alpha3Code||source.cca3||""),
+      numericCode:String(source.numericCode||source.ccn3||"").padStart(3,"0"),
       capital:String(capital||"—"),population:Number(source.population)||null,area:Number(source.area)||null,
       region:String(source.region||"Andere"),subregion:String(source.subregion||""),
       lat,lon,currencies:curr.filter(c=>c?.code),languages:langs,timezones:Array.isArray(source.timezones)?source.timezones:[],flag

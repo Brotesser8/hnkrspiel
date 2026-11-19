@@ -23,8 +23,8 @@
 <section class="hero wrap">
   <div class="hero-copy">
     <p class="eyebrow"><span class="cross">✳</span> DEIN TÄGLICHER AUSFLUG INS INTERNET</p>
-    <h1>Die Welt ist <em>voller</em><br> Nebensachen<span class="highlight">.</span></h1>
-    <p>Was läuft gerade in Japan? Wo bebt die Erde? Wie komme ich von Zürich nach Paris? Und welches Pokémon versteckt sich hinter diesem Schatten?</p>
+    <h1>Die Welt ist <em>voller</em> Nebensachen<span class="highlight">.</span></h1>
+    <p>Auf die Karte. Ein Land anklicken. Entdecken, wo die Erde bebt, was gespielt wird und wie die Welt gerade aussieht.</p>
     <div class="hero-actions"><button class="button button-dark" id="heroRandom" type="button">Irgendwohin springen <span>↗</span></button><a class="text-link" href="#entdecken">Einfach mal schauen <span>↓</span></a></div>
   </div>
   <div class="hero-art" aria-hidden="true">
@@ -36,7 +36,7 @@
 </section>
 
 <section class="atlas-section wrap" id="atlas">
-  <div class="section-title"><div><div class="index"><span class="index-line"></span> 01 / DIE WELT ANFASSEN</div><h2>Zieh die Welt ein Stück weiter.</h2></div><p>Karte verschieben, ein Land suchen oder<br> einfach den Zufall entscheiden lassen.</p></div>
+  <div class="section-title"><div><div class="index"><span class="index-line"></span> 01 / DIE WELT ANFASSEN</div><h2>Die ganze Welt. Direkt vor dir.</h2></div><p>Länderflächen wählen, Erdbeben beobachten und<br> die Welt direkt auf der Karte erkunden.</p></div>
   <div class="atlas-controls">
     <form id="countryForm" class="country-search" role="search"><label class="sr-only" for="countryInput">Land suchen</label><span class="search-symbol">⌕</span><input id="countryInput" list="countrySuggestions" placeholder="Land suchen, z. B. Japan" autocomplete="off" maxlength="90"><datalist id="countrySuggestions"></datalist><button class="search-submit" type="submit">Finden ↗</button></form>
     <label class="region-label"><span class="sr-only">Weltregion auswählen</span><select id="regionSelect"><option value="all">Alle Kontinente</option><option value="Europe">Europa</option><option value="Asia">Asien</option><option value="Africa">Afrika</option><option value="Americas">Amerika</option><option value="Oceania">Ozeanien</option></select><span>⌄</span></label>
@@ -44,10 +44,45 @@
   </div>
   <p class="inline-status" id="countryStatus" role="status" aria-live="polite">Länderdaten werden geladen …</p>
   <div class="atlas-grid">
-    <div class="map-shell">
-      <div class="map-top"><span class="map-chip"><span class="live-dot"></span> WELTANSICHT / INTERAKTIV</span><button id="mapReset" type="button" aria-label="Weltkarte zurücksetzen">Weltansicht ↗</button></div>
-      <div id="worldMap" class="world-map"><div id="mapFallback" class="map-fallback"><span>◌</span><strong>Die Karte wird geladen …</strong><a href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer">OpenStreetMap öffnen ↗</a></div></div>
-      <div class="map-bottom"><span><span class="live-dot"></span><span id="mapMessage">Klicke auf die Karte: Wir zeigen den nächstgelegenen Länder-Mittelpunkt.</span></span><span>© OpenStreetMap-Mitwirkende</span></div>
+    <div class="map-shell" id="mapShell">
+      <div class="map-top">
+        <span class="map-chip"><span class="live-dot"></span> WELTLABOR / INTERAKTIVE KARTE</span>
+        <div class="map-top-actions"><button id="mapReset" type="button" title="Zur Weltansicht zurückkehren">◎ Welt</button><button id="mapExpand" type="button" aria-pressed="false" title="Karte bildschirmfüllend anzeigen">⛶ Grossansicht</button><button id="mapHelp" type="button" aria-controls="mapHelpPanel" aria-expanded="false">? Hilfe</button></div>
+      </div>
+      <div class="map-modes" role="group" aria-label="Daten auf der Karte anzeigen">
+        <button type="button" class="map-mode active" data-map-mode="all" aria-pressed="true"><span class="mode-symbol">◈</span> Alle</button>
+        <button type="button" class="map-mode" data-map-mode="quakes" aria-pressed="false"><span class="mode-dot dot-quake"></span> Erdbeben <span class="mode-number" id="mapQuakeCount">—</span></button>
+        <button type="button" class="map-mode" data-map-mode="nature" aria-pressed="false"><span class="mode-dot dot-nature"></span> Natur <span class="mode-number" id="mapNatureCount">—</span></button>
+        <button type="button" class="map-mode" data-map-mode="countries" aria-pressed="false"><span class="mode-symbol">◇</span> Nur Länder</button>
+      </div>
+      <div id="worldMap" class="world-map" aria-label="Interaktive Weltkarte mit auswählbaren Länderflächen und Ereignissen" tabindex="0"></div>
+      <div id="mapLoading" class="map-loading" role="status">
+        <span class="map-loading-icon" aria-hidden="true">✳</span>
+        <strong id="mapLoadingTitle">Weltkarte wird geladen</strong>
+        <span id="mapLoadingText">Geodaten und Hintergrundkarte werden vorbereitet …</span>
+        <button type="button" id="mapLoadingRetry" hidden>Erneut laden ↻</button>
+        <a href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer">OpenStreetMap ↗</a>
+      </div>
+      <div class="map-rail" role="group" aria-label="Kartensteuerung">
+        <span class="rail-north" aria-hidden="true">↑ N</span>
+        <button id="mapZoomIn" type="button" title="Karte vergrössern" aria-label="Karte vergrössern">+</button>
+        <button id="mapZoomOut" type="button" title="Karte verkleinern" aria-label="Karte verkleinern">−</button>
+        <button id="mapContrast" type="button" aria-pressed="false" title="Höheren Kartenkontrast einschalten">◐ Kontrast</button>
+      </div>
+      <div class="map-crosshair-label"><span id="mapHoverLabel">LAND ANKLICKEN</span><strong id="mapSelectedLabel">Schweiz</strong></div>
+      <div class="map-help-panel" id="mapHelpPanel" hidden>
+        <div class="map-help-title"><strong>Karte bedienen</strong><button id="mapHelpClose" type="button" aria-label="Kartenhilfe schliessen">✕</button></div>
+        <p><b>Land wählen:</b> Länderfläche antippen oder oben suchen. Meerflächen wählen kein Land.</p>
+        <p><b>Erkunden:</b> Ziehen zum Verschieben; Mausrad, +/− oder zwei Finger zum Zoomen.</p>
+        <p><b>Ereignisse:</b> Erdbeben (orange) und Naturereignisse (grün) öffnen Details beim Antippen.</p>
+        <p><b>Grossansicht:</b> Ein- und ausblenden mit ⛶; Escape schliesst die Ansicht.</p>
+        <p>Die Grenzdaten sind vereinfacht und nicht rechtsverbindlich.</p>
+      </div>
+      <div class="map-bottom">
+        <div class="map-bottom-info"><span class="live-dot"></span><span id="mapMessage" role="status">Ländergrenzen und Ereignisse werden vorbereitet …</span></div>
+        <div class="map-readout"><span id="borderStatus">Grenzen werden geladen …</span><span id="mapCoordinates">22.00° / 8.00°</span><span id="mapZoomLevel">ZOOM 2</span></div>
+      </div>
+      <div class="map-legend" id="mapLegend"><span id="mapLegendQuakes"><i class="mode-dot dot-quake"></i> Erdbeben <b id="mapQuakeLegendCount">0</b></span><span id="mapLegendNature"><i class="mode-dot dot-nature"></i> Naturereignisse <b id="mapNatureLegendCount">0</b></span><span class="map-legend-source">USGS / NASA EONET</span></div>
     </div>
     <aside class="country-card" aria-label="Ausgewähltes Land">
       <div class="card-head"><span>FUNDSTÜCK / 001</span><span id="countryCode">—</span></div>
@@ -56,7 +91,7 @@
       <h3 id="countryName">Die grosse weite Welt</h3><p id="countryRegion" class="country-region">Ein Land wartet auf dich.</p>
       <div class="country-stats"><div><span>HAUPTSTADT</span><strong id="capitalField">—</strong></div><div><span>EINWOHNER</span><strong id="populationField">—</strong></div><div><span>FLÄCHE</span><strong id="areaField">—</strong></div><div><span>WÄHRUNG</span><strong id="currencyField">—</strong></div></div>
       <div class="time-strip"><div><span>ZEIT VOR ORT</span><strong id="localClock">—:—</strong></div><span id="timeZone" class="tz-text">UTC</span></div>
-      <div class="country-bottom"><span id="languageField">Sprachen: —</span><a id="countryWiki" target="_blank" rel="noopener noreferrer" href="https://de.wikipedia.org/">Mehr erfahren ↗</a></div>
+      <a class="country-explore-link" href="#entdecken">Daten dieses Landes entdecken <span aria-hidden="true">↘</span></a><div class="country-bottom"><span id="languageField">Sprachen: —</span><a id="countryWiki" target="_blank" rel="noopener noreferrer" href="https://de.wikipedia.org/">Mehr erfahren ↗</a></div>
     </aside>
   </div>
   <div class="bookmark-row" id="bookmarkRow"><span>SPONTAN BESUCHEN</span><button data-country="CH" type="button">Schweiz</button><button data-country="JP" type="button">Japan</button><button data-country="BR" type="button">Brasilien</button><button data-country="IS" type="button">Island</button><button data-country="ZA" type="button">Südafrika</button><button data-country="NZ" type="button">Neuseeland</button><button data-country="KR" type="button">Südkorea</button></div>

@@ -31,6 +31,23 @@ Das ist kein «alles live»-Fake: Jeder externe Wert hat eine Quelle, Fehler wer
 
 Eine Musikchart misst nur das Ranking im entsprechenden **Apple-Music-Storefront**, nicht die gerade laufenden Songs oder die Hörgewohnheiten individueller Personen. Das Bild der Weltkarte verwendet **Länder-Mittelpunkte**, keine Punkt-in-Polygon-Bestimmung: ein Kartenklick wählt den nächstgelegenen Mittelpunkt. Die Uhr zeigt einen UTC-Offset aus der Länderquelle, *nicht* garantiert die aktuelle Sommerzeit. Bevölkerungsdaten der Länder-API sind nicht zwingend aktuell; Weltbank-Zahlen zeigen ihr Datenjahr.
 
+
+## Karten-Navigation 2.0
+
+Die neue Weltkarte ist der Hauptbestandteil des Interfaces. Sie hat jetzt:
+
+- **Echte Länderflächen statt nächstgelegener Zentren:** Vereinfachte Natural-Earth/World-Atlas-110m-Grenzen werden über die öffentliche TopoJSON-CDN-Version geladen und zu GeoJSON umgewandelt. Klick auf eine Landfläche wählt das entsprechende Land anhand des numerischen ISO-Codes. Ein Klick aufs Meer wählt **kein** zufälliges Land. Grenzen sind vereinfacht, besonders kleine Staaten können fehlen.
+- **Datenebenen direkt auf der Karte:** „Alle“, „Erdbeben“, „Natur“, „Nur Länder“. Ereignismarker kommen aus den bereits für die Seite geladenen USGS- und NASA-EONET-Antworten – **keine zusätzlichen API-Requests**. Der Marker zeigt Details und gegebenenfalls einen Quellenlink.
+- **Bedienhilfen:** Zoom per Mausrad, Touch-Pinch und +/−, Weltansicht, Koordinaten unter dem Mauszeiger, sichtbare Zoomstufe, Massstabsleiste, Legende, Länder-Tooltip, interaktive Hilfe und Kontrastmodus.
+- **Grossansicht mit Escape-Taste**, auch auf Mobilgeräten. Animationen respektieren „Reduzierte Bewegung“.
+- **Stabileres Rendering:** Der Lade-/Fehlerhinweis liegt ausserhalb des Leaflet-Containers, Länder- und Ereignisebenen haben getrennte Karten-Panes, Grösse wird bei Layoutänderungen neu berechnet. Bei Ausfall der Kartentiles bleiben vorhandene Länder- und Ereignis-Geometrien bedienbar. „Erneut laden“ ist ein manueller Versuch.
+
+Die Grenzen stammen aus [world-atlas](https://github.com/topojson/world-atlas) auf Grundlage von Natural Earth und sind nicht für rechtliche Grenzaussagen geeignet. Sie werden einmal beim Besuch über jsDelivr geladen. Bei Ausfall bleiben die Suche, Länderinformationen und Datenmodule erreichbar. Die Kartenkacheln und die Ausgabe von Country-Facts benötigen Internetzugang.
+
+### Kartentests
+
+Der neue Test \`nebenan/tests/map-data.test.mjs\` validiert TopoJSON-Umwandlung, Länderkennungen, EONET-Koordinaten und USGS-Events. Der Playwright-Browsertest prüft zusätzlich Kachel-Ladezustand, Ländergrenzen, Karte anklicken, Ebenenwechsel, Zoom, Hilfe, Kontrast, Grossansicht und mobile Überläufe. Die Tests verwenden künstliche Beispieldaten und ersetzen keine manuelle Live-API-Prüfung.
+
 ## Datenschutz & Technik
 
 - Keine Registrierung, keine App-eigenen Cookies, keine Analytics.
@@ -47,10 +64,12 @@ Mit Node.js 22+ im Repository-Hauptverzeichnis:
 
 ~~~sh
 node --check nebenan/app.mjs
+node --check nebenan/map-ui.mjs
+node --check nebenan/map-data.mjs
 node --check nebenan/api.mjs
 node --check nebenan/core.mjs
 node --check nebenan/tests/browser-smoke.mjs
-node --test nebenan/tests/core.test.mjs
+node --test nebenan/tests/*.test.mjs
 ~~~
 
 Browser-End-to-End-Tests verwenden Playwright mit **gemockten** Daten (damit kein CI-Lauf öffentliche APIs belastet):
