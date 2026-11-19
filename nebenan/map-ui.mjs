@@ -1,4 +1,4 @@
-import {topologyFeatures,featuresForLeaflet,countryForFeature,countryFeatureAt,pointFromEonet,earthquakePoints} from "./map-data.mjs";
+import {topologyFeatures,featuresForLeaflet,countryForFeature,countryFeatureAt,pointFromEonet,earthquakePoints} from "./map-data.mjs?v=worldfix4";
 
 const WORLD_DATA="./data/world-110m.json";
 const $=id=>document.getElementById(id);
