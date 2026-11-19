@@ -36,20 +36,6 @@ try{
  }
  entries[0]={name:"Schweiz",alpha2Code:"CH",alpha3Code:"CHE",numericCode:"756",latlng:[46.8182,8.2275],capital:"Bern",region:"Europe",currencies:[{code:"CHF"}],timezones:["UTC+01:00"],flag:"🇨🇭",population:9000000,area:41285};
  entries[1]={name:"Japan",alpha2Code:"JP",alpha3Code:"JPN",numericCode:"392",latlng:[36,138],capital:"Tokyo",region:"Asia",currencies:[{code:"JPY"}],timezones:["UTC+09:00"],flag:"🇯🇵",population:124000000,area:377975};
- const bordersMock={
-  type:"Topology",
-  arcs:[
-    [[5.5,45.4],[5,0],[0,2.8],[-5,0],[0,-2.8]],
-    [[127,29],[21,0],[0,18],[-21,0],[0,-18]]
-  ],
-  objects:{countries:{type:"GeometryCollection",geometries:[
-    {id:"756",type:"Polygon",arcs:[[0]],properties:{name:"Switzerland"}},
-    {id:"392",type:"Polygon",arcs:[[1]],properties:{name:"Japan"}},
-    ...Array.from({length:151},(_,i)=>({id:String(1000+i),type:"Polygon",arcs:[[0]],properties:{name:"Mock "+i}}))
-  ]}}
- };
- await page.route("https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json",route=>route.fulfill({json:bordersMock}));
- await page.route("https://unpkg.com/world-atlas@2.0.2/countries-110m.json",route=>route.fulfill({json:bordersMock}));
  await page.route("https://countries.dev/countries**",route=>route.fulfill({json:entries}));
  await page.route("https://rss.marketingtools.apple.com/api/v2/**",route=>route.fulfill({json:{feed:{results:[{name:"Demo-Song eins",artistName:"Band A",url:"https://music.apple.com/"},{name:"Demo-Song zwei",artistName:"Band B",url:"https://music.apple.com/"}]}}}));
  await page.route("https://api.frankfurter.dev/v2/rate/**",route=>route.fulfill({json:{rate:.9,date:"2026-11-19"}}));
@@ -65,13 +51,31 @@ try{
  await page.route("https://images.example.org/**",route=>route.fulfill({body:route.request().url().includes("dog.png")?svgDog:svgMonster,contentType:"image/svg+xml"}));
  await page.route("https://pokeapi.co/api/v2/pokemon/**",route=>route.fulfill({json:{id:25,name:"pikachu",types:[{type:{name:"electric"}}],sprites:{other:{"official-artwork":{front_default:"https://images.example.org/poke.png"}}}}}));
  await page.route("https://api.transitous.org/api/v6/plan?**",route=>route.fulfill({json:{itineraries:[{startTime:"2026-11-19T09:00:00Z",endTime:"2026-11-19T09:43:00Z",duration:2580,transfers:0,legs:[{mode:"RAIL",routeShortName:"IC 8"}]}]}}));
+ let osmRequests=0,localGeoRequests=0;
+ page.on("request",r=>{
+  if(r.url().startsWith("https://tile.openstreetmap.org/"))osmRequests++;
+  if(r.url().includes("/nebenan/data/world-110m.json"))localGeoRequests++;
+ });
  await page.route("https://tile.openstreetmap.org/**",route=>route.fulfill({body:svgTile,contentType:"image/svg+xml"}));
  await page.goto(base,{waitUntil:"domcontentloaded"});
  await page.locator("#countryName").getByText("Schweiz").waitFor({timeout:20000});
  await page.locator("#musicContent .track").first().waitFor({timeout:20000});
  await page.locator("#mapLoading").waitFor({state:"hidden",timeout:15000});
  await page.locator("#borderStatus").getByText(/Länderflächen/).waitFor({timeout:15000});
- assert.ok(await page.locator(".leaflet-country-pane svg path").count()>=2,"SVG land polygons must actually be rendered, not just parsed");
+ assert.ok(await page.locator(".leaflet-country-pane svg path").count()>=20,"At least twenty actual land shapes must render");
+ assert.match(await page.locator("#borderStatus").textContent(),/lokal/,"Local world geometry should be active");
+ assert.equal(localGeoRequests,1,"World geography comes from this project, not a CDN");
+ assert.equal(osmRequests,0,"Default view must not request image tiles");
+ assert.equal(await page.locator("#mapTilesOff").getAttribute("aria-pressed"),"true");
+ assert.equal(await page.locator("#mapShell").evaluate(x=>x.classList.contains("vector-only")),true);
+ const footerBelowMap=await page.evaluate(()=>{
+  const canvas=document.querySelector("#worldMap").getBoundingClientRect();
+  const tools=document.querySelector(".map-tools-footer").getBoundingClientRect();
+  return tools.top>=canvas.bottom-1;
+ });
+ assert.equal(footerBelowMap,true,"Navigation tools must live BELOW the map, not cover it");
+ await mkdir("nebenan/test-artifacts",{recursive:true});
+ await page.screenshot({path:"nebenan/test-artifacts/world-map.png"});
  assert.equal(await page.locator("#worldMap #mapFallback").count(),0,"map container must not include blocking fallback overlays");
  assert.ok(await page.evaluate(()=>window.__NEBENAN_QA__.map()?.getZoom()>=2),"Leaflet initialized");
  assert.equal(await page.locator("#mapQuakeCount").textContent(),"1");
@@ -91,6 +95,9 @@ try{
  await page.locator("#mapPanEast").click();
  await page.locator("#mapTilesOn").click();
  await page.locator("#mapLoading").waitFor({state:"hidden",timeout:12000});
+ assert.ok(osmRequests>0,"Raster tiles load only after opt-in");
+ await page.locator("#mapTilesOff").click();
+ assert.equal(await page.locator("#mapShell").evaluate(x=>x.classList.contains("vector-only")),true);
  await page.locator("#mapContrast").click();
  await page.locator("#mapHelp").click();
  assert.equal(await page.locator("#mapHelpPanel").isVisible(),true);
@@ -109,7 +116,7 @@ try{
  await page.locator("#worldMap").scrollIntoViewIfNeeded();
  const landClick=await page.evaluate(()=>{
    const map=window.__NEBENAN_QA__.map();
-   const p=map.latLngToContainerPoint([47.5,6.4]);
+   const p=map.latLngToContainerPoint([46.85,8.2]);
    const box=document.getElementById("worldMap").getBoundingClientRect();
    return {x:box.left+p.x,y:box.top+p.y};
  });
@@ -155,6 +162,17 @@ try{
  await page.screenshot({path:"nebenan/test-artifacts/desktop.png",fullPage:true});
  await page.setViewportSize({width:390,height:844});
  await page.screenshot({path:"nebenan/test-artifacts/mobile.png",fullPage:true});
+ await page.locator("#mapShell").scrollIntoViewIfNeeded();
+ await page.screenshot({path:"nebenan/test-artifacts/mobile-map.png"});
+ const mobileLayout=await page.evaluate(()=>{
+   const canvas=document.querySelector("#worldMap").getBoundingClientRect();
+   const tools=document.querySelector(".map-tools-footer").getBoundingClientRect();
+   const basemap=document.querySelector(".map-basemap-switch").getBoundingClientRect();
+   return {canvasHeight:canvas.height,navBelow:tools.top>=canvas.bottom-1,withinScreen:basemap.right<=innerWidth+2};
+ });
+ assert.ok(mobileLayout.canvasHeight>400,"Mobile map must remain the focal surface");
+ assert.equal(mobileLayout.navBelow,true,"Mobile navigation must not obstruct the map");
+ assert.equal(mobileLayout.withinScreen,true,"Basemap control must fit on mobile");
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+3),false,"no horizontal overflow on mobile");
  assert.deepEqual(errors,[],"no uncaught page errors");
  console.log("PASS: NEBENAN desktop, map, country selection, charts, currency, routes, dog, game and mobile");

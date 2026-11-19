@@ -58,3 +58,17 @@ test("point-in-polygon selects land but never guesses a country for ocean clicks
   assert.equal(countryFeatureAt(0,-140,features),null);
   assert.equal(countryFeatureAt(NaN,8,features),null);
 });
+
+
+import {readFileSync} from "node:fs";
+const localTopology=JSON.parse(readFileSync(new URL("../data/world-110m.json",import.meta.url),"utf8"));
+test("bundled world geography is valid and supports real land selection",()=>{
+ const features=topologyFeatures(localTopology);
+ assert.ok(features.length>=170,"country geometry is bundled, not assembled from just a few demo polygons");
+ const countries=normalizeCountries(COUNTRY_DEFAULTS);
+ const swiss=countryFeatureAt(46.82,8.23,features);
+ assert.equal(countryForFeature(swiss,countries)?.alpha2Code,"CH");
+ const japan=countryFeatureAt(35.68,139.69,features);
+ assert.equal(countryForFeature(japan,countries)?.alpha2Code,"JP");
+ assert.equal(countryFeatureAt(0,-140,features),null);
+});

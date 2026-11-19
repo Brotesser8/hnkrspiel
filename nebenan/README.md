@@ -91,3 +91,9 @@ Quellcode im Ordner unter MIT-Lizenz. Für Transitous: nichtkommerzielle Nutzung
 ## Überarbeitung der Karte (19. November 2026)
 
 Die Weltkarte ist nun der zentrale Teil der Seite. Es gibt einen kachelunabhängigen Vektormodus, eine regionale Schnellnavigation, Zoom- und Richtungstasten, eine vergrösserte Kartenfläche und kontextbezogene Hilfe. Bei Fehlern der Rasterkacheln wechselt die Karte in den klaren Länder-Modus, ohne ein blockierendes Fenster über den Ländern einzublenden. Die Kartengeometrien können von zwei öffentlichen CDN-Mirrors bezogen werden. Geografische Auswahl bleibt auf Länderflächen beschränkt (keine ungenaue Mittelpunkt-Schätzung für Klicks im Meer).
+
+### Kartenreparatur – lokale Weltkarte
+
+Nach einem realen Fehlerbild mit fragmentarischen OSM-Kacheln wird die **lokal gebündelte Natural-Earth-Länderkarte** (`data/world-110m.json`) als zuverlässige Standarddarstellung verwendet. Der Kartendatensatz enthält 174 vereinfachte Länderflächen. Die Darstellung benötigt weder Bildkacheln noch Geodaten-CDNs. «Strassenkarte» ist ein freiwilliger Zusatzmodus und schaltet bei fehlenden Kacheln zur vollständigen Länderansicht zurück. Bei der Strassenkarte werden die Landesfarben erst transparent, wenn der komplette Kartenkachel-Ladevorgang erfolgreich war.
+
+Karten-Navigation, Weltregionsauswahl und Hintergrundwahl liegen **unterhalb** des geografischen Kartenbereichs. Sie verdecken keine Länder mehr. Automatisierte Tests kontrollieren die eingebundene lokale Geometrie, korrekt auswählbare echte Länder, Kachel-Unabhängigkeit beim Start, Layout-Abstände, alle Datenmodule, Touch-/Mobilansicht, Filter, Vollbild und gezielte Navigation.

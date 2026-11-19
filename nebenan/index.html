@@ -56,20 +56,12 @@
         <button type="button" class="map-mode" data-map-mode="countries" aria-pressed="false"><span class="mode-symbol">◇</span> Nur Länder</button>
       </div>
       <div id="worldMap" class="world-map" aria-label="Interaktive Weltkarte mit auswählbaren Länderflächen und Ereignissen" tabindex="0"></div>
-      <div class="map-quick-regions" role="group" aria-label="Schnell zu einer Weltregion springen">
-        <button type="button" data-map-jump="world" class="active" aria-pressed="true">🌐 Welt</button>
-        <button type="button" data-map-jump="europe" aria-pressed="false">Europa</button>
-        <button type="button" data-map-jump="america" aria-pressed="false">Amerika</button>
-        <button type="button" data-map-jump="asia" aria-pressed="false">Asien</button>
-        <button type="button" data-map-jump="africa" aria-pressed="false">Afrika</button>
-        <button type="button" data-map-jump="oceania" aria-pressed="false">Ozeanien</button>
-      </div>
       <div id="mapLoading" class="map-loading" role="status">
         <span class="map-loading-icon" aria-hidden="true">✳</span>
         <strong id="mapLoadingTitle">Weltkarte wird geladen</strong>
-        <span id="mapLoadingText">Geodaten und Hintergrundkarte werden vorbereitet …</span>
+        <span id="mapLoadingText">Lokale Länderkarte wird geladen …</span>
         <button type="button" id="mapLoadingRetry" hidden>Erneut laden ↻</button>
-        <a href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer">OpenStreetMap ↗</a>
+        <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer">Kartendaten: Natural Earth ↗</a>
       </div>
       <div class="map-rail" role="group" aria-label="Kartensteuerung">
         <span class="rail-north" aria-hidden="true">↑ N</span>
@@ -81,7 +73,6 @@
         <button id="mapContrast" type="button" aria-pressed="false" title="Höheren Kartenkontrast einschalten">◐ Kontrast</button>
       </div>
       <div class="map-crosshair-label"><span id="mapHoverLabel">LAND ANKLICKEN</span><strong id="mapSelectedLabel">Schweiz</strong></div>
-      <div class="map-basemap-switch" role="group" aria-label="Kartenhintergrund wählen"><button type="button" id="mapTilesOn" class="active" aria-pressed="true">Strassenkarte</button><button type="button" id="mapTilesOff" aria-pressed="false">Klare Länderkarte</button></div>
       <div class="map-help-panel" id="mapHelpPanel" hidden>
         <div class="map-help-title"><strong>Karte bedienen</strong><button id="mapHelpClose" type="button" aria-label="Kartenhilfe schliessen">✕</button></div>
         <p><b>Land wählen:</b> Länderfläche antippen oder oben suchen. Meerflächen wählen kein Land.</p>
@@ -89,12 +80,23 @@
         <p><b>Ereignisse:</b> Erdbeben (orange) und Naturereignisse (grün) öffnen Details beim Antippen.</p>
         <p><b>Grossansicht:</b> Ein- und ausblenden mit ⛶; Escape schliesst die Ansicht.</p>
         <p><b>Navigation:</b> Weltregionen unten direkt öffnen und mit den Richtungspfeilen die Karte bewegen.</p>
-        <p><b>Kartendarstellung:</b> «Klare Länderkarte» funktioniert ohne externe Hintergrundkacheln, sobald Grenzen geladen sind.</p>
+        <p><b>Kartendarstellung:</b> Die Länderkarte läuft vollständig mit lokal gespeicherten Geodaten. Strassenkartenbilder werden nur auf Wunsch geladen.</p>
         <p>Die Grenzdaten sind vereinfacht und nicht rechtsverbindlich.</p>
       </div>
       <div class="map-bottom">
-        <div class="map-bottom-info"><span class="live-dot"></span><span id="mapMessage" role="status">Ländergrenzen und Ereignisse werden vorbereitet …</span></div>
-        <div class="map-readout"><span id="borderStatus">Grenzen werden geladen …</span><span id="mapCoordinates">22.00° / 8.00°</span><span id="mapZoomLevel">ZOOM 2</span></div>
+        <div class="map-bottom-info"><span class="live-dot"></span><span id="mapMessage" role="status">Vollständige Länderkarte wird vorbereitet …</span></div>
+        <div class="map-readout"><span id="borderStatus">Lokale Grenzen werden geladen …</span><span id="mapCoordinates">22.00° / 8.00°</span><span id="mapZoomLevel">ZOOM 2</span></div>
+      </div>
+      <div class="map-tools-footer">
+      <div class="map-quick-regions" role="group" aria-label="Schnell zu einer Weltregion springen">
+        <button type="button" data-map-jump="world" class="active" aria-pressed="true">🌐 Welt</button>
+        <button type="button" data-map-jump="europe" aria-pressed="false">Europa</button>
+        <button type="button" data-map-jump="america" aria-pressed="false">Amerika</button>
+        <button type="button" data-map-jump="asia" aria-pressed="false">Asien</button>
+        <button type="button" data-map-jump="africa" aria-pressed="false">Afrika</button>
+        <button type="button" data-map-jump="oceania" aria-pressed="false">Ozeanien</button>
+      </div>
+      <div class="map-basemap-switch" role="group" aria-label="Kartenhintergrund wählen"><button type="button" id="mapTilesOff" class="active" aria-pressed="true">Länderkarte</button><button type="button" id="mapTilesOn" aria-pressed="false">Strassenkarte (optional)</button></div>
       </div>
       <div class="map-legend" id="mapLegend"><span id="mapLegendQuakes"><i class="mode-dot dot-quake"></i> Erdbeben <b id="mapQuakeLegendCount">0</b></span><span id="mapLegendNature"><i class="mode-dot dot-nature"></i> Naturereignisse <b id="mapNatureLegendCount">0</b></span><span class="map-legend-source">USGS / NASA EONET</span></div>
     </div>

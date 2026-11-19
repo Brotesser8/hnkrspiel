@@ -181,3 +181,66 @@ body.map-modal-open{overflow:hidden}
 
 @media(min-width:821px){.map-basemap-switch{bottom:169px}}
 @media(max-width:570px){.map-quick-regions{flex-wrap:wrap}.map-modes{max-width:calc(100% - 16px)}.map-pan-pair .map-pan{height:26px!important}}
+
+/* Cartographic rebuild — standalone local vector world map, no tile seams */
+.map-shell{background:#d3e8e5!important}
+.map-shell.vector-only .leaflet-container{background:#b9dcdf!important}
+.map-shell.vector-only .world-map{
+  background:radial-gradient(ellipse at 33% 20%,#dcebea 0%,#b9dcdf 70%,#aacfd4 100%)!important;
+}
+.map-shell.vector-only .leaflet-country-pane svg path.leaflet-interactive{filter:drop-shadow(0 1px 0 #2b6b5e28)!important}
+.map-shell.vector-only .leaflet-country-pane svg path.leaflet-interactive:hover{filter:drop-shadow(0 2px 3px #2c654855)!important}
+.map-tools-footer{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:10px 14px;background:#f7faf5;border-top:1px solid #d9e5dc;
+  position:relative;z-index:7;flex-wrap:wrap;
+}
+.map-tools-footer .map-quick-regions,
+.map-tools-footer .map-basemap-switch{
+  position:static!important;transform:none!important;inset:auto!important;
+  bottom:auto!important;top:auto!important;left:auto!important;right:auto!important;
+  display:flex;flex-wrap:wrap;max-width:none;box-shadow:none;
+  background:#fff;border:1px solid #d8e5d9;border-radius:7px;
+  padding:3px;margin:0;
+}
+.map-tools-footer .map-quick-regions{flex:1 1 400px;justify-content:flex-start}
+.map-tools-footer .map-basemap-switch{flex:0 0 auto;flex-direction:row!important}
+.map-tools-footer .map-basemap-switch button{font-size:11px;min-height:32px}
+.map-shell > .map-legend{
+  position:static!important;left:auto!important;right:auto!important;bottom:auto!important;top:auto!important;
+  display:flex;align-items:center;justify-content:flex-start;
+  min-height:36px;margin:0;padding:7px 17px;border:0;border-top:1px solid #e0e8dd;
+  width:100%;box-shadow:none;background:#fbfdf8;border-radius:0;
+}
+.map-crosshair-label{bottom:35px!important;left:17px}
+.map-shell .map-bottom{order:1}
+.map-shell .map-tools-footer{order:2}
+.map-shell > .map-legend{order:3}
+.map-shell > .map-legend[hidden]{display:none!important}
+.map-shell .map-bottom-info{min-width:180px}
+.map-shell .map-rail{top:48%}
+.map-shell.map-expanded .map-tools-footer{padding:7px 12px}
+.map-shell.map-expanded .world-map{min-height:0!important}
+.map-shell.map-expanded .map-crosshair-label{bottom:155px!important}
+@media(max-width:940px){
+  .map-tools-footer .map-quick-regions{flex-basis:100%;justify-content:space-between}
+  .map-tools-footer .map-basemap-switch{flex-basis:100%;justify-content:center}
+}
+@media(max-width:570px){
+  .map-tools-footer{padding:7px 8px;gap:6px}
+  .map-tools-footer .map-quick-regions{max-width:100%;min-width:0!important}
+  .map-tools-footer .map-quick-regions button{font-size:9px;flex:1 1 auto;padding:7px 5px}
+  .map-tools-footer .map-basemap-switch{width:100%;justify-content:center}
+  .map-tools-footer .map-basemap-switch button{font-size:10px}
+  .map-shell .map-crosshair-label{bottom:24px!important;left:9px}
+  .map-shell.map-expanded .map-crosshair-label{bottom:215px!important}
+  .map-shell .map-bottom{min-height:50px}
+}
+
+/* Badge stays over geographic canvas, never over the static footer/legend. */
+.map-shell .map-crosshair-label{bottom:172px!important}
+@media(max-width:940px){.map-shell .map-crosshair-label{bottom:196px!important}}
+@media(max-width:570px){.map-shell .map-crosshair-label{bottom:214px!important}}
+.map-shell.map-expanded .map-crosshair-label{bottom:168px!important}
+@media(max-width:940px){.map-shell.map-expanded .map-crosshair-label{bottom:194px!important}}
+@media(max-width:570px){.map-shell.map-expanded .map-crosshair-label{bottom:218px!important}}
