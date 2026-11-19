@@ -1,4 +1,4 @@
-import {createWorldExplorer} from "./map-ui.mjs";
+import {createWorldExplorer} from "./map-ui.mjs?v=worldfix3";
 import {CITIES,COUNTRY_DEFAULTS,SOURCES,fmtNumber,fmtDate,normalizedName,normalizeCountries,nearestCountry,localOffsetTime,randomInt,chooseQuiz,currencyCode,countryByCode,upcomingHolidays,parseJpl,parseJourney,formatClock,escapeLink} from "./core.mjs";
 import * as API from "./api.mjs";
 
