@@ -91,7 +91,10 @@ try{
  assert.equal(await page.locator("#mapShell").evaluate(x=>x.classList.contains("map-expanded")),false);
  await page.locator("#mapZoomIn").click();
  assert.ok((await page.locator("#mapZoomLevel").textContent()).startsWith("ZOOM "));
- await page.evaluate(()=>window.__NEBENAN_QA__.map().setView([46.8,8.0],6,{animate:false}));
+ await page.evaluate(()=>{
+   const m=window.__NEBENAN_QA__.map();m.stop();m.setView([46.8,8.0],6,{animate:false});
+   m.on("click",e=>{window.__NEBENAN_QA__.lastMapClick={lat:e.latlng.lat,lng:e.latlng.lng};});
+ });
  await page.locator("#worldMap").scrollIntoViewIfNeeded();
  const landClick=await page.evaluate(()=>{
    const map=window.__NEBENAN_QA__.map();
@@ -99,7 +102,12 @@ try{
    const box=document.getElementById("worldMap").getBoundingClientRect();
    return {x:box.left+p.x,y:box.top+p.y};
  });
+ console.log("MAP TARGET:",await page.evaluate(pos=>{
+   const target=document.elementFromPoint(pos.x,pos.y);
+   return {tag:target?.tagName,cls:String(target?.className||"").slice(0,90),point:pos};
+ },landClick));
  await page.mouse.click(landClick.x,landClick.y);
+ console.log("MAP HANDLER:",await page.evaluate(()=>window.__NEBENAN_QA__.lastMapClick||null));
  console.log("MAP CLICK STATUS:",await page.locator("#countryStatus").textContent());
  await page.locator("#countryName").getByText("Schweiz").waitFor();
  await page.locator("#countryStatus").getByText(/Auf der Karte ausgewählt/).waitFor({timeout:6000});

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {topologyFeatures,countryForFeature,earthquakePoints,pointFromEonet} from "../map-data.mjs";
+import {topologyFeatures,countryForFeature,countryFeatureAt,earthquakePoints,pointFromEonet} from "../map-data.mjs";
 import {COUNTRY_DEFAULTS,normalizeCountries} from "../core.mjs";
 
 const simpleTopology={
@@ -49,4 +49,12 @@ test("USGS events are validated and capped to protect map responsiveness",()=>{
 test("NASA EONET picks latest real Point geometry, not an arbitrary polygon",()=>{
   assert.deepEqual(pointFromEonet({geometry:[{type:"Point",coordinates:[8,47]}]}),{lat:47,lon:8});
   assert.equal(pointFromEonet({geometry:[{type:"Polygon",coordinates:[[[8,47]]]}]}),null);
+});
+
+test("point-in-polygon selects land but never guesses a country for ocean clicks",()=>{
+  const features=topologyFeatures(simpleTopology);
+  assert.equal(countryFeatureAt(46.8,8,features)?.properties.numericCode,"756");
+  assert.equal(countryFeatureAt(36,138,features)?.properties.numericCode,"392");
+  assert.equal(countryFeatureAt(0,-140,features),null);
+  assert.equal(countryFeatureAt(NaN,8,features),null);
 });

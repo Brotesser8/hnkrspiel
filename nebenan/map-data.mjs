@@ -62,3 +62,31 @@ export function earthquakePoints(features,limit=140){
       when:f?.properties?.time||null,url:f?.properties?.url||null};
   }).filter(Boolean);
 }
+
+
+// Browser-independent hit-testing. Keeps country selection usable if Leaflet's Canvas
+// rendering or pointer target fails; clicks in the sea do not select a nearby centroid.
+function inRing(lng,lat,ring){
+  let inside=false;
+  for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+    const a=ring[i],b=ring[j];
+    if(((a[1]>lat)!==(b[1]>lat)) &&
+       lng<(b[0]-a[0])*(lat-a[1])/(b[1]-a[1])+a[0])inside=!inside;
+  }
+  return inside;
+}
+function inPolygon(lng,lat,coordinates){
+  if(!Array.isArray(coordinates)||!coordinates.length||!inRing(lng,lat,coordinates[0]))return false;
+  return !coordinates.slice(1).some(hole=>inRing(lng,lat,hole));
+}
+export function countryFeatureAt(lat,lng,features){
+  if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||!Array.isArray(features))return null;
+  // Normalise wrapped longitudes into the GeoJSON reference world.
+  const longitude=((lng+180)%360+360)%360-180;
+  for(const feature of features){
+    const geo=feature?.geometry;
+    if(geo?.type==="Polygon" && inPolygon(longitude,lat,geo.coordinates))return feature;
+    if(geo?.type==="MultiPolygon" && geo.coordinates.some(poly=>inPolygon(longitude,lat,poly)))return feature;
+  }
+  return null;
+}

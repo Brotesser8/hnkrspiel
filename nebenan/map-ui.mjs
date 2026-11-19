@@ -1,4 +1,4 @@
-import {topologyFeatures,countryForFeature,pointFromEonet,earthquakePoints} from "./map-data.mjs";
+import {topologyFeatures,countryForFeature,countryFeatureAt,pointFromEonet,earthquakePoints} from "./map-data.mjs";
 
 const WORLD_DATA="https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json";
 const $=id=>document.getElementById(id);
@@ -17,7 +17,7 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
   const loading=$("mapLoading");
   const topStatus=$("mapMessage");
   let map=null,tile=null,borders=null,selected=null,selectedMarker=null,quakes=null,nature=null;
-  let visibleMode="all",points={quakes:[],nature:[]},boundariesReady=false;
+  let visibleMode="all",points={quakes:[],nature:[]},countryFeatures=[],boundariesReady=false;
   let tileErrors=0,tilesOK=false,timeout=null,lastHover=null;
   if(!L){
     loading.hidden=false;
@@ -71,9 +71,21 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
     setCoordinates(e.latlng.lat,e.latlng.lng);
   });
   map.on("mouseout",updateZoom);
-  map.on("click",()=>{
-    if(boundariesReady)mapHint("Wähle eine eingefärbte Länderfläche oder einen Ereignispunkt.");
-    else mapHint("Die Ländergrenzen werden geladen. Suche oder wähle ein Land oben.");
+  map.on("click",event=>{
+    if(!boundariesReady){
+      mapHint("Die Ländergrenzen werden geladen. Suche oder wähle ein Land oben.");
+      return;
+    }
+    const feature=countryFeatureAt(event.latlng.lat,event.latlng.lng,countryFeatures);
+    const country=feature&&countryForFeature(feature,getCountries());
+    if(country){
+      onChooseCountry(country);
+      mapHint("Ausgewählt: "+country.name+" · Daten rechts und weiter unten.");
+    }else{
+      mapHint(feature
+        ?"Diese Länderfläche hat keinen verfügbaren Länder-Datensatz."
+        :"Meer oder nicht abgedecktes Gebiet · bitte eine Länderfläche wählen.");
+    }
   });
   updateZoom();
 
@@ -130,6 +142,7 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
       const response=await fetch(WORLD_DATA,{signal:controller.signal,cache:"force-cache"});
       if(!response.ok)throw Error("HTTP "+response.status);
       const features=topologyFeatures(await response.json());
+      countryFeatures=features;
       borders=L.geoJSON(features,{
         pane:"countryPane",style:selectedCountryStyle,
         interactive:true,
@@ -147,16 +160,9 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
             layer.setStyle(selectedCountryStyle(feature));
             $("mapHoverLabel").textContent="LAND ANKLICKEN";
           });
-          layer.on("click",e=>{
-            L.DomEvent.stopPropagation(e);
-            const country=countryForFeature(feature,getCountries());
-            if(!country){
-              mapHint("Dieses Gebiet hat keinen passenden Länder-Datensatz. Bitte die Landessuche verwenden.");
-              return;
-            }
-            onChooseCountry(country);
-            mapHint("Ausgewählt: "+country.name+" · Daten rechts und weiter unten.");
-          });
+          // Map-wide hit-testing handles clicks consistently in SVG and Canvas renderers.
+          // Do not stop propagation here: the map needs the event to select the polygon.
+
         }
       }).addTo(map);
       boundariesReady=true;
