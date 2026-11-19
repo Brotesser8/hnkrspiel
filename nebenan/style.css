@@ -244,3 +244,9 @@ body.map-modal-open{overflow:hidden}
 .map-shell.map-expanded .map-crosshair-label{bottom:168px!important}
 @media(max-width:940px){.map-shell.map-expanded .map-crosshair-label{bottom:194px!important}}
 @media(max-width:570px){.map-shell.map-expanded .map-crosshair-label{bottom:218px!important}}
+
+/* SVG country geography uses Leaflet's ordinary overlay pane for correct projection. */
+.map-shell .leaflet-overlay-pane svg path.world-country-shape{cursor:pointer;transition:fill-opacity .16s ease,stroke-width .16s ease}
+.map-shell.vector-only .leaflet-overlay-pane svg path.world-country-shape{filter:drop-shadow(0 1px 1px #456b4a30)}
+.map-shell.vector-only .leaflet-overlay-pane svg path.world-country-shape:hover{filter:drop-shadow(0 2px 3px #325a4540)}
+@media(prefers-reduced-motion:reduce){.map-shell .leaflet-overlay-pane svg path.world-country-shape{transition:none}}

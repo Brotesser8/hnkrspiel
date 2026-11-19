@@ -62,7 +62,7 @@ try{
  await page.locator("#musicContent .track").first().waitFor({timeout:20000});
  await page.locator("#mapLoading").waitFor({state:"hidden",timeout:15000});
  await page.locator("#borderStatus").getByText(/Länderflächen/).waitFor({timeout:15000});
- assert.ok(await page.locator(".leaflet-country-pane svg path").count()>=20,"At least twenty actual land shapes must render");
+ assert.ok(await page.locator(".leaflet-overlay-pane svg path.world-country-shape").count()>=20,"At least twenty land shapes must render");
  assert.match(await page.locator("#borderStatus").textContent(),/lokal/,"Local world geometry should be active");
  assert.equal(localGeoRequests,1,"World geography comes from this project, not a CDN");
  assert.equal(osmRequests,0,"Default view must not request image tiles");
@@ -136,6 +136,18 @@ try{
  await page.locator(".search-submit").click();
  await page.locator("#countryName").getByText("Japan").waitFor();
  await page.waitForFunction(()=>{
+   const map=window.__NEBENAN_QA__.map();
+   let country=null;
+   map.eachLayer(layer=>{if(layer.feature?.properties?.numericCode==="392")country=layer;});
+   const path=country?._path;
+   if(!path)return false;
+   const target=map.latLngToContainerPoint([35.68,139.69]);
+   const rect=path.getBoundingClientRect();
+   const surface=map.getContainer().getBoundingClientRect();
+   const px=surface.left+target.x,py=surface.top+target.y;
+   return rect.width>25 && rect.height>25 && px>=rect.left-20 && px<=rect.right+20 && py>=rect.top-20 && py<=rect.bottom+20;
+ },null,{timeout:8500});
+ await page.waitForFunction(()=>{
    const c=window.__NEBENAN_QA__.map()?.getCenter();
    return !!c&&Math.abs(c.lat-38)<15&&Math.abs(c.lng-138)<25;
  },null,{timeout:8500});
@@ -144,6 +156,7 @@ try{
  await page.locator("#mapShell").scrollIntoViewIfNeeded();
  await page.waitForTimeout(350);
  await page.screenshot({path:"nebenan/test-artifacts/map-focused.png"});
+ await page.locator("#mapShell").screenshot({path:"nebenan/test-artifacts/map-full.png"});
  assert.equal(await page.locator("#currencyFrom").inputValue(),"JPY");
  await page.locator("#amountInput").fill("20");
  await page.locator("#exchangeForm button[type=submit]").click();

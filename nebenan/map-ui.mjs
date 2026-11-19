@@ -49,9 +49,10 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
   });
   map.createPane("gridPane");map.getPane("gridPane").style.zIndex="300";
   map.getPane("gridPane").style.pointerEvents="none";
-  map.createPane("countryPane");map.getPane("countryPane").style.zIndex="350";
+  // Use Leaflet's default overlay pane: custom SVG panes can lose alignment
+  // after resize, flyToBounds or fullscreen transitions in browsers.
   map.createPane("eventsPane");map.getPane("eventsPane").style.zIndex="480";
-  const countryRenderer=L.svg({pane:"countryPane",padding:.35});
+  const countryRenderer=L.svg({padding:.35});
   L.control.scale({position:"bottomleft",imperial:false,maxWidth:130}).addTo(map);
   quakes=L.layerGroup();nature=L.layerGroup();
   const graticule=L.layerGroup();
@@ -243,7 +244,7 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
       if(!features)throw Error("No border data available");
       countryFeatures=features;
       borders=L.geoJSON(features,{
-        pane:"countryPane",renderer:countryRenderer,style:selectedCountryStyle,
+        renderer:countryRenderer,className:"world-country-shape",style:selectedCountryStyle,
         interactive:true,
         onEachFeature(feature,layer){
           const name=String(feature.properties?.name||"Land");
