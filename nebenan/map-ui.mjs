@@ -1,4 +1,4 @@
-import {topologyFeatures,countryForFeature,countryFeatureAt,pointFromEonet,earthquakePoints} from "./map-data.mjs";
+import {topologyFeatures,featuresForLeaflet,countryForFeature,countryFeatureAt,pointFromEonet,earthquakePoints} from "./map-data.mjs";
 
 const WORLD_DATA="./data/world-110m.json";
 const $=id=>document.getElementById(id);
@@ -243,7 +243,7 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
     try{
       if(!features)throw Error("No border data available");
       countryFeatures=features;
-      borders=L.geoJSON(features,{
+      borders=L.geoJSON(featuresForLeaflet(features),{
         renderer:countryRenderer,className:"world-country-shape",style:selectedCountryStyle,
         interactive:true,
         onEachFeature(feature,layer){

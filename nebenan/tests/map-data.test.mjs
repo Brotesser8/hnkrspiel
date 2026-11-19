@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {topologyFeatures,countryForFeature,countryFeatureAt,earthquakePoints,pointFromEonet} from "../map-data.mjs";
+import {topologyFeatures,featuresForLeaflet,countryForFeature,countryFeatureAt,earthquakePoints,pointFromEonet} from "../map-data.mjs";
 import {COUNTRY_DEFAULTS,normalizeCountries} from "../core.mjs";
 
 const simpleTopology={
@@ -71,4 +71,24 @@ test("bundled world geography is valid and supports real land selection",()=>{
  const japan=countryFeatureAt(35.68,139.69,features);
  assert.equal(countryForFeature(japan,countries)?.alpha2Code,"JP");
  assert.equal(countryFeatureAt(0,-140,features),null);
+});
+
+test("dateline-crossing country rings do not paint horizontal world stripes",()=>{
+  const features=topologyFeatures(localTopology);
+  const rendered=featuresForLeaflet(features);
+  for(const country of ["Russia","Fiji"]){
+    const feature=rendered.find(f=>f.properties.name===country);
+    assert.ok(feature);
+    const polygons=feature.geometry.type==="Polygon"?[feature.geometry.coordinates]:feature.geometry.coordinates;
+    for(const polygon of polygons)for(const ring of polygon){
+      for(let i=1;i<ring.length;i++){
+        assert.ok(Math.abs(ring[i][0]-ring[i-1][0])<=180,"Date-line geometry must be continuous for "+country);
+      }
+    }
+  }
+  const r=rendered.find(x=>x.properties.name==="Russia");
+  const original=features.find(x=>x.properties.name==="Russia");
+  assert.equal(r.id,original.id);
+  assert.equal(countryFeatureAt(60,100,features)?.id,"643");
+  assert.equal(countryFeatureAt(46.82,8.23,features)?.id,"756");
 });

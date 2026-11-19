@@ -90,3 +90,41 @@ export function countryFeatureAt(lat,lng,features){
   }
   return null;
 }
+
+/**
+ * Return map-only polygons without edges that jump across the 180th meridian.
+ * TopoJSON rings are used untouched for country hit testing. At the map layer
+ * we unwrap neighboring longitudes to the shortest continuous path, preventing
+ * Russia and Fiji from painting false horizontal bands across the whole world.
+ */
+export function featuresForLeaflet(features){
+  if(!Array.isArray(features))return [];
+  function unwrapRing(points,anchor){
+    if(!Array.isArray(points)||!points.length)return [];
+    let offset=0,previous=points[0][0];
+    const unwrapped=points.map((p,i)=>{
+      const lng=p[0];
+      if(i){
+        const difference=lng+offset-previous;
+        if(difference>180)offset-=360;
+        else if(difference< -180)offset+=360;
+      }
+      previous=lng+offset;
+      return [previous,p[1]];
+    });
+    const lonValues=unwrapped.map(p=>p[0]);
+    const middle=(Math.min(...lonValues)+Math.max(...lonValues))/2;
+    const translation=360*Math.round((anchor-middle)/360);
+    return translation?unwrapped.map(p=>[p[0]+translation,p[1]]):unwrapped;
+  }
+  return features.map(feature=>{
+    const geom=feature.geometry;
+    if(!geom||!["Polygon","MultiPolygon"].includes(geom.type))return feature;
+    const name=feature.properties?.name;
+    const anchor=name==="Russia"?100:name==="Fiji"?179:0;
+    const coordinates=geom.type==="Polygon"
+      ?geom.coordinates.map(ring=>unwrapRing(ring,anchor))
+      :geom.coordinates.map(poly=>poly.map(ring=>unwrapRing(ring,anchor)));
+    return {...feature,geometry:{...geom,coordinates}};
+  });
+}
