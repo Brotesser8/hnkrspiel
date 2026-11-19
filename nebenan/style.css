@@ -126,3 +126,6 @@ body.map-modal-open{overflow:hidden}
 }
 @media(max-width:385px){.map-mode{padding:7px 4px;font-size:8px}.map-top .map-top-actions button{font-size:9px}}
 @media(prefers-reduced-motion:reduce){.pin-halo{animation:none}.map-top .map-top-actions button,.bookmark-row button{transition:none}}
+
+/* Selected location halo is decorative: never block country polygon clicks. */
+.selected-country-icon{pointer-events:none!important}

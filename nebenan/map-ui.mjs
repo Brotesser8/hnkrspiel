@@ -179,7 +179,7 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
         html:'<span class="pin-halo"><span class="pin-core"></span></span>',
         iconSize:[36,36],iconAnchor:[18,18]
       });
-      selectedMarker=L.marker(pos,{icon,keyboard:false,zIndexOffset:900}).addTo(map);
+      selectedMarker=L.marker(pos,{icon,keyboard:false,interactive:false,zIndexOffset:900}).addTo(map);
     }else selectedMarker.setLatLng(pos);
     selectedMarker.bindTooltip(country.name,{direction:"top",offset:[0,-19],className:"map-country-tooltip"});
     renderSelected();

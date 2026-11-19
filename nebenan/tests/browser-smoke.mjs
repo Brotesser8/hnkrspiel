@@ -92,15 +92,17 @@ try{
  await page.locator("#mapZoomIn").click();
  assert.ok((await page.locator("#mapZoomLevel").textContent()).startsWith("ZOOM "));
  await page.evaluate(()=>window.__NEBENAN_QA__.map().setView([46.8,8.0],6,{animate:false}));
+ await page.locator("#worldMap").scrollIntoViewIfNeeded();
  const landClick=await page.evaluate(()=>{
    const map=window.__NEBENAN_QA__.map();
-   const p=map.latLngToContainerPoint([46.8,8.0]);
+   const p=map.latLngToContainerPoint([47.5,6.4]);
    const box=document.getElementById("worldMap").getBoundingClientRect();
    return {x:box.left+p.x,y:box.top+p.y};
  });
  await page.mouse.click(landClick.x,landClick.y);
+ console.log("MAP CLICK STATUS:",await page.locator("#countryStatus").textContent());
  await page.locator("#countryName").getByText("Schweiz").waitFor();
- await page.locator("#countryStatus").getByText(/Auf der Karte ausgewählt/).waitFor();
+ await page.locator("#countryStatus").getByText(/Auf der Karte ausgewählt/).waitFor({timeout:6000});
  await page.locator("#mapReset").click();
  assert.equal(await page.locator(".source-item").count(),12);
  assert.equal(await page.locator("#musicContent .track").count(),2);
