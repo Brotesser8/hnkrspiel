@@ -36,7 +36,7 @@ Eine Musikchart misst nur das Ranking im entsprechenden **Apple-Music-Storefront
 
 Die neue Weltkarte ist der Hauptbestandteil des Interfaces. Sie hat jetzt:
 
-- **Echte Länderflächen statt nächstgelegener Zentren:** Vereinfachte Natural-Earth/World-Atlas-110m-Grenzen werden über die öffentliche TopoJSON-CDN-Version geladen und zu GeoJSON umgewandelt. Klick auf eine Landfläche wählt das entsprechende Land anhand des numerischen ISO-Codes. Ein Klick aufs Meer wählt **kein** zufälliges Land. Grenzen sind vereinfacht, besonders kleine Staaten können fehlen.
+- **Echte Länderflächen statt nächstgelegener Zentren:** Vereinfachte Natural-Earth/World-Atlas-110m-Grenzen werden über die öffentliche TopoJSON-CDN-Version geladen und zu GeoJSON umgewandelt. Klick auf eine Landfläche wählt das entsprechende Land anhand des numerischen ISO-Codes. Die Auswahl nutzt browserseitiges Punkt-in-Polygon-Hit-Testing im Capture-Event, damit Leaflet-Canvas- und Markerebenen die Auswahl nicht verschlucken. Ein Klick aufs Meer wählt **kein** zufälliges Land. Grenzen sind vereinfacht, besonders kleine Staaten können fehlen.
 - **Datenebenen direkt auf der Karte:** „Alle“, „Erdbeben“, „Natur“, „Nur Länder“. Ereignismarker kommen aus den bereits für die Seite geladenen USGS- und NASA-EONET-Antworten – **keine zusätzlichen API-Requests**. Der Marker zeigt Details und gegebenenfalls einen Quellenlink.
 - **Bedienhilfen:** Zoom per Mausrad, Touch-Pinch und +/−, Weltansicht, Koordinaten unter dem Mauszeiger, sichtbare Zoomstufe, Massstabsleiste, Legende, Länder-Tooltip, interaktive Hilfe und Kontrastmodus.
 - **Grossansicht mit Escape-Taste**, auch auf Mobilgeräten. Animationen respektieren „Reduzierte Bewegung“.

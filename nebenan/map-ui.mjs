@@ -71,22 +71,39 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
     setCoordinates(e.latlng.lat,e.latlng.lng);
   });
   map.on("mouseout",updateZoom);
-  map.on("click",event=>{
+  // Capture the native DOM click before Leaflet's Canvas renderer can consume it.
+  // Ignore map popups/controls and real event markers, so their links remain usable.
+  function clickedDataPoint(clickPoint){
+    const groups=[];
+    if(visibleMode==="all"||visibleMode==="quakes")groups.push(...points.quakes);
+    if(visibleMode==="all"||visibleMode==="nature"){
+      groups.push(...points.nature.map(pointFromEonet).filter(Boolean));
+    }
+    return groups.some(p=>{
+      const m=map.latLngToContainerPoint([p.lat,p.lon]);
+      const dx=m.x-clickPoint.x,dy=m.y-clickPoint.y;
+      return dx*dx+dy*dy<17*17;
+    });
+  }
+  function onNativeMapClick(e){
+    if(e.target.closest?.(".leaflet-popup,.leaflet-tooltip,.leaflet-control"))return;
     if(!boundariesReady){
       mapHint("Die Ländergrenzen werden geladen. Suche oder wähle ein Land oben.");
       return;
     }
-    const feature=countryFeatureAt(event.latlng.lat,event.latlng.lng,countryFeatures);
+    const pixel=map.mouseEventToContainerPoint(e);
+    if(clickedDataPoint(pixel))return;
+    const latlng=map.containerPointToLatLng(pixel);
+    const feature=countryFeatureAt(latlng.lat,latlng.lng,countryFeatures);
     const country=feature&&countryForFeature(feature,getCountries());
     if(country){
       onChooseCountry(country);
       mapHint("Ausgewählt: "+country.name+" · Daten rechts und weiter unten.");
-    }else{
-      mapHint(feature
-        ?"Diese Länderfläche hat keinen verfügbaren Länder-Datensatz."
-        :"Meer oder nicht abgedecktes Gebiet · bitte eine Länderfläche wählen.");
-    }
-  });
+    }else mapHint(feature
+      ?"Diese Länderfläche hat keinen verfügbaren Länder-Datensatz."
+      :"Meer oder nicht abgedecktes Gebiet · bitte eine Länderfläche wählen.");
+  }
+  map.getContainer().addEventListener("click",onNativeMapClick,true);
   updateZoom();
 
   function showTileError(){
@@ -330,6 +347,6 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
   window.addEventListener("orientationchange",()=>setTimeout(()=>map.invalidateSize(),220));
   applyMode("all");
   return {selectCountry,setEarthquakes,setNatureEvents,focusEvent,getMap(){return map;},destroy(){
-    clearTimeout(timeout);obs?.disconnect();map.remove();
+    clearTimeout(timeout);obs?.disconnect();map.getContainer().removeEventListener("click",onNativeMapClick,true);map.remove();
   }};
 }
