@@ -118,6 +118,11 @@ try{
  await page.locator("#countryInput").fill("Japan");
  await page.locator(".search-submit").click();
  await page.locator("#countryName").getByText("Japan").waitFor();
+ await page.waitForFunction(()=>{
+   const c=window.__NEBENAN_QA__.map()?.getCenter();
+   return !!c&&Math.abs(c.lat-38)<15&&Math.abs(c.lng-138)<25;
+ },null,{timeout:8500});
+
  await mkdir("nebenan/test-artifacts",{recursive:true});
  await page.locator("#mapShell").scrollIntoViewIfNeeded();
  await page.waitForTimeout(350);

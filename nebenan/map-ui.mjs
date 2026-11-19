@@ -209,10 +209,18 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
     renderSelected();
     $("mapSelectedLabel").textContent=country.name;
     if(fly) {
+      map.stop(); // Cancel older movements before navigating to the next country.
       const match=borders?.getLayers().find(l=>countryForFeature(l.feature,getCountries())?.alpha2Code===country.alpha2Code);
       if(match&&match.getBounds().isValid()){
-        map.flyToBounds(match.getBounds(),{maxZoom:6,padding:[30,30],duration:reduced()?0:.85});
-      }else map.flyTo(pos,Math.min(5,Math.max(3,map.getZoom())),{duration:reduced()?0:.7});
+        const options={maxZoom:6,padding:[30,30]};
+        if(reduced())map.fitBounds(match.getBounds(),{...options,animate:false});
+        else map.flyToBounds(match.getBounds(),{...options,duration:.8});
+      }else{
+        const targetZoom=Math.min(5,Math.max(3,map.getZoom()));
+        if(reduced())map.setView(pos,targetZoom,{animate:false});
+        else map.flyTo(pos,targetZoom,{duration:.7});
+      }
+      mapHint("Land gewählt: "+country.name+" · weitere Informationen neben der Karte.");
     }
   }
   function popup(title,meta,url){
@@ -294,7 +302,9 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
     applyMode(kind==="quake"?"quakes":"nature");
     const markers=group.getLayers();
     const found=markers.find(m=>Math.abs(m.getLatLng().lat-lat)<.0001&&Math.abs(m.getLatLng().lng-lon)<.0001);
-    map.flyTo([lat,lon],Math.max(5,map.getZoom()),{duration:reduced()?0:.8});
+    map.stop();
+    if(reduced())map.setView([lat,lon],Math.max(5,map.getZoom()),{animate:false});
+    else map.flyTo([lat,lon],Math.max(5,map.getZoom()),{duration:.8});
     if(found)map.once("moveend",()=>found.openPopup());
     else{
       const m=L.circleMarker([lat,lon],{pane:"eventsPane",radius:10,color:"#fff",fillColor:kind==="quake"?"#e77f5e":"#a1b648",fillOpacity:1}).addTo(group);
@@ -330,7 +340,11 @@ export function createWorldExplorer({getCountries,onChooseCountry}) {
   );
   $("mapZoomIn").addEventListener("click",()=>map.zoomIn());
   $("mapZoomOut").addEventListener("click",()=>map.zoomOut());
-  $("mapReset").addEventListener("click",()=>map.flyTo([22,8],2,{duration:reduced()?0:.65}));
+  $("mapReset").addEventListener("click",()=>{
+    map.stop();
+    if(reduced())map.setView([22,8],2,{animate:false});
+    else map.flyTo([22,8],2,{duration:.65});
+  });
   $("mapExpand").addEventListener("click",expand);
   $("mapContrast").addEventListener("click",()=>{
     const active=root.classList.toggle("map-high-contrast");
