@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ee">
+  <meta name="description" content="GELÄNDE – ein unabhängiger, nichtkommerzieller Schweizer Datenatlas mit Karte, Höhenprofil, Erdbeben, Naturbeobachtungen und offenen Quellen.">
+  <title>GELÄNDE — Die Schweiz, Punkt für Punkt</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="preconnect" href="https://wmts.geo.admin.ch">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="./styles.css">
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <a class="skip" href="#erkunden">Zum Inhalt springen</a>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="Gelände, Startseite"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none"><path d="m2 25 10-15 6 9 5-7 9 13" stroke="currentColor" stroke-width="2.8" stroke-linejoin="round"/><path d="M2 29h30" stroke="currentColor" stroke-width="2.8"/></svg></span><span>GELÄNDE<span class="brand-dot">.</span></span></a>
+    <nav class="main-nav" aria-label="Hauptnavigation"><a href="#erkunden">Karte</a><a href="#daten">Entdecken</a><a href="#quellen">Datenquellen</a></nav>
+    <span class="header-note"><span class="pulse" aria-hidden="true"></span> Offene Daten · Schweiz</span>
+  </header>
+  <main>
+    <section class="intro shell" aria-labelledby="page-title">
+      <div class="intro-copy">
+        <p class="eyebrow"><span class="eyebrow-line"></span> EIN ATLAS FÜR NEUGIERIGE</p>
+        <h1 id="page-title">Die Schweiz.<br><em>Punkt für Punkt.</em></h1>
+        <p class="intro-lede">Entdecke, was unter unseren Füssen liegt, was sich in der Natur tut und welche Geschichten ein Ort erzählt. Direkt aus offenen Datenquellen.</p>
+      </div>
+      <div class="intro-stamp" aria-hidden="true"><span>CH</span><svg viewBox="0 0 130 72" fill="none"><path d="m3 61 23-30 12 13L61 7l21 32 14-17 31 39" stroke="currentColor" stroke-width="2.8" stroke-linejoin="round"/><path d="M4 67h123" stroke="currentColor" stroke-width="2"/></svg><small>46° 48′ N / 8° 14′ E</small></div>
+    </section>
+    <section class="explorer-section shell" id="erkunden" aria-labelledby="explorer-title">
+      <div class="section-top"><div><p class="kicker">01 / ORTE ERKUNDEN</p><h2 id="explorer-title">Ein Land. Tausend Perspektiven.</h2></div><span class="section-aside">Klicke auf die Karte oder wähle einen Ort.</span></div>
+      <div class="control-bar">
+        <form class="search-form" id="searchForm" role="search"><label class="sr-only" for="placeSearch">Schweizer Ort oder Adresse suchen</label><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg><input id="placeSearch" name="place" placeholder="Ort, Adresse oder Postleitzahl suchen" autocomplete="off" maxlength="100"><button type="submit" class="search-button">Suchen <span aria-hidden="true">↗</span></button></form>
+        <label class="select-wrap" for="citySelect"><span class="sr-only">Schnellauswahl Stadt</span><select id="citySelect"><option value="">Schnellauswahl</option><option value="zuerich">Zürich</option><option value="bern">Bern</option><option value="basel">Basel</option><option value="genf">Genf</option><option value="lausanne">Lausanne</option><option value="luzern">Luzern</option><option value="lugano">Lugano</option><option value="stgallen">St. Gallen</option><option value="davos">Davos</option><option value="zermatt">Zermatt</option></select><span aria-hidden="true">⌄</span></label>
+      </div>
+      <p id="searchMessage" class="inline-message" aria-live="polite" hidden></p>
+      <div class="explorer-grid">
+        <div class="map-card">
+          <div class="map-toolbar" role="group" aria-label="Kartendarstellung"><button class="layer-tab active" type="button" data-layer="map" aria-pressed="true">Karte</button><button class="layer-tab" type="button" data-layer="aerial" aria-pressed="false">Luftbild</button><button class="layer-tab" type="button" data-layer="geology" aria-pressed="false">Geologie</button><button class="layer-tab" type="button" data-layer="landscape" aria-pressed="false">Landschaft</button></div>
+          <div id="map" class="map" aria-label="Interaktive Karte der Schweiz"><div id="mapFallback" class="map-fallback"><strong>Die Karte wird geladen.</strong><span>Wenn sie nicht erscheint, öffne die offizielle Landeskarte.</span><a href="https://map.geo.admin.ch" target="_blank" rel="noopener noreferrer">swisstopo-Karte öffnen ↗</a></div></div>
+          <div class="map-hint"><span><span class="map-hint-dot"></span><span id="mapHint">Karte anklicken, um einen Punkt zu untersuchen</span></span><a id="officialMap" href="https://map.geo.admin.ch" target="_blank" rel="noopener noreferrer">In swisstopo öffnen ↗</a></div>
+        </div>
+        <aside class="focus-panel" aria-label="Ausgewählter Ort">
+          <div class="focus-header"><span class="tag">STANDORT IM FOKUS</span><span class="focus-index">CH / 001</span></div>
+          <h3 id="placeTitle">Zürich</h3><p class="focus-subtitle" id="placeSubtitle">Stadt Zürich · Schweiz</p>
+          <div class="focus-rule"></div>
+          <p class="micro">HÖHE ÜBER MEER</p><div class="large-measure"><strong id="heightValue">—</strong><span>m ü. M.</span></div><p class="data-state" id="heightState" aria-live="polite">Messwert wird geladen …</p>
+          <div class="coordinate-list"><div><span>Breitengrad</span><strong id="latValue">47.3769° N</strong></div><div><span>Längengrad</span><strong id="lngValue">8.5417° E</strong></div><div><span>Koordinaten CH1903+</span><strong id="lv95Value">—</strong></div></div>
+          <div class="focus-actions"><button id="profileButton" class="dark-button" type="button">Höhenprofil zeichnen <span aria-hidden="true">↗</span></button><button id="cancelProfile" class="quiet-button" type="button" hidden>Abbrechen</button></div>
+          <p class="small-note">Höhendaten: swisstopo · Landeskarte der Schweiz. Werte werden direkt an der gewählten Position abgerufen.</p>
+        </aside>
+      </div>
+      <div class="profile-card" id="profileCard" hidden><div class="profile-head"><div><p class="micro">GELÄNDEVERLAUF</p><h3>Dein Höhenprofil</h3></div><span id="profileStats" class="profile-stats">Zwei Punkte auf der Karte wählen</span></div><div class="profile-plot" id="profilePlot" role="img" aria-label="Höhenprofil entlang der ausgewählten Strecke"><p>Wähle zuerst Start und Ziel auf der Karte.</p></div><p class="data-state" id="profileState" aria-live="polite"></p></div>
+    </section>
+    <section class="insights shell" id="daten" aria-labelledby="data-title">
+      <div class="section-top"><div><p class="kicker">02 / DATEN VERSTEHEN</p><h2 id="data-title">Was die Zahlen erzählen.</h2></div><button type="button" class="refresh-button" id="refreshButton">Daten aktualisieren <span aria-hidden="true">↻</span></button></div>
+      <p class="section-blurb">Keine erfundenen Messwerte. Jede Karte zeigt ihre Quelle und meldet offen, wenn ein Dienst gerade nicht antwortet.</p>
+      <div class="insight-grid">
+        <article class="insight-card quake-card" aria-labelledby="quake-title"><div class="card-top"><span class="card-icon">↟</span><span class="card-category">SEISMIK</span></div><h3 id="quake-title">Wenn die Erde bebt.</h3><p class="card-description">Registrierte Erdbeben in und um die Schweiz, vergangene 365 Tage.</p><div id="quakeContent" class="card-content"><p class="loading">Erdbeben werden geladen …</p></div><div class="card-foot"><span>USGS Earthquake API</span><a href="https://earthquake.usgs.gov/earthquakes/" target="_blank" rel="noopener noreferrer">Quelle ↗</a></div></article>
+        <article class="insight-card nature-card" aria-labelledby="nature-title"><div class="card-top"><span class="card-icon">✳</span><span class="card-category">BIODIVERSITÄT</span></div><h3 id="nature-title">Leben in deiner Nähe.</h3><p class="card-description">Dokumentierte Tier- und Pflanzenbeobachtungen im Umkreis des Kartenpunkts.</p><div id="natureContent" class="card-content"><p class="loading">Beobachtungen werden geladen …</p></div><div class="card-foot"><span>GBIF · Offene Artdaten</span><a href="https://www.gbif.org/occurrence/search?country=CH" target="_blank" rel="noopener noreferrer">Quelle ↗</a></div></article>
+        <article class="insight-card wiki-card" aria-labelledby="wiki-title"><div class="card-top"><span class="card-icon">◌</span><span class="card-category">ORTSKUNDE</span></div><h3 id="wiki-title">Mehr als ein Punkt.</h3><p class="card-description">Ein enzyklopädischer Einblick in einen Ort in der Nähe deiner Auswahl.</p><div id="wikiContent" class="card-content"><p class="loading">Ortswissen wird geladen …</p></div><div class="card-foot"><span>Wikimedia · Deutsch</span><a href="https://de.wikipedia.org/" target="_blank" rel="noopener noreferrer">Quelle ↗</a></div></article>
+        <article class="insight-card stats-card" aria-labelledby="stats-title"><div class="card-top"><span class="card-icon">▤</span><span class="card-category">SCHWEIZ IN ZAHLEN</span></div><h3 id="stats-title">Ein Blick aufs Ganze.</h3><p class="card-description">Bevölkerung der Schweiz aus dem jüngsten verfügbaren World-Bank-Datensatz.</p><div id="statsContent" class="card-content"><p class="loading">Kennzahl wird geladen …</p></div><div class="card-foot"><span>World Bank Indicators</span><a href="https://data.worldbank.org/country/switzerland" target="_blank" rel="noopener noreferrer">Quelle ↗</a></div></article>
+        <article class="insight-card holidays-card" aria-labelledby="holidays-title"><div class="card-top"><span class="card-icon">✺</span><span class="card-category">KALENDER</span></div><h3 id="holidays-title">Die nächsten Feiertage.</h3><p class="card-description">Gesetzliche Feiertage der Schweiz; kantonale Gültigkeit wird angezeigt.</p><div id="holidaysContent" class="card-content"><p class="loading">Feiertage werden geladen …</p></div><div class="card-foot"><span>Nager.Date</span><a href="https://date.nager.at/" target="_blank" rel="noopener noreferrer">Quelle ↗</a></div></article>
+        <article class="insight-card explore-card" aria-labelledby="explore-title"><div class="card-top"><span class="card-icon">↗</span><span class="card-category">WEITERFORSCHEN</span></div><h3 id="explore-title">Noch tiefer eintauchen.</h3><p class="card-description">Offizielle Schweizer Themenkarten für Boden, Solarenergie und Natur.</p><div class="explore-links"><a id="geoDeepLink" href="https://map.geo.admin.ch/#/map?topic=geol" target="_blank" rel="noopener noreferrer">Geologische Landeskarte <span>↗</span></a><a id="solarDeepLink" href="https://map.geo.admin.ch/#/map?layers=ch.bfe.solarenergie-eignung-daecher" target="_blank" rel="noopener noreferrer">Solarpotenzial von Dächern <span>↗</span></a><a id="landscapeDeepLink" href="https://map.geo.admin.ch/#/map?layers=ch.bafu.bundesinventare-bln" target="_blank" rel="noopener noreferrer">Geschützte Landschaften <span>↗</span></a><a href="https://data.geo.admin.ch/api/stac/v1/" target="_blank" rel="noopener noreferrer">Offene Geodaten herunterladen <span>↗</span></a></div><div class="card-foot"><span>GeoAdmin · swisstopo</span><a href="https://docs.geo.admin.ch/" target="_blank" rel="noopener noreferrer">Dokumentation ↗</a></div></article>
+      </div>
+    </section>
+    <section class="source-section shell" id="quellen" aria-labelledby="sources-title"><div class="section-top"><div><p class="kicker">03 / OFFEN & NACHVOLLZIEHBAR</p><h2 id="sources-title">Der Datenkompass.</h2></div><span class="section-aside"><strong id="sourceCount">32</strong> geprüfte Quelleneinträge</span></div><p class="section-blurb">Alle ursprünglich genannten Dienste sind transparent erfasst. Aktiv angefragt werden nur ausgewählte frei zugängliche Quellen ohne beworbene feste Gratis-Aufrufkontingente. Externe Dienste können dennoch Fair-Use-Regeln oder technische Schutzlimits haben.</p><div class="source-tools"><div class="filter-row" role="group" aria-label="Quellenauswahl"><button type="button" class="filter active" data-filter="all" aria-pressed="true">Alle</button><button type="button" class="filter" data-filter="live" aria-pressed="false">Hier genutzt</button><button type="button" class="filter" data-filter="reference" aria-pressed="false">Offene Portale</button><button type="button" class="filter" data-filter="excluded" aria-pressed="false">Mit Limit</button></div><label class="source-search-wrap"><span class="sr-only">Datenquellen filtern</span><input type="search" id="sourceSearch" placeholder="Quellen durchsuchen …" maxlength="70"></label></div><div id="sourceList" class="source-list" aria-live="polite"></div><p id="sourceEmpty" class="source-empty" hidden>Keine passenden Quellen gefunden.</p></section>
+  </main>
+  <footer class="footer"><div class="shell footer-inner"><div><span class="footer-brand">GELÄNDE<span>.</span></span><p>Eine freie, nichtkommerzielle Entdeckungsreise<br>durch öffentlich zugängliche Daten der Schweiz.</p></div><div class="footer-right"><span>Mit Sorgfalt gebaut. Mit Quellen belegt.</span><a href="https://github.com/Brotesser8/hnkrspiel/tree/main/schweiz-atlas" target="_blank" rel="noopener noreferrer">Quellcode auf GitHub ↗</a></div></div></footer>
+</body>
+</html>
