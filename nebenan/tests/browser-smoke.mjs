@@ -23,7 +23,7 @@ const svgTile='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><re
 const svgDog='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200"><rect width="320" height="200" fill="#e8d6bd"/><ellipse cx="160" cy="110" rx="69" ry="71" fill="#8b684c"/><path d="M112 61 Q60 22 75 126 L117 105 M208 61 Q260 22 245 126 L203 105" fill="#634a39"/><circle cx="137" cy="104" r="8" fill="#191d1a"/><circle cx="184" cy="104" r="8" fill="#191d1a"/><ellipse cx="160" cy="135" rx="19" ry="12" fill="#2c2927"/><path d="M145 155 Q160 170 176 155" stroke="#2c2927" stroke-width="4" fill="none"/></svg>';
 const svgMonster='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f9eee3"/><path d="M66 81 43 20 84 59 116 58 155 20 134 83 Q159 110 139 149 Q98 187 62 149 Q45 120 66 81Z" fill="#e0ad60" stroke="#8a624e" stroke-width="5"/><circle cx="82" cy="112" r="7" fill="#282821"/><circle cx="119" cy="112" r="7" fill="#282821"/><path d="M88 137 Q102 144 115 137" stroke="#38332b" stroke-width="4" fill="none"/></svg>';
 try{
- browser=await chromium.launch({headless:true,args:["--no-sandbox"]});
+ browser=await chromium.launch({headless:true,args:["--no-sandbox"],...(process.env.PLAYWRIGHT_CHANNEL?{channel:process.env.PLAYWRIGHT_CHANNEL}:{})});
  const page=await browser.newPage({viewport:{width:1365,height:900},reducedMotion:"reduce"});
  const errors=[];
  page.on("pageerror",err=>errors.push(err.message));

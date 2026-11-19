@@ -40,9 +40,13 @@ jobs:
           node-version: '22'
       - name: Install browser test dependencies
         run: npm install --no-save playwright@1.58.2
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Verify runner browser
+        run: |
+          command -v google-chrome
+          google-chrome --version
       - name: Test country changes, interactive modules and phone layout
+        env:
+          PLAYWRIGHT_CHANNEL: chrome
         run: node nebenan/tests/browser-smoke.mjs
       - name: Upload screenshots
         if: always()
