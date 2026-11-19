@@ -24,7 +24,8 @@ try{
   await page.route("https://api3.geo.admin.ch/rest/services/profile.json?**",r=>r.fulfill({json:[{dist:0,alts:{COMB:450}},{dist:1500,alts:{COMB:650}},{dist:3000,alts:{COMB:510}}]}));
   await page.route("https://api3.geo.admin.ch/rest/services/ech/SearchServer?**",r=>r.fulfill({json:{results:[{attrs:{label:"<b>Luzern</b>",lat:47.0502,lon:8.3093}}]}}));
   await page.route("https://api.gbif.org/v1/occurrence/search?**",r=>r.fulfill({json:{results:[{scientificName:"Rana temporaria",kingdom:"Animalia",eventDate:"2025-05-15"}]}}));
-  await page.route("https://de.wikipedia.org/w/api.php?**",r=>r.fulfill({json:{query:{pages:{"42":{pageid:42,title:"Zürich",extract:"Zürich ist eine Schweizer Stadt am See."}}}}}}));
+  const wikiMock={query:{pages:{"42":{pageid:42,title:"Zürich",extract:"Zürich ist eine Schweizer Stadt am See."}}}};
+  await page.route("https://de.wikipedia.org/w/api.php?**",r=>r.fulfill({json:wikiMock}));
   await page.route("https://earthquake.usgs.gov/fdsnws/event/1/query?**",r=>r.fulfill({json:{features:[{properties:{place:"bei Luzern",mag:1.8,time:Date.now()}}]}}));
   await page.route("https://api.worldbank.org/v2/country/CHE/indicator/SP.POP.TOTL?**",r=>r.fulfill({json:[{page:1},[{value:9000000,date:"2025"}]]}));
   await page.route("https://nagerholidays.com/api/v4/Holidays/CH/**",r=>{

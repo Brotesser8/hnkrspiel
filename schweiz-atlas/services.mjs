@@ -32,7 +32,7 @@ export async function findPlace(query){
 }
 export async function getQuakes(refresh=false){
   const today=new Date(),begin=new Date(today.getTime()-365*24*60*60*1000);
-  const query=new URLSearchParams({format:"geojson",starttime:begin.toISOString().slice(0,10),endtime:today.toISOString().slice(0,10),minlatitude:"45.7",maxlatitude:"48.1",minlongitude:"5.7",maxlongitude:"10.8",orderby:"time",limit:"35"});
+  const query=new URLSearchParams({format:"geojson",starttime:begin.toISOString().slice(0,10),minlatitude:"45.7",maxlatitude:"48.1",minlongitude:"5.7",maxlongitude:"10.8",orderby:"time",limit:"35"});
   const data=await json("https://earthquake.usgs.gov/fdsnws/event/1/query?"+query,{refresh});
   if(!Array.isArray(data?.features))throw new Error("Erdbebenantwort unvollständig");
   return data.features;

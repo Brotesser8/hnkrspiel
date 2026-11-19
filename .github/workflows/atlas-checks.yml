@@ -26,6 +26,7 @@ jobs:
           node --check schweiz-atlas/services.mjs
           node --check schweiz-atlas/core.mjs
           node --check schweiz-atlas/catalogue.mjs
+          node --check schweiz-atlas/tests/browser-smoke.mjs
       - name: Run deterministic tests
         run: node --test schweiz-atlas/tests/core.test.mjs
   browser:
