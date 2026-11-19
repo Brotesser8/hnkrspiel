@@ -19,7 +19,9 @@ const server=createServer(async(req,res)=>{
 await new Promise(ok=>server.listen(0,"127.0.0.1",ok));
 const base="http://127.0.0.1:"+server.address().port+"/nebenan/";
 let browser;
-const png=Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL/nAAAAABJRU5ErkJggg==","base64");
+const svgTile='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="#dce8db"/><path d="M0 80 Q60 30 120 110 T256 90 M0 160 Q80 100 144 175 T256 170 M40 0 Q95 75 50 145 T80 256" stroke="#c2d2c1" stroke-width="3" fill="none"/><path d="M10 240 Q100 190 170 220 T280 225" stroke="#f9f9ed" stroke-width="10" fill="none"/></svg>';
+const svgDog='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200"><rect width="320" height="200" fill="#e8d6bd"/><ellipse cx="160" cy="110" rx="69" ry="71" fill="#8b684c"/><path d="M112 61 Q60 22 75 126 L117 105 M208 61 Q260 22 245 126 L203 105" fill="#634a39"/><circle cx="137" cy="104" r="8" fill="#191d1a"/><circle cx="184" cy="104" r="8" fill="#191d1a"/><ellipse cx="160" cy="135" rx="19" ry="12" fill="#2c2927"/><path d="M145 155 Q160 170 176 155" stroke="#2c2927" stroke-width="4" fill="none"/></svg>';
+const svgMonster='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f9eee3"/><path d="M66 81 43 20 84 59 116 58 155 20 134 83 Q159 110 139 149 Q98 187 62 149 Q45 120 66 81Z" fill="#e0ad60" stroke="#8a624e" stroke-width="5"/><circle cx="82" cy="112" r="7" fill="#282821"/><circle cx="119" cy="112" r="7" fill="#282821"/><path d="M88 137 Q102 144 115 137" stroke="#38332b" stroke-width="4" fill="none"/></svg>';
 try{
  browser=await chromium.launch({headless:true,args:["--no-sandbox"]});
  const page=await browser.newPage({viewport:{width:1365,height:900},reducedMotion:"reduce"});
@@ -29,6 +31,7 @@ try{
  for(let i=65;i<=90;i++)for(let j=65;j<=90;j++){
   const code=String.fromCharCode(i)+String.fromCharCode(j);
   if(entries.length>=125)break;
+  if(code==="CH"||code==="JP")continue;
   entries.push({name:"Land "+code,alpha2Code:code,alpha3Code:code+"A",latlng:[0+i-65,0+j-65],capital:"Hauptstadt "+code,region:"Asia",currencies:[{code:"USD"}],flag:"🌐",timezones:["UTC+02:00"],population:20000,area:40000});
  }
  entries[0]={name:"Schweiz",alpha2Code:"CH",alpha3Code:"CHE",latlng:[46.8182,8.2275],capital:"Bern",region:"Europe",currencies:[{code:"CHF"}],timezones:["UTC+01:00"],flag:"🇨🇭",population:9000000,area:41285};
@@ -45,10 +48,10 @@ try{
  await page.route("https://eonet.gsfc.nasa.gov/api/v3/**",route=>route.fulfill({json:{events:[{title:"Waldbrand im Testgebiet",geometry:[{type:"Point",coordinates:[20,40]}],categories:[{title:"Wildfires"}]}]}}));
  await page.route("https://ssd-api.jpl.nasa.gov/cad.api?**",route=>route.fulfill({json:{fields:["dist","cd","des","v_rel"],data:[[".015","2026-Nov-19","2026 AB","12.5"]]}}));
  await page.route("https://dog.ceo/api/breeds/image/random",route=>route.fulfill({json:{status:"success",message:"https://images.example.org/dog.png"}}));
- await page.route("https://images.example.org/**",route=>route.fulfill({body:png,contentType:"image/png"}));
+ await page.route("https://images.example.org/**",route=>route.fulfill({body:route.request().url().includes("dog.png")?svgDog:svgMonster,contentType:"image/svg+xml"}));
  await page.route("https://pokeapi.co/api/v2/pokemon/**",route=>route.fulfill({json:{id:25,name:"pikachu",types:[{type:{name:"electric"}}],sprites:{other:{"official-artwork":{front_default:"https://images.example.org/poke.png"}}}}}));
  await page.route("https://api.transitous.org/api/v6/plan?**",route=>route.fulfill({json:{itineraries:[{startTime:"2026-11-19T09:00:00Z",endTime:"2026-11-19T09:43:00Z",duration:2580,transfers:0,legs:[{mode:"RAIL",routeShortName:"IC 8"}]}]}}));
- await page.route("https://tile.openstreetmap.org/**",route=>route.fulfill({body:png,contentType:"image/png"}));
+ await page.route("https://tile.openstreetmap.org/**",route=>route.fulfill({body:svgTile,contentType:"image/svg+xml"}));
  await page.goto(base,{waitUntil:"domcontentloaded"});
  await page.locator("#countryName").getByText("Schweiz").waitFor({timeout:20000});
  await page.locator("#musicContent .track").first().waitFor({timeout:20000});

@@ -1,16 +1,22 @@
 import {musicUrl,travelUrl} from "./core.mjs";
 const cache=new Map();
+const pending=new Map();
 export async function request(url,{ttl=10*60*1000,force=false,timeout=13000}={}){
   const previous=cache.get(url);
   if(!force&&previous&&Date.now()-previous.at<ttl)return previous.data;
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);
-  try{
-    const resp=await fetch(url,{signal:controller.signal,headers:{Accept:"application/json"}});
-    if(!resp.ok)throw new Error("HTTP "+resp.status);
-    const data=await resp.json();
-    cache.set(url,{at:Date.now(),data});
-    return data;
-  }finally{clearTimeout(timer);}
+  if(pending.has(url))return pending.get(url);
+  const task=(async()=>{
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);
+    try{
+      const resp=await fetch(url,{signal:controller.signal,headers:{Accept:"application/json"}});
+      if(!resp.ok)throw new Error("HTTP "+resp.status);
+      const data=await resp.json();
+      cache.set(url,{at:Date.now(),data});
+      return data;
+    }finally{clearTimeout(timer);}
+  })();
+  pending.set(url,task);
+  try{return await task;}finally{if(pending.get(url)===task)pending.delete(url);}
 }
 export async function countries(){
   const data=await request("https://countries.dev/countries",{ttl:24*60*60*1000,timeout:18000});
@@ -39,7 +45,7 @@ export async function worldBank(iso3,indicator){
 }
 export async function exchange(from,to){
   if(from===to)return {rate:1,date:new Date().toISOString().slice(0,10)};
-  const data=await request("https://api.frankfurter.dev/v2/rate/"+encodeURIComponent(from)+"/"+encodeURIComponent(to),{ttl:60*60*1000});
+  const data=await request("https://api.frankfurter.dev/v2/rate/"+encodeURIComponent(from.toLowerCase())+"/"+encodeURIComponent(to.toLowerCase()),{ttl:60*60*1000});
   if(!Number.isFinite(data?.rate))throw new Error("Kein Referenzkurs");
   return data;
 }

@@ -42,7 +42,7 @@ export const SOURCES=[
  {name:"OpenStreetMap",topic:"Karte",url:"https://www.openstreetmap.org/copyright",note:"Kartendaten mit Attribution und öffentlicher Tile-Usage-Policy.",mode:"online"}
 ];
 export const fmtNumber=(n,decimals=0)=>Number.isFinite(Number(n))?new Intl.NumberFormat("de-CH",{maximumFractionDigits:decimals}).format(Number(n)):"—";
-export const fmtDate=(date)=>new Intl.DateTimeFormat("de-CH",{day:"2-digit",month:"short",year:"numeric"}).format(new Date(date));
+export const fmtDate=(date)=>new Intl.DateTimeFormat("de-CH",{day:"2-digit",month:"short",year:"numeric"}).format(new Date(typeof date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(date)?date+"T12:00:00":date));
 export const normalizedName=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
 export function normalizeCountries(raw){
   if(!Array.isArray(raw))return [];
@@ -86,8 +86,9 @@ export function chooseQuiz(countries,random=Math.random){
   const valid=countries.filter(c=>c.capital&&c.capital!=="—"&&c.name);
   if(valid.length<4)return null;
   const correct=valid[randomInt(valid.length,random)];
-  const shuffled=[correct,...valid.filter(c=>c.alpha2Code!==correct.alpha2Code).sort(()=>random()-.5).slice(0,3)];
-  const options=shuffled.map(c=>c.name);
+  const candidates=valid.filter(c=>c.alpha2Code!==correct.alpha2Code);
+  for(let i=candidates.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[candidates[i],candidates[j]]=[candidates[j],candidates[i]];}
+  const options=[correct.name,...candidates.slice(0,3).map(c=>c.name)];
   for(let i=options.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[options[i],options[j]]=[options[j],options[i]];}
   return {capital:correct.capital,answer:correct.name,options};
 }
