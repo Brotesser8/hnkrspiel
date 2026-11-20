@@ -28,8 +28,8 @@ export const SOURCES=[
  {name:"USGS",detail:"Erdbeben-Messdaten",url:"https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php"},
  {name:"NASA EONET",detail:"Naturereignisse",url:"https://eonet.gsfc.nasa.gov/docs/v3"},
  {name:"Apple Music RSS",detail:"Regionale Charts",url:"https://performance-partners.apple.com/tools"},
- {name:"PokéAPI",detail:"Pokémon-Daten",url:"https://pokeapi.co/docs/v2"},
- {name:"Dog CEO",detail:"Offenes Hundebildarchiv",url:"https://dog.ceo/dog-api/"}
+ {name:"Wikimedia",detail:"Freie Enzyklopädie-Bilder für MIXUP",url:"https://www.mediawiki.org/wiki/API:Pageimages"},
+ {name:"FlagCDN",detail:"Länderflaggen für MIXUP",url:"https://flagcdn.com/"}
 ];
 export const number=(val,maxDigits=0)=>Number.isFinite(Number(val))?new Intl.NumberFormat("de-CH",{maximumFractionDigits:maxDigits}).format(Number(val)):"—";
 export function dateLabel(iso,zone="Europe/Zurich"){try{return new Intl.DateTimeFormat("de-CH",{day:"2-digit",month:"short",year:"numeric",timeZone:zone}).format(new Date(/^\d{4}-\d\d-\d\d$/.test(iso)?iso+"T12:00:00Z":iso))}catch{return String(iso||"—")}}

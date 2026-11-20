@@ -105,15 +105,9 @@ try{
  await page.locator("#soundCountries [data-id=jp]").click();
  await page.locator("#soundListTitle").getByText(/JAPAN/).waitFor();
  await page.locator('[data-channel="play"]').click();
- await page.locator("#guessInput").waitFor({timeout:15000});
- await page.locator("#guessInput").fill("pikachu");
- await page.locator("#guessForm button[type=submit]").click();
- await page.locator("#guessAnswer").getByText(/PIKACHU/).waitFor();
- assert.equal(await page.locator("#guessStreak").textContent(),"STREAK 01");
- await page.locator("#guessNext").click();
- await page.locator("#guessInput").waitFor();
- await page.locator("#dogNext").click();
- await page.locator("#dogFrame img").waitFor({timeout:15000});
+ assert.equal(await page.locator(".mixup-tiles > span").count(),6);
+ assert.equal(await page.locator('a[href="./guess/"]').count()>=1,true);
+ await page.locator('a[href="./guess/"]').last().waitFor();
  await page.locator("#surprise").click();
  assert.equal(await page.locator(".station[aria-selected=true]").count(),1);
  await page.locator('[data-channel="world"]').click();

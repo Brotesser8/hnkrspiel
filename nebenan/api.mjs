@@ -20,7 +20,5 @@ export const api={
  books(q){return request("https://openlibrary.org/search.json?"+params({q:String(q).slice(0,100),fields:"key,title,author_name,first_publish_year,cover_i,edition_count",limit:20}),{ttl:1800000})},
  quakes(force=false){return request("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson",{ttl:300000,force})},
  events(force=false){return request("https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=40",{ttl:1500000,force})},
- charts(region){if(!/^[a-z]{2}$/.test(region))throw Error("Region ungültig");return request("https://rss.marketingtools.apple.com/api/v2/"+region+"/music/most-played/10/songs.json",{ttl:3600000})},
- pokemon(id){if(!Number.isInteger(id)||id<1||id>1025)throw Error("Pokémon ungültig");return request("https://pokeapi.co/api/v2/pokemon/"+id,{ttl:86400000})},
- dog(){return request("https://dog.ceo/api/breeds/image/random",{ttl:0,force:true})}
+ charts(region){if(!/^[a-z]{2}$/.test(region))throw Error("Region ungültig");return request("https://rss.marketingtools.apple.com/api/v2/"+region+"/music/most-played/10/songs.json",{ttl:3600000})}
 };

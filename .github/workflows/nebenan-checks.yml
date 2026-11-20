@@ -25,10 +25,15 @@ jobs:
           node --check nebenan/core.mjs
           node --check nebenan/api.mjs
           node --check nebenan/app.mjs
+          node --check nebenan/guess/data.mjs
+          node --check nebenan/guess/api.mjs
+          node --check nebenan/guess/game.mjs
           node --check nebenan/tests/core.test.mjs
           node --check nebenan/tests/browser-smoke.mjs
+          node --check nebenan/guess/tests/data.test.mjs
+          node --check nebenan/guess/tests/browser-smoke.mjs
       - name: Test data adapters and HTTP caching
-        run: node --test nebenan/tests/core.test.mjs
+        run: node --test nebenan/tests/core.test.mjs nebenan/guess/tests/data.test.mjs
   browser:
     runs-on: ubuntu-24.04
     timeout-minutes: 12
@@ -46,11 +51,15 @@ jobs:
       - name: Exercise all six channels and responsive layouts
         env:
           PLAYWRIGHT_CHANNEL: chrome
-        run: node nebenan/tests/browser-smoke.mjs
+        run: |
+          node nebenan/tests/browser-smoke.mjs
+          node nebenan/guess/tests/browser-smoke.mjs
       - name: Save visual reference screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: frequency-browser-screenshots
-          path: nebenan/test-artifacts/
+          path: |
+            nebenan/test-artifacts/
+            nebenan/guess/test-artifacts/
           if-no-files-found: ignore

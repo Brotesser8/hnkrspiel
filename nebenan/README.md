@@ -13,7 +13,7 @@ FREQUENCY ersetzt die frühere Website NEBENAN. vollständig, ohne andere Untero
 | Page turner | Bücher nach Thema oder freiem Suchtext, Cover und Autoren, Fundstücke merken | Open Library Search + Covers |
 | Planet pulse | Erdbeben und Naturereignisse nach Quelle auswählen, Punkte im geografischen Koordinatenraster und Originalmeldung anklicken | USGS Earthquake GeoJSON; NASA EONET v3 |
 | Now playing | Meistgespielte Songs in sieben Apple-Music-Regionen, Originaltitel und Quelllinks | Apple Marketing Tools RSS |
-| Side quest | Pokémon anhand einer Silhouette raten, Streak, zufälliges Hundefoto | PokéAPI und Dog CEO |
+| Side quest → MIXUP | Eigenes Bilderquiz aus 15 Kategorien und selbst erstellten Themen, Bild-Effekte, Hinweise, Punktestand | Wikimedia Action API, Art Institute of Chicago, Open Library und FlagCDN |
 
 Die Merkliste nutzt ausschliesslich den Browser-Speicher localStorage. Die Webseite benötigt keinen Account und keinen eigenen Server.
 
@@ -55,3 +55,9 @@ Die Browsertests verwenden bewusst simulierte externe Antworten, damit CI keine 
 Der bestehende GitHub-Pages-Workflow veröffentlicht den Ordner unter /hnkrspiel/nebenan/. FREQUENCY checks prüft bei Änderungen an diesem Projekt Unit- und Browsertests. Alle anderen Projekte und Ordner im Repository bleiben unverändert.
 
 **Quellcode-Lizenz:** MIT. Drittanbieterdaten, Abbildungen und Marken ausgenommen.
+
+## MIXUP – Ratespiel mit eigenen Themen
+
+Unter https://brotesser8.github.io/hnkrspiel/nebenan/guess/ liegt jetzt das vollständige Ratespiel. Es ist über den FREQUENCY-Kanal «Side quest» und im oberen Menü erreichbar. Der Spieleinstieg mit ?quick=1 startet direkt einen Standardmix; im Editor kannst du beliebig viele Kombinationen aus 15 integrierten Themen (mit mehr als 200 Begriffen) und bis zu zwölf selbst angelegten Themen speichern. Eigene Themen brauchen mindestens vier Begriffe. Jeder Begriff kann einen Wikipedia-Seitentitel und optional ein eigenes HTTPS-Bild angeben. Auswahl, eigene Themen und Rekordpunkte bleiben im lokalen Browser erhalten. Keine Bild-Uploads oder Backends.
+
+Das Rätsel prüft Bildquellen über die Wikimedia Action API (origin=*), FlagCDN, Open Library und das Art Institute of Chicago. Jeder Blick zeigt einen Quellen-/Lizenzlink. Bei nicht ladbaren Medien werden alternative Fragen versucht und andernfalls ein expliziter Emoji-Ersatz angezeigt. Endpunkte unterliegen Fair Use und ihre Erreichbarkeit kann nicht garantiert werden.

@@ -11,7 +11,7 @@ const state={
  artTopic:ART_TOPICS[0],artPage:1,artWorks:[],selectedArt:null,
  bookTopic:BOOK_TOPICS[0],books:[],selectedBook:null,
  earthMode:"quakes",earthItems:[],selectedEvent:null,soundRegion:"ch",tracks:[],
- pokemon:null,pokemonRevealed:false,streak:0,found:0,pocket:[]
+ pocket:[]
 };
 let toastTimer=0,drawerFocus=null;
 function notify(text){
@@ -57,7 +57,7 @@ function loadChannel(channel){
  if(channel==="books")loadBooks();
  if(channel==="earth")loadEarth();
  if(channel==="sound")loadSound();
- if(channel==="play")newPokemon();
+ // The former Pokémon-only mini game is replaced by the separate MIXUP quiz.
 }
 function randomChannel(){
  const possibilities=CHANNELS.filter(c=>c.id!==state.channel);
@@ -306,62 +306,6 @@ async function loadSound(){
   showError("soundResults","Das regionale Ranking ist gerade nicht abrufbar. Du kannst direkt bei Apple Music weiterstöbern.","https://music.apple.com/"+region+"/browse");
  }
 }
-async function newPokemon(){
- const token=++state.token.play;
- state.pokemon=null;state.pokemonRevealed=false;
- const imageRoot=$("guessFrame");imageRoot.classList.remove("revealed");imageRoot.replaceChildren(elem("span","guess-empty","?"));
- put("guessAnswer","Ein neues Pokémon wird gesucht …");put("guessNumber","#????");
- put("guessHint","POKÉMON API");$("guessReveal").disabled=true;$("guessNext").disabled=true;
- const form=$("guessForm");if(form)form.remove();
- try{
-  const id=1+randomIndex(1025),raw=await api.pokemon(id);
-  if(token!==state.token.play)return;
-  const name=String(raw?.name||"").trim(),url=safeHttps(raw.sprites?.other?.["official-artwork"]?.front_default)||safeHttps(raw.sprites?.front_default);
-  if(!name||!url)throw Error("Keine Abbildung");
-  state.pokemon={id:raw.id,name,image:url,types:(raw.types||[]).map(t=>t.type?.name).filter(Boolean)};
-  const img=elem("img");img.src=url;img.alt="Noch unbekanntes Pokémon";img.loading="lazy";
-  img.addEventListener("error",()=>imageRoot.replaceChildren(elem("span","guess-empty","?")));
-  imageRoot.replaceChildren(img);put("guessNumber","#"+String(raw.id).padStart(4,"0"));
-  put("guessAnswer","Welches Pokémon ist das?");
-  $("guessReveal").disabled=false;
-  const input=elem("input");input.id="guessInput";input.type="text";input.placeholder="Deine Vermutung …";input.maxLength=80;input.setAttribute("aria-label","Pokémon-Namen raten");
-  const check=elem("button","light-button","Prüfen ↗");check.type="submit";
-  const form=elem("form","search-field");form.id="guessForm";form.append(input,check);
-  form.addEventListener("submit",e=>{
-   e.preventDefault();if(state.pokemonRevealed)return;
-   const ans=input.value.trim().toLowerCase().replace(/\s+/g,"-");
-   if(ans===state.pokemon.name){
-    state.streak++;state.found++;
-    revealPokemon(true);notify("Richtig geraten! Sehr gut.");
-   }else{state.streak=0;put("guessAnswer","Noch nicht. Versuch es nochmals.");put("guessStreak","STREAK 00");}
-  });
-  $("guessFrame").after(form);
- }catch{
-  if(token!==state.token.play)return;
-  put("guessAnswer","PokéAPI gerade nicht erreichbar. Versuch es erneut.");
- }finally{if(token===state.token.play)$("guessNext").disabled=false;}
-}
-function revealPokemon(correct=false){
- if(!state.pokemon||state.pokemonRevealed)return;
- state.pokemonRevealed=true;
- if(!correct)state.streak=0;
- $("guessFrame").classList.add("revealed");put("guessAnswer",state.pokemon.name.toUpperCase().replace(/-/g," ")+" · "+state.pokemon.types.join(" / "));
- put("guessStreak","STREAK "+String(state.streak).padStart(2,"0"));
- put("guessHint","FOUND "+String(state.found).padStart(2,"0"));
- $("guessReveal").disabled=true;
- const form=$("guessForm");if(form)form.remove();
-}
-async function showDog(){
- const btn=$("dogNext");btn.disabled=true;put("dogNext","Suche …");
- try{
-  const raw=await api.dog(),url=safeHttps(raw?.message);
-  if(raw?.status!=="success"||!url)throw Error("Kein Bild");
-  const img=elem("img");img.src=url;img.alt="Zufälliges Hundefoto vom Dog CEO Bildarchiv";img.loading="lazy";
-  img.addEventListener("error",()=>$("dogFrame").replaceChildren(elem("div","empty-state","Bild konnte nicht geladen werden.")));
-  $("dogFrame").replaceChildren(img);
- }catch{showError("dogFrame","Gerade kein Hundebild verfügbar.","https://dog.ceo/");}
- finally{btn.disabled=false;put("dogNext","Nächster Hund ↗");}
-}
 function loadPocket(){
  try{state.pocket=safePocket(JSON.parse(localStorage.getItem("fq-pockets-v1")||"[]"));}catch{state.pocket=[];}
  renderPocket();
@@ -415,9 +359,6 @@ function attach(){
   if($("earthReload").disabled)return;
   $("earthReload").disabled=true;loadEarth(true).finally(()=>{$("earthReload").disabled=false;});
  });
- $("guessNext").addEventListener("click",newPokemon);
- $("guessReveal").addEventListener("click",()=>revealPokemon(false));
- $("dogNext").addEventListener("click",showDog);
  $("saveCity").addEventListener("click",()=>{
   const c=state.city;
   addPocket({id:"city-"+c.id,type:"Ort",title:c.name+", "+c.country,meta:c.region,url:"https://www.openstreetmap.org/?mlat="+c.lat+"&mlon="+c.lon+"#map=10/"+c.lat+"/"+c.lon});
