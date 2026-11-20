@@ -212,11 +212,13 @@ function draw(q){
   target.root.id="targetSpecimen";target.root.tabIndex=-1;
   target.root.append(create("span","scale-target-handle","↕ DRAG"));
   ref.root.id="referenceSpecimen";ref.wrap.id="referenceArt";target.wrap.id="targetArt";
+  const ruler=create("div","scale-ruler");ruler.id="scaleRuler";
+  for(const multiple of [0,1,2,3]){const tick=create("span","scale-ruler-tick",multiple+"×");tick.dataset.multiple=multiple;ruler.append(tick);}
   const labels=create("div","scale-labels");
   const a=create("div");a.append(create("strong","",q.reference.name),create("span","",formatNumber(q.reference.height,1)+" M / REFERENZ"));
   const b=create("div");b.append(create("strong","",q.target.name),create("span","","DEINE SCHÄTZUNG"));
   labels.append(a,b);
-  stage.append(lines,ground,ref.root,target.root,labels);
+  stage.append(lines,ground,ruler,ref.root,target.root,labels);
   installScaleDrag(target.root);
  }else if(q.mode==="distance"){
   const outer=create("div","distance-globe"),stops=create("div","distance-stops");
@@ -228,6 +230,7 @@ function draw(q){
   const legend=create("div","distance-caption","LUFTLINIE / KEINE ROUTENBERECHNUNG");
   const bar=create("div","distance-guess-line"),fill=create("div");fill.id="distanceFill";bar.append(fill);
   outer.append(stops,wire,bar,legend);stage.append(outer);
+  installStageDrag(bar,"horizontal",()=>bar.getBoundingClientRect());
  }else if(q.mode==="time"){
   const outer=create("div","time-visual");
   outer.append(create("div","time-event-tag","A MOMENT IN HISTORY / GUESS THE YEAR"));
@@ -238,6 +241,7 @@ function draw(q){
   const ticks=create("div","timeline-ticks");
   [1800,1850,1900,1950,2000,2026].forEach(y=>ticks.append(create("span","",y)));
   area.append(ticks);outer.append(area,create("div","timeline-title-label","MOVE THE MARKER / 1800 – 2026"));stage.append(outer);
+  installStageDrag(area,"horizontal",()=>stem.getBoundingClientRect());
  }else{
   const outer=create("div","weather-visual"),c=create("div","weather-city-card");
   c.append(create("span","","LOCATION / "+q.city.country),create("strong","",q.city.name),create("p","","Momentane Temperatur laut Open-Meteo · es wird nur der Wert nach der Abgabe gezeigt."));
@@ -246,7 +250,29 @@ function draw(q){
   const ticks=create("div","thermo-mark");["+40°","+20°","0°","−20°"].forEach(s=>ticks.append(create("span","",s)));
   thermometer.append(outline,create("div","thermo-bulb"),ticks);
   outer.append(c,thermometer);stage.append(create("div","weather-cloud","☼"),outer);
+  installStageDrag(thermometer,"vertical",()=>outline.getBoundingClientRect());
  }
+}
+function installStageDrag(node,axis,rectFn){
+ let active=false;
+ const update=e=>{
+  if(!active||state.status!=="estimating")return;
+  e.preventDefault();
+  const rect=rectFn();
+  if(!rect.width||!rect.height)return;
+  const fraction=axis==="horizontal"?(e.clientX-rect.left)/rect.width:1-(e.clientY-rect.top)/rect.height;
+  $("guessSlider").value=String(Math.round(clamp(fraction,0,1)*1000));
+  updateGuess();
+ };
+ node.addEventListener("pointerdown",e=>{
+  if(state.status!=="estimating")return;
+  active=true;
+  node.setPointerCapture(e.pointerId);
+  update(e);
+ });
+ node.addEventListener("pointermove",update);
+ node.addEventListener("pointerup",()=>{active=false;});
+ node.addEventListener("pointercancel",()=>{active=false;});
 }
 function installScaleDrag(node){
  let engaged=false;
@@ -290,6 +316,9 @@ function updateGuess(){
    ref.style.setProperty("--h",px+"px");
    target.style.setProperty("--h",(px*value)+"px");
   }
+  document.querySelectorAll("#scaleRuler .scale-ruler-tick").forEach(tick=>{
+   tick.style.bottom=(69+px*Number(tick.dataset.multiple))+"px";
+  });
  }else if(q.mode==="distance"){
   const fill=$("distanceFill");if(fill)fill.style.width=(percent*100)+"%";
   const pulse=$("distancePulse");if(pulse)pulse.style.strokeDasharray=(Math.max(2,percent*520))+" 650";

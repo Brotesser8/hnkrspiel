@@ -78,6 +78,7 @@ try{
  await start(page,"scale");
  assert.equal(await page.locator("#referenceArt svg").count(),1);
  assert.equal(await page.locator("#targetArt svg").count(),1);
+ assert.equal(await page.locator("#scaleRuler .scale-ruler-tick").count(),4,"Height ruler must have 0× through 3× ticks");
  const initial=await page.locator("#estimateReadout").textContent();
  const target=await page.locator("#targetSpecimen").boundingBox();
  assert.ok(target&&target.height>40);
@@ -118,6 +119,13 @@ try{
  await start(page,"distance");
  assert.equal(await page.locator(".place-pin").count(),2);
  const firstDistance=await page.locator("#estimateReadout").textContent();
+ const bar=await page.locator(".distance-guess-line").boundingBox();
+ assert.ok(bar&&bar.width>80);
+ await page.mouse.move(bar.x+bar.width*.3,bar.y+bar.height/2);
+ await page.mouse.down();
+ await page.mouse.move(bar.x+bar.width*.7,bar.y+bar.height/2,{steps:5});
+ await page.mouse.up();
+ assert.notEqual(await page.locator("#estimateReadout").textContent(),firstDistance,"Distance bar must respond to direct dragging");
  await chooseSlider(page,950);
  assert.notEqual(await page.locator("#estimateReadout").textContent(),firstDistance);
  assert.ok(parseFloat(await page.locator("#distanceFill").evaluate(n=>getComputedStyle(n).width))>0);
@@ -128,6 +136,14 @@ try{
  // Mode #3: date placement, actual marker and historic source.
  await start(page,"time");
  assert.equal(await page.locator(".timeline-pin").count(),1);
+ const dateBefore=await page.locator("#estimateReadout").textContent();
+ const timeline=await page.locator(".timeline-area").boundingBox();
+ assert.ok(timeline&&timeline.width>100);
+ await page.mouse.move(timeline.x+timeline.width*.2,timeline.y+timeline.height*.35);
+ await page.mouse.down();
+ await page.mouse.move(timeline.x+timeline.width*.8,timeline.y+timeline.height*.35,{steps:5});
+ await page.mouse.up();
+ assert.notEqual(await page.locator("#estimateReadout").textContent(),dateBefore,"Timeline should respond to pointer dragging");
  await chooseSlider(page,900);
  assert.ok(Number(await page.locator("#timelinePin strong").textContent())>1990);
  await page.locator("#lockButton").click();
@@ -138,6 +154,14 @@ try{
  await start(page,"weather");
  assert.equal(weatherHits,1,"Weather API must not fetch for unrelated game types");
  assert.equal(await page.locator(".thermo-outline").count(),1);
+ const thermometer=await page.locator(".thermo").boundingBox();
+ assert.ok(thermometer&&thermometer.height>150);
+ const tempBefore=await page.locator("#estimateReadout").textContent();
+ await page.mouse.move(thermometer.x+thermometer.width/2,thermometer.y+thermometer.height*.65);
+ await page.mouse.down();
+ await page.mouse.move(thermometer.x+thermometer.width/2,thermometer.y+thermometer.height*.30,{steps:5});
+ await page.mouse.up();
+ assert.notEqual(await page.locator("#estimateReadout").textContent(),tempBefore,"Thermometer should support direct temperature manipulation");
  await chooseSlider(page,700);
  await page.locator("#lockButton").click();
  assert.match(await page.locator("#revealedTruth").textContent(),/23[.,]6 °C/);

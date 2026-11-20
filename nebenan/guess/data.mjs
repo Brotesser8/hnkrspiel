@@ -79,7 +79,7 @@ export const EVENTS=[
  ["Der Eiffelturm wird eröffnet",1889,"https://www.toureiffel.paris/en/the-monument/history"],
  ["Erster motorisierter Flug der Gebrüder Wright",1903,"https://www.nasa.gov/aeronautics/first-flight/"],
  ["Die Titanic sinkt",1912,"https://www.britannica.com/topic/Titanic"],
- ["Die erste elektrische Glühlampe kommt auf den Markt",1879,"https://www.britannica.com/technology/incandescent-lamp"],
+ ["Edison demonstriert eine langlebige elektrische Glühlampe",1879,"https://www.britannica.com/technology/incandescent-lamp"],
  ["Das Periodensystem wird erstmals veröffentlicht",1869,"https://www.britannica.com/science/periodic-table"],
  ["Der erste Mensch fliegt ins All",1961,"https://www.nasa.gov/history/"],
  ["Sputnik 1 startet ins All",1957,"https://science.nasa.gov/mission/sputnik-1/"],

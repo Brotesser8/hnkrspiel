@@ -25,3 +25,14 @@
 @media(min-width:961px){.play-layout{align-items:start}.question-card{position:sticky;top:16px}}
 /* Source HUD should never overlap labels under the silhouettes. */
 .visual-stage .bottom-corner{top:15px;bottom:auto;left:auto;right:18px;text-align:right}
+
+/* Calibrated tick marks put the visual height space to use without revealing the answer. */
+.scale-ruler{position:absolute;inset:0 auto 0 7%;width:46px;pointer-events:none;z-index:2}
+.scale-ruler-tick{position:absolute;left:0;display:flex;align-items:center;gap:6px;height:16px;font:10px var(--mono);color:#6c8a73;transform:translateY(50%);white-space:nowrap}
+.scale-ruler-tick:after{content:"";height:1px;width:19px;background:#84a58a88;display:inline-block}
+.distance-guess-line{height:22px;background:transparent;cursor:ew-resize;touch-action:none;position:relative;overflow:visible}
+.distance-guess-line:before{content:"";position:absolute;inset:7px 0;background:#a8cbc8;border-radius:20px}
+.distance-guess-line>div{position:absolute;top:7px;bottom:7px;left:0}
+.timeline-area{cursor:ew-resize;touch-action:none}
+.thermo{cursor:ns-resize;touch-action:none}
+@media(max-width:700px){.scale-ruler{left:4%}.scale-ruler-tick{font-size:8px}.scale-ruler-tick:after{width:10px}}
