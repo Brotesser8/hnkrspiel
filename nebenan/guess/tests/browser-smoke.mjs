@@ -140,7 +140,7 @@ try{
  assert.equal(await page.locator(".thermo-outline").count(),1);
  await chooseSlider(page,700);
  await page.locator("#lockButton").click();
- assert.match(await page.locator("#revealedTruth").textContent(),/23,6 °C/);
+ assert.match(await page.locator("#revealedTruth").textContent(),/23[.,]6 °C/);
  assert.match(await page.locator("#revealSource").getAttribute("href"),/open-meteo/);
  await page.locator("#backButton").click();
  // Switching away should not fire another weather API call.

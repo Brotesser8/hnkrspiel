@@ -13,8 +13,8 @@ function toast(message){const n=$("toast");n.hidden=false;n.textContent=message;
 function store(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true;}catch{return false;}}
 function read(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}}
 function allCustom(){return state.custom.map((c,i)=>{
- const reference={name:c.ref,height:c.refHeight,art:"tower",source:c.source||"https://www.wikipedia.org/",note:"Von dir angelegtes Referenzobjekt."};
- const target={name:c.target,height:c.targetHeight,art:"skyscraper",source:c.source||"https://www.wikipedia.org/",note:"Von dir angelegter Vergleich."};
+ const reference={name:c.ref,height:c.refHeight,art:"tower",source:c.source||null,note:"Von dir angelegtes Referenzobjekt."};
+ const target={name:c.target,height:c.targetHeight,art:"skyscraper",source:c.source||null,note:"Von dir angelegter Vergleich."};
  return {id:"c-"+c.id,mode:"scale",reference,target,truth:target.height/reference.height,custom:true};
 });}
 function renderModes(){
@@ -346,8 +346,9 @@ function reveal(){
   source=SOURCE_WEATHER;
  }
  put("revealFact",fact);
- $("revealSource").href=validateSource(source);
- put("revealSource","Zur Faktenquelle ↗");
+ const sourceLink=$("revealSource");
+ sourceLink.hidden=!source;
+ if(source){sourceLink.href=validateSource(source);put("revealSource","Zur Faktenquelle ↗");}
  put("nextButton",state.index===state.deck.length-1?"Zur Auswertung →":"Nächste Runde →");
  const marker=$("answerMark");marker.hidden=false;marker.style.left=positionForValue(q.mode,truth)+"%";
  if(q.mode==="scale"){
