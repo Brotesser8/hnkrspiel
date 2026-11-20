@@ -96,7 +96,8 @@ try{
  await page.locator(".event-item").first().click();
  await page.locator("#selectedEvent a").getByText("Originalmeldung").waitFor();
  await page.locator('[data-earth="events"]').click();
- await page.locator(".event-item").first().getByText("Wildfire").waitFor();
+ await page.locator(".event-item strong").first().waitFor();
+ assert.match(await page.locator(".event-item strong").first().textContent(),/Wildfire/);
  assert.equal(await page.locator(".radar-point").count(),1);
  await page.locator('[data-channel="sound"]').click();
  await page.locator(".track-row").first().waitFor({timeout:15000});
