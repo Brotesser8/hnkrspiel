@@ -2,144 +2,121 @@
 <html lang="de-CH">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#f6f3ed">
-<meta name="description" content="NEBENAN ist ein spielerisches Weltlabor: Karten, Popcharts, ÖV, Feiertage, Erdbeben, Asteroiden, Kuriositäten und ein Länderquiz. Alles mit offenen Daten.">
-<title>NEBENAN. — Ein Weltlabor für alles Mögliche</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#171a1e">
+<meta name="description" content="FREQUENCY – schalte dich durch echte Daten: Städte und Wetter, Kunst, Bücher, Musik, Naturereignisse und ein kleines Spiel. Gratis und ohne Konto.">
+<title>FREQUENCY — Good things on the internet.</title>
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzxGgVuOLxI0G1C5pF/oQhKcRQ=" crossorigin="">
-<link rel="stylesheet" href="./style.css?v=worldfix4">
-<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script type="module" src="./app.mjs?v=worldfix4"></script>
+<link rel="stylesheet" href="./style.css?v=frequency1">
+<script type="module" src="./app.mjs?v=frequency1"></script>
 </head>
 <body>
-<a href="#atlas" class="skip-link">Zum Inhalt springen</a>
-<header class="sitebar">
-  <a class="brand" href="./" aria-label="NEBENAN Startseite"><span class="brand-icon">✳</span><span>NEBENAN<span class="period">.</span></span></a>
-  <nav class="site-nav" aria-label="Seitenmenü"><a href="#atlas">Weltkarte</a><a href="#entdecken">Entdecken</a><a href="#verkehr">Unterwegs</a><a href="#spiel">Spielplatz</a></nav>
-  <span class="bar-note"><span class="live-dot"></span> DAS INTERNET IST SELTSAM.</span>
+<a href="#studio" class="skip">Direkt zum Studio</a>
+<header class="site-header">
+  <a class="wordmark" href="./" aria-label="Frequency Start"><span class="logomark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>FREQUENCY<span class="mark-dot">.</span></a>
+  <nav class="header-links" aria-label="Hauptnavigation"><a href="#studio">Studio</a><a href="#about">Über das Projekt</a></nav>
+  <div class="header-right"><span class="header-status"><span class="status-light"></span> ONLINE / 06 CHANNELS</span><button id="openPocket" class="pocket-button" type="button" aria-label="Gespeicherte Entdeckungen öffnen">Merkliste <span id="pocketCount">0</span></button></div>
 </header>
 <main>
-<section class="hero wrap">
-  <div class="hero-copy">
-    <p class="eyebrow"><span class="cross">✳</span> DEIN TÄGLICHER AUSFLUG INS INTERNET</p>
-    <h1>Die Welt ist <em>voller</em> Nebensachen<span class="highlight">.</span></h1>
-    <p>Auf die Karte. Ein Land anklicken. Entdecken, wo die Erde bebt, was gespielt wird und wie die Welt gerade aussieht.</p>
-    <div class="hero-actions"><button class="button button-dark" id="heroRandom" type="button">Irgendwohin springen <span>↗</span></button><a class="text-link" href="#entdecken">Einfach mal schauen <span>↓</span></a></div>
-  </div>
-  <div class="hero-art" aria-hidden="true">
-    <div class="orbit ring-one"></div><div class="orbit ring-two"></div>
-    <div class="art-core">?</div>
-    <span class="art-label art-label-a">WAS WÄRE WENN</span><span class="art-label art-label-b">53° 23′ N</span><span class="art-label art-label-c">OH, INTERESSANT.</span><span class="art-spark">✳</span>
-  </div>
-  <div class="hero-footnote"><span>01—11 / EINMAL UM ALLES HERUM</span><span>Keine Accounts. Kein Tracking. Kein Plan.</span></div>
-</section>
-
-<section class="atlas-section wrap" id="atlas">
-  <div class="section-title"><div><div class="index"><span class="index-line"></span> 01 / DIE WELT ANFASSEN</div><h2>Die ganze Welt. Direkt vor dir.</h2></div><p>Länderflächen wählen, Erdbeben beobachten und<br> die Welt direkt auf der Karte erkunden.</p></div>
-  <div class="atlas-controls">
-    <form id="countryForm" class="country-search" role="search"><label class="sr-only" for="countryInput">Land suchen</label><span class="search-symbol">⌕</span><input id="countryInput" list="countrySuggestions" placeholder="Land suchen, z. B. Japan" autocomplete="off" maxlength="90"><datalist id="countrySuggestions"></datalist><button class="search-submit" type="submit">Finden ↗</button></form>
-    <label class="region-label"><span class="sr-only">Weltregion auswählen</span><select id="regionSelect"><option value="all">Alle Kontinente</option><option value="Europe">Europa</option><option value="Asia">Asien</option><option value="Africa">Afrika</option><option value="Americas">Amerika</option><option value="Oceania">Ozeanien</option></select><span>⌄</span></label>
-    <button class="button button-sun" type="button" id="countryRandom" title="Zufälliges Land ziehen">Überrasch mich ↻</button>
-  </div>
-  <p class="inline-status" id="countryStatus" role="status" aria-live="polite">Länderdaten werden geladen …</p>
-  <div class="atlas-grid">
-    <div class="map-shell" id="mapShell">
-      <div class="map-top">
-        <span class="map-chip"><span class="live-dot"></span> WELTLABOR / INTERAKTIVE KARTE</span>
-        <div class="map-top-actions"><button id="mapReset" type="button" title="Zur Weltansicht zurückkehren">◎ Welt</button><button id="mapExpand" type="button" aria-pressed="false" title="Karte bildschirmfüllend anzeigen">⛶ Grossansicht</button><button id="mapHelp" type="button" aria-controls="mapHelpPanel" aria-expanded="false">? Hilfe</button></div>
-      </div>
-      <div class="map-modes" role="group" aria-label="Daten auf der Karte anzeigen">
-        <button type="button" class="map-mode active" data-map-mode="all" aria-pressed="true"><span class="mode-symbol">◈</span> Alle</button>
-        <button type="button" class="map-mode" data-map-mode="quakes" aria-pressed="false"><span class="mode-dot dot-quake"></span> Erdbeben <span class="mode-number" id="mapQuakeCount">—</span></button>
-        <button type="button" class="map-mode" data-map-mode="nature" aria-pressed="false"><span class="mode-dot dot-nature"></span> Natur <span class="mode-number" id="mapNatureCount">—</span></button>
-        <button type="button" class="map-mode" data-map-mode="countries" aria-pressed="false"><span class="mode-symbol">◇</span> Nur Länder</button>
-      </div>
-      <div id="worldMap" class="world-map" aria-label="Interaktive Weltkarte mit auswählbaren Länderflächen und Ereignissen" tabindex="0"></div>
-      <div id="mapLoading" class="map-loading" role="status">
-        <span class="map-loading-icon" aria-hidden="true">✳</span>
-        <strong id="mapLoadingTitle">Weltkarte wird geladen</strong>
-        <span id="mapLoadingText">Lokale Länderkarte wird geladen …</span>
-        <button type="button" id="mapLoadingRetry" hidden>Erneut laden ↻</button>
-        <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer">Kartendaten: Natural Earth ↗</a>
-      </div>
-      <div class="map-rail" role="group" aria-label="Kartensteuerung">
-        <span class="rail-north" aria-hidden="true">↑ N</span>
-        <button id="mapZoomIn" type="button" title="Karte vergrössern" aria-label="Karte vergrössern">+</button>
-        <button id="mapZoomOut" type="button" title="Karte verkleinern" aria-label="Karte verkleinern">−</button>
-        <button id="mapPanNorth" type="button" title="Nach Norden bewegen" aria-label="Karte nach Norden bewegen" class="map-pan">↑</button>
-        <div class="map-pan-pair"><button id="mapPanWest" type="button" title="Nach Westen bewegen" aria-label="Karte nach Westen bewegen" class="map-pan">←</button><button id="mapPanEast" type="button" title="Nach Osten bewegen" aria-label="Karte nach Osten bewegen" class="map-pan">→</button></div>
-        <button id="mapPanSouth" type="button" title="Nach Süden bewegen" aria-label="Karte nach Süden bewegen" class="map-pan">↓</button>
-        <button id="mapContrast" type="button" aria-pressed="false" title="Höheren Kartenkontrast einschalten">◐ Kontrast</button>
-      </div>
-      <div class="map-crosshair-label"><span id="mapHoverLabel">LAND ANKLICKEN</span><strong id="mapSelectedLabel">Schweiz</strong></div>
-      <div class="map-help-panel" id="mapHelpPanel" hidden>
-        <div class="map-help-title"><strong>Karte bedienen</strong><button id="mapHelpClose" type="button" aria-label="Kartenhilfe schliessen">✕</button></div>
-        <p><b>Land wählen:</b> Länderfläche antippen oder oben suchen. Meerflächen wählen kein Land.</p>
-        <p><b>Erkunden:</b> Ziehen zum Verschieben; Mausrad, +/− oder zwei Finger zum Zoomen.</p>
-        <p><b>Ereignisse:</b> Erdbeben (orange) und Naturereignisse (grün) öffnen Details beim Antippen.</p>
-        <p><b>Grossansicht:</b> Ein- und ausblenden mit ⛶; Escape schliesst die Ansicht.</p>
-        <p><b>Navigation:</b> Weltregionen unten direkt öffnen und mit den Richtungspfeilen die Karte bewegen.</p>
-        <p><b>Kartendarstellung:</b> Die Länderkarte läuft vollständig mit lokal gespeicherten Geodaten. Strassenkartenbilder werden nur auf Wunsch geladen.</p>
-        <p>Die Grenzdaten sind vereinfacht und nicht rechtsverbindlich.</p>
-      </div>
-      <div class="map-bottom">
-        <div class="map-bottom-info"><span class="live-dot"></span><span id="mapMessage" role="status">Vollständige Länderkarte wird vorbereitet …</span></div>
-        <div class="map-readout"><span id="borderStatus">Lokale Grenzen werden geladen …</span><span id="mapCoordinates">22.00° / 8.00°</span><span id="mapZoomLevel">ZOOM 2</span></div>
-      </div>
-      <div class="map-tools-footer">
-      <div class="map-quick-regions" role="group" aria-label="Schnell zu einer Weltregion springen">
-        <button type="button" data-map-jump="world" class="active" aria-pressed="true">🌐 Welt</button>
-        <button type="button" data-map-jump="europe" aria-pressed="false">Europa</button>
-        <button type="button" data-map-jump="america" aria-pressed="false">Amerika</button>
-        <button type="button" data-map-jump="asia" aria-pressed="false">Asien</button>
-        <button type="button" data-map-jump="africa" aria-pressed="false">Afrika</button>
-        <button type="button" data-map-jump="oceania" aria-pressed="false">Ozeanien</button>
-      </div>
-      <div class="map-basemap-switch" role="group" aria-label="Kartenhintergrund wählen"><button type="button" id="mapTilesOff" class="active" aria-pressed="true">Länderkarte</button><button type="button" id="mapTilesOn" aria-pressed="false">Strassenkarte (optional)</button></div>
-      </div>
-      <div class="map-legend" id="mapLegend"><span id="mapLegendQuakes"><i class="mode-dot dot-quake"></i> Erdbeben <b id="mapQuakeLegendCount">0</b></span><span id="mapLegendNature"><i class="mode-dot dot-nature"></i> Naturereignisse <b id="mapNatureLegendCount">0</b></span><span class="map-legend-source">Natural Earth / USGS / NASA</span></div>
+<section class="intro" aria-labelledby="introTitle">
+  <div class="intro-content">
+    <div class="overline overline-light"><span class="overline-line"></span> AN INTERNET EXPLORATION DEVICE <span class="intro-edition">EST. 2026 / NO ALGORITHM</span></div>
+    <div class="intro-grid">
+      <div><h1 id="introTitle">Go down a<br><em>rabbit hole.</em><span class="hero-period">↗</span></h1><p>Sechs Kanäle. Tausend Abzweigungen. Echte Daten von überall – ohne Feed, der dich festhält.</p><div class="intro-actions"><button type="button" id="surprise" class="action-primary">Überrasch mich <span aria-hidden="true">↗</span></button><a href="#studio" class="text-action">Oder selber stöbern <span aria-hidden="true">↓</span></a></div></div>
+      <div class="frequency-art" aria-hidden="true"><div class="art-ring ring-1"></div><div class="art-ring ring-2"></div><div class="art-ring ring-3"></div><div class="art-pointer"></div><div class="art-center"><span>FQ.</span><small>NO. 001—006</small></div><span class="art-side art-side-a">SIGNAL FOUND</span><span class="art-side art-side-b">TUNE IN / TUNE OUT</span></div>
     </div>
-    <aside class="country-card" aria-label="Ausgewähltes Land">
-      <div class="card-head"><span>FUNDSTÜCK / 001</span><span id="countryCode">—</span></div>
-      <div class="flag" id="countryFlag" aria-hidden="true">🌍</div>
-      <span class="micro light">GERADE AUSGEWÄHLT</span>
-      <h3 id="countryName">Die grosse weite Welt</h3><p id="countryRegion" class="country-region">Ein Land wartet auf dich.</p>
-      <div class="country-stats"><div><span>HAUPTSTADT</span><strong id="capitalField">—</strong></div><div><span>EINWOHNER</span><strong id="populationField">—</strong></div><div><span>FLÄCHE</span><strong id="areaField">—</strong></div><div><span>WÄHRUNG</span><strong id="currencyField">—</strong></div></div>
-      <div class="time-strip"><div><span>ZEIT VOR ORT</span><strong id="localClock">—:—</strong></div><span id="timeZone" class="tz-text">UTC</span></div>
-      <a class="country-explore-link" href="#entdecken">Daten dieses Landes entdecken <span aria-hidden="true">↘</span></a><div class="country-bottom"><span id="languageField">Sprachen: —</span><a id="countryWiki" target="_blank" rel="noopener noreferrer" href="https://de.wikipedia.org/">Mehr erfahren ↗</a></div>
+    <div class="intro-baseline"><span>SCROLL LESS. EXPLORE MORE.</span><span>NO ADS · NO ACCOUNT · REAL SOURCES</span></div>
+  </div>
+</section>
+
+<section class="studio-shell" id="studio" aria-label="FREQUENCY Studio">
+  <div class="section-intro">
+    <div><span class="eyebrow"><span class="eyebrow-square"></span> THE STUDIO</span><h2>Choose a frequency<span class="accent-period">.</span></h2></div>
+    <div class="studio-description">Ein Klick. Eine neue Perspektive.<br>Du entscheidest, wie lange du bleibst.</div>
+  </div>
+  <div class="studio-layout">
+    <aside class="stations" aria-label="Kanäle wählen"><div class="stations-top"><span>CHANNEL SELECTOR</span><span>01 — 06</span></div>
+      <div class="station-buttons" role="tablist" aria-label="FREQUENCY Kanäle" aria-orientation="vertical">
+        <button class="station active" data-channel="world" role="tab" id="tab-world" aria-controls="panel-world" aria-selected="true" tabindex="0"><span class="station-number">01</span><span class="station-info"><strong>Elsewhere</strong><small>STÄDTE & WETTER</small></span><span class="station-chevron">↗</span></button>
+        <button class="station" data-channel="art" role="tab" id="tab-art" aria-controls="panel-art" aria-selected="false" tabindex="-1"><span class="station-number">02</span><span class="station-info"><strong>Art room</strong><small>KUNST ENTDECKEN</small></span><span class="station-chevron">↗</span></button>
+        <button class="station" data-channel="books" role="tab" id="tab-books" aria-controls="panel-books" aria-selected="false" tabindex="-1"><span class="station-number">03</span><span class="station-info"><strong>Page turner</strong><small>BÜCHER & IDEEN</small></span><span class="station-chevron">↗</span></button>
+        <button class="station" data-channel="earth" role="tab" id="tab-earth" aria-controls="panel-earth" aria-selected="false" tabindex="-1"><span class="station-number">04</span><span class="station-info"><strong>Planet pulse</strong><small>DIE ERDE IST WACH</small></span><span class="station-chevron">↗</span></button>
+        <button class="station" data-channel="sound" role="tab" id="tab-sound" aria-controls="panel-sound" aria-selected="false" tabindex="-1"><span class="station-number">05</span><span class="station-info"><strong>Now playing</strong><small>MUSIK NACH LAND</small></span><span class="station-chevron">↗</span></button>
+        <button class="station" data-channel="play" role="tab" id="tab-play" aria-controls="panel-play" aria-selected="false" tabindex="-1"><span class="station-number">06</span><span class="station-info"><strong>Side quest</strong><small>RATEN & ABSCHWEIFEN</small></span><span class="station-chevron">↗</span></button>
+      </div>
+      <div class="station-foot"><span class="station-foot-dot"></span><span>Powered by open data.<br>Controlled by curiosity.</span></div>
     </aside>
+
+    <div class="stage">
+      <div class="stage-header"><div class="stage-live"><span class="stage-live-dot"></span><span id="stageLabel">CHANNEL 01 / ELSEWHERE</span></div><div class="stage-side"><span id="stageClock">FREQUENCY / LIVE</span><button type="button" id="shuffleChannel" aria-label="Zufälligen Kanal wählen" title="Zufälligen Kanal wählen">SHUFFLE ↗</button></div></div>
+
+      <section id="panel-world" class="channel-panel" role="tabpanel" aria-labelledby="tab-world">
+        <div class="channel-title"><div><span class="label-mini">01 / ELSEWHERE</span><h3>Wish you were <em>here.</em></h3><p>Wie fühlt sich ein anderer Ort gerade an? Echte Wetterdaten, lokale Zeit und ein kleiner Ausblick.</p></div><div class="illustration-icon">✳</div></div>
+        <div class="chip-row city-presets" id="cityPresets" aria-label="Stadtvorschläge"></div>
+        <form id="cityForm" class="search-field"><label class="sr-only" for="citySearch">Stadt weltweit suchen</label><span aria-hidden="true">⌕</span><input id="citySearch" type="search" placeholder="Eine andere Stadt suchen …" maxlength="80" autocomplete="off"><button type="submit" id="cityGo">Ort finden ↗</button></form>
+        <div id="citySearchResults" class="search-results" hidden aria-label="Suchergebnisse"></div>
+        <div class="weather-layout">
+          <div id="weatherHero" class="weather-hero"><div class="weather-hero-top"><span class="weather-kicker">CURRENT CONDITIONS / OPEN-METEO</span><span id="weatherCondition" class="weather-type">—</span></div><div class="weather-city"><span id="weatherCountry">SCHWEIZ / EUROPA</span><h4 id="weatherCity">Zürich</h4><p id="weatherLocalTime">Lokale Zeit wird geladen</p></div><div class="weather-main"><div><strong id="weatherTemp">—</strong><span class="degrees">°</span></div><div class="weather-glyph" id="weatherGlyph" aria-hidden="true">◌</div></div><div class="weather-details"><span id="weatherWind">Wind —</span><span id="weatherRain">Regen —</span><span id="weatherUpdate">—</span></div></div>
+          <div class="weather-sidebar"><div class="mini-card"><div class="mini-card-label"><span>AIR QUALITY</span><span>02 / AQI</span></div><strong id="airNumber" class="air-number">—</strong><div id="airLabel" class="air-label">Luftdaten laden …</div><div class="air-meter"><span id="airMeterBar"></span></div><small>Europäischer Luftqualitätsindex · Modellwert</small></div><div class="mini-card mini-card-holiday"><div class="mini-card-label"><span>NEXT DAY OFF</span><span>03 / DATE</span></div><strong id="holidayName">—</strong><div id="holidayDate" class="holiday-date">Öffentliche Feiertage laden …</div><small id="holidayRegion">Abhängig von Land und Region</small></div></div>
+        </div>
+        <div class="forecast"><div class="forecast-header"><strong>NÄCHSTE TAGE</strong><span>MODELLPROGNOSE / LOKALE ZEIT</span></div><div id="forecastDays" class="forecast-days"><div class="empty-state">Prognose wird geladen …</div></div></div>
+        <div class="channel-end"><span>Daten: Open-Meteo, Open-Meteo Air Quality, Nager.Date</span><button type="button" id="saveCity" class="save-button">+ Ort merken</button></div>
+      </section>
+
+      <section id="panel-art" class="channel-panel" role="tabpanel" aria-labelledby="tab-art" hidden>
+        <div class="channel-title"><div><span class="label-mini">02 / ART ROOM</span><h3>Something worth <em>looking at.</em></h3><p>Grosse Kunst, kleine Entdeckungen. Echte Werke aus dem Art Institute of Chicago.</p></div><div class="illustration-icon">◈</div></div>
+        <div class="chip-row" id="artTopics" aria-label="Kunstthema auswählen"></div>
+        <div id="artFeature" class="art-feature"><div class="art-skeleton"></div><div class="art-copy"><span class="label-mini">COLLECTION / 01</span><h4>Ein Werk wird gesucht …</h4><p>Originalkunst statt Platzhalter.</p></div></div>
+        <div class="gallery-head"><span>WEITERE FUNDSTÜCKE</span><button id="artShuffle" type="button" class="inline-link">Neue Auswahl ↻</button></div><div id="artGallery" class="art-gallery"></div>
+        <div class="channel-end"><span>Bildrechte je Werk · nur als gemeinfrei markierte Werke</span><button type="button" id="saveArt" class="save-button">+ Werk merken</button></div>
+      </section>
+
+      <section id="panel-books" class="channel-panel" role="tabpanel" aria-labelledby="tab-books" hidden>
+        <div class="channel-title"><div><span class="label-mini">03 / PAGE TURNER</span><h3>One more <em>chapter.</em></h3><p>Du suchst den Vibe, die Bibliothek sucht die Bücher. Offene Katalogdaten, keine Kaufempfehlung.</p></div><div class="illustration-icon">❖</div></div>
+        <div class="chip-row" id="bookTopics" aria-label="Lesethema auswählen"></div>
+        <form class="search-field" id="bookForm"><label class="sr-only" for="bookSearch">Bücher suchen</label><span aria-hidden="true">⌕</span><input id="bookSearch" placeholder="Bücher, Autor:innen, Themen …" maxlength="100" type="search"><button type="submit">Suchen ↗</button></form>
+        <div id="bookLead" class="book-lead"><div class="book-placeholder">OPEN<br>BOOK</div><div><span class="label-mini">LIBRARY / PICK NO. 01</span><h4>Das nächste Kapitel wartet.</h4><p>Wähle ein Thema oder suche etwas Eigenes.</p></div></div>
+        <div class="gallery-head"><span>IM REGAL</span><span id="bookResultCount">—</span></div><div id="bookResults" class="books-grid"></div>
+        <div class="channel-end"><span>Bibliografische Daten: Open Library</span><button type="button" id="saveBook" class="save-button">+ Buch merken</button></div>
+      </section>
+
+      <section id="panel-earth" class="channel-panel" role="tabpanel" aria-labelledby="tab-earth" hidden>
+        <div class="channel-title"><div><span class="label-mini">04 / PLANET PULSE</span><h3>The planet never <em>logs off.</em></h3><p>Ein Blick auf Naturereignisse und gemessene Erdbeben. Kein Alarmdienst, aber faszinierende Daten.</p></div><div class="illustration-icon">⌁</div></div>
+        <div class="segmented" id="earthSwitch" role="group" aria-label="Datenquelle wählen"><button data-earth="quakes" class="active" aria-pressed="true" type="button">Erdbeben / USGS</button><button data-earth="events" aria-pressed="false" type="button">Naturereignisse / NASA</button></div>
+        <div class="earth-overview"><div class="earth-stats"><span id="earthStatLabel">LAST 24 HOURS</span><strong id="earthStat">—</strong><span id="earthStatSub">Erdbeben ab Magnitude 2,5</span></div><div class="radar"><div class="radar-grid"></div><div id="radarDots" class="radar-dots"></div><span class="radar-hint">LÄNGE / BREITE · SCHEMATISCHE WELTKARTE</span></div></div>
+        <div class="gallery-head"><span id="earthListTitle">LETZTE MELDUNGEN</span><button id="earthReload" class="inline-link" type="button">Aktualisieren ↻</button></div><div id="earthResults" class="event-list"><div class="empty-state">Ereignisse werden geladen …</div></div>
+        <div class="channel-end"><span>USGS Feed · NASA EONET v3 · kann zeitversetzt sein</span><span class="end-note">DATEN / KEINE WARNUNGEN</span></div>
+      </section>
+
+      <section id="panel-sound" class="channel-panel" role="tabpanel" aria-labelledby="tab-sound" hidden>
+        <div class="channel-title"><div><span class="label-mini">05 / NOW PLAYING</span><h3>What are they <em>listening to?</em></h3><p>Keine Playlist von uns. Öffentliche meistgespielte Songs aus verschiedenen Apple-Music-Regionen.</p></div><div class="illustration-icon">♫</div></div>
+        <div class="sound-top"><div class="sound-disc"><div class="sound-disc-inner"><span>FQ</span><small>TRACKS</small></div></div><div><span class="label-mini">PICK A STOREFRONT</span><div class="sound-countries" id="soundCountries"></div><p>Das Ranking bildet die jeweilige Apple-Music-Region ab – nicht einzelne Hörerinnen und Hörer.</p></div></div>
+        <div class="gallery-head"><span id="soundListTitle">TOP SONGS / SWITZERLAND</span><span>REGIONALE CHARTS</span></div><div id="soundResults" class="track-grid"><div class="empty-state">Charts werden geladen …</div></div>
+        <div class="channel-end"><span>Apple Music Marketing Tools · Musik wird nicht abgespielt</span><a href="https://music.apple.com/" class="inline-link" target="_blank" rel="noopener noreferrer">Bei Apple Music stöbern ↗</a></div>
+      </section>
+
+      <section id="panel-play" class="channel-panel" role="tabpanel" aria-labelledby="tab-play" hidden>
+        <div class="channel-title"><div><span class="label-mini">06 / SIDE QUEST</span><h3>Do something <em>pointless.</em></h3><p>Eine Minute Pause. Ein Pokémon erraten. Einen Hund anschauen. Keine Produktivität erforderlich.</p></div><div class="illustration-icon">✺</div></div>
+        <div class="play-grid">
+          <div class="guess-card"><div class="mini-card-label"><span>GUESS THE CREATURE</span><span id="guessStreak">STREAK 00</span></div><div id="guessFrame" class="guess-frame"><span class="guess-empty">?</span></div><div class="guess-meta"><span id="guessNumber">#????</span><span id="guessHint">POKÉMON API</span></div><h4 id="guessAnswer">Wer versteckt sich hier?</h4><div class="guess-actions"><button type="button" class="action-primary" id="guessReveal">Auflösen ↗</button><button type="button" class="light-button" id="guessNext">Noch eins ↻</button></div></div>
+          <div class="dog-card"><div class="mini-card-label"><span>AN UNNECESSARY BONUS</span><span>100% GOOD BOY ENERGY</span></div><div id="dogFrame" class="dog-frame"><div class="dog-art" aria-hidden="true"><span class="dog-ear left"></span><span class="dog-ear right"></span><span class="dog-face"><i></i><i></i><b></b></span></div></div><h4>Oh, hello there.</h4><p>Eine echte zufällige Hundefotografie aus einem offenen Archiv.</p><button id="dogNext" class="light-button" type="button">Hund zeigen ↗</button></div>
+        </div>
+        <div class="channel-end"><span>PokéAPI · Dog CEO · Bilder gehören den jeweiligen Rechteinhabern</span><span class="end-note">NO SCOREBOARD NEEDED</span></div>
+      </section>
+    </div>
   </div>
-  <div class="bookmark-row" id="bookmarkRow"><span>SPONTAN BESUCHEN</span><button data-country="CH" type="button">Schweiz</button><button data-country="JP" type="button">Japan</button><button data-country="BR" type="button">Brasilien</button><button data-country="IS" type="button">Island</button><button data-country="ZA" type="button">Südafrika</button><button data-country="NZ" type="button">Neuseeland</button><button data-country="KR" type="button">Südkorea</button></div>
 </section>
 
-<section class="section-grid wrap" id="entdecken">
-  <div class="section-title"><div><div class="index"><span class="index-line"></span> 02 / DIE GANZ ANDEREN NACHRICHTEN</div><h2>Das passiert da draussen.</h2></div><p>Land wechseln, Karten anklicken und<br> immer neue Zufälle entdecken.</p></div>
-  <div class="mosaic">
-    <article class="module music-module" id="musicPanel"><div class="module-top"><span class="category">01 / KULTUR</span><span class="module-symbol">♫</span></div><h3>Was hört man <em>dort</em>?</h3><p class="module-desc">Die meistgespielten Songs im Apple-Music-Länderranking. Keine persönlichen Hördaten.</p><div class="module-inner" id="musicContent" aria-live="polite"><p class="loading">Charts werden geladen …</p></div><div class="module-footer"><span id="musicLabel">APPLE MUSIC · REGIONALE CHARTS</span><a href="https://performance-partners.apple.com/tools" target="_blank" rel="noopener noreferrer">Feed ↗</a></div></article>
-    <article class="module exchange-module" id="currencyPanel"><div class="module-top"><span class="category">02 / GELD</span><span class="module-symbol">↔</span></div><h3>Was ist das <em>wert</em>?</h3><p class="module-desc">Umrechnen mit veröffentlichten Referenzkursen. Nicht für Trading gedacht.</p><form id="exchangeForm"><div class="amount-field"><label for="amountInput">BETRAG</label><input id="amountInput" type="number" min="0" max="1000000000" step="any" value="100" required></div><div class="exchange-row"><label>VON <select id="currencyFrom"><option value="CHF">CHF</option><option value="EUR">EUR</option><option value="USD">USD</option><option value="JPY">JPY</option><option value="GBP">GBP</option><option value="BRL">BRL</option></select></label><button id="currencySwap" type="button" title="Währungen tauschen" aria-label="Währungen tauschen">⇄</button><label>NACH <select id="currencyTo"><option value="EUR">EUR</option><option value="CHF">CHF</option><option value="USD">USD</option><option value="JPY">JPY</option><option value="GBP">GBP</option><option value="BRL">BRL</option></select></label></div><button type="submit" class="inline-action">Kurs berechnen ↗</button></form><div class="exchange-result" id="currencyContent" aria-live="polite"><strong>—</strong><small>Gewünschte Währungen eingeben.</small></div><div class="module-footer"><span>FRANKFURTER · ZENTRALBANKKURSE</span><a href="https://frankfurter.dev/" target="_blank" rel="noopener noreferrer">Quelle ↗</a></div></article>
-    <article class="module holiday-module"><div class="module-top"><span class="category">03 / ALLTAG</span><span class="module-symbol">✺</span></div><h3>Wer hat <em>frei</em>?</h3><p class="module-desc">Die kommenden öffentlichen Feiertage im gewählten Land.</p><div id="holidayContent" class="module-inner" aria-live="polite"><p class="loading">Feiertage werden geladen …</p></div><div class="module-footer"><span>NAGER.DATE · KALENDER</span><a href="https://nagerholidays.com/" target="_blank" rel="noopener noreferrer">Quelle ↗</a></div></article>
-    <article class="module facts-module"><div class="module-top"><span class="category">04 / ZAHLEN</span><span class="module-symbol">▤</span></div><h3>Land in <em>Zahlen</em>.</h3><p class="module-desc">Zwei unabhängige Kennzahlen mit Datenjahr aus dem World-Bank-Katalog.</p><div id="worldBankContent" class="module-inner" aria-live="polite"><p class="loading">Daten werden geladen …</p></div><div class="module-footer"><span>WORLD BANK · INDIKATOREN</span><a href="https://data.worldbank.org/" target="_blank" rel="noopener noreferrer">Quelle ↗</a></div></article>
-    <article class="module quake-module" id="quakePanel"><div class="module-top"><span class="category">05 / UNTER UNS</span><span class="module-symbol">⌁</span></div><div class="module-head-row"><h3>Es <em>rumpelt</em>.</h3><label class="tiny-select">ZEITRAUM<select id="quakeRange"><option value="day">24 Stunden</option><option value="week">7 Tage</option></select></label></div><p class="module-desc">Aktuell gemeldete Erdbeben weltweit. Zum Kartenausschnitt springen.</p><div id="quakeContent" class="module-inner" aria-live="polite"><p class="loading">Erdbeben werden gesucht …</p></div><div class="module-footer"><span>USGS · ERDBEBENKATALOG</span><a href="https://earthquake.usgs.gov/earthquakes/" target="_blank" rel="noopener noreferrer">Quelle ↗</a></div></article>
-    <article class="module nasa-module" id="naturePanel"><div class="module-top"><span class="category">06 / PLANET ERDE</span><span class="module-symbol">☄</span></div><h3>Die Erde ist <em>aktiv</em>.</h3><p class="module-desc">Waldbrände, Vulkane und andere von NASA EONET kuratierte Naturereignisse.</p><div id="nasaContent" class="module-inner" aria-live="polite"><p class="loading">NASA-Ereignisse werden geladen …</p></div><div class="module-footer"><span>NASA · EONET V3</span><a href="https://eonet.gsfc.nasa.gov/" target="_blank" rel="noopener noreferrer">Quelle ↗</a></div></article>
-    <article class="module asteroid-module"><div class="module-top"><span class="category">07 / ÜBER UNS</span><span class="module-symbol">✷</span></div><h3>Besuch aus dem <em>All</em>.</h3><p class="module-desc">Erdnahe Asteroiden: beobachtete und prognostizierte Vorbeiflüge. Eine Annäherung ist kein Aufprall.</p><div id="asteroidContent" class="module-inner" aria-live="polite"><p class="loading">JPL-Daten werden geladen …</p></div><button class="inline-action slim" type="button" id="asteroidRefresh">Erneut abfragen ↻</button><div class="module-footer"><span>NASA / JPL · CNEOS</span><a href="https://ssd-api.jpl.nasa.gov/doc/cad.html" target="_blank" rel="noopener noreferrer">Quelle ↗</a></div></article>
-    <article class="module sidequest-module"><div class="module-top"><span class="category">08 / VÖLLIG UNNÖTIG</span><span class="module-symbol">♡</span></div><h3>Ein Hund. <em>Warum nicht.</em></h3><p class="module-desc">Eine zufällige Hundefotografie. Für den Fall, dass die Welt gerade zu ernst ist.</p><div id="dogContent" class="dog-content" aria-live="polite"><span class="dog-placeholder">🐕</span><span>Hunde-Foto auf Knopfdruck</span></div><button class="inline-action" type="button" id="dogButton">Zeig mir einen Hund ↗</button><div class="module-footer"><span>DOG CEO · BILDARCHIV</span><a href="https://dog.ceo/dog-api/" target="_blank" rel="noopener noreferrer">Quelle ↗</a></div></article>
-  </div>
-</section>
-
-<section class="travel-section" id="verkehr"><div class="wrap travel-grid">
-  <div class="travel-intro"><div class="index index-light"><span class="index-line"></span> 03 / LIEBER UNTERWEGS</div><h2>Und jetzt <em>wohin</em>?</h2><p>Eine echte ÖV-Verbindung statt bloss einer Linie auf der Karte. Verbindungen werden nur auf Wunsch über Transitous berechnet.</p><div class="travel-source">♧ Gemeinschaftsprojekt · weltweit, wo Fahrplandaten vorhanden sind.</div></div>
-  <div class="travel-widget"><div class="widget-heading"><span>DEIN NÄCHSTER AUSFLUG</span><span>↗</span></div><form id="journeyForm"><label for="journeyFrom">VON</label><select id="journeyFrom"></select><label for="journeyTo">NACH</label><select id="journeyTo"></select><button type="submit" class="button button-sun" id="journeyButton">Verbindungen suchen <span>↗</span></button></form><div class="journey-results" id="journeyContent" aria-live="polite"><p>Wähle Start und Ziel. Die Suche startet erst mit deinem Klick.</p></div><a href="https://transitous.org/sources/" target="_blank" rel="noopener noreferrer" class="widget-credit">Fahrplandaten & Lizenzhinweise ↗</a></div>
-</div></section>
-
-<section class="games-section wrap" id="spiel"><div class="section-title"><div><div class="index"><span class="index-line"></span> 04 / EIN BISSCHEN ABSCHWEIFEN</div><h2>Unbedingt unwichtig.</h2></div><p>Keine Punkte kaufen, keine Werbung.<br>Nur zwei ziemlich gute Zeitvertreibe.</p></div>
-<div class="game-grid">
-  <article class="quiz-game"><div class="module-top"><span class="category">MINISPIEL / 01</span><span class="module-symbol">?</span></div><div class="quiz-topline"><div><span class="micro">HAUPTSTADT-QUIZ</span><h3>Wo zur Hölle<br>ist <em>das</em>?</h3></div><span class="quiz-score" id="quizScore">0 RICHTIG</span></div><p id="quizQuestion" class="quiz-question">Welches Land gehört zu dieser Hauptstadt?</p><div class="quiz-options" id="quizOptions"></div><div id="quizFeedback" role="status" aria-live="polite" class="quiz-feedback">Eine echte Frage, vier mögliche Antworten.</div><button class="inline-action" type="button" id="nextQuiz">Nächste Frage ↗</button></article>
-  <article class="pokemon-game"><div class="module-top"><span class="category">MINISPIEL / 02</span><span class="module-symbol">◈</span></div><div class="pokemon-head"><span class="micro">POKÉMON-SCHATTEN</span><h3>Wer ist <em>das</em>?</h3><p>Eine Silhouette. Ein Klick. Ein völlig anderes Problem als vorher.</p></div><div class="pokemon-image-wrap"><div id="pokemonArt" class="pokemon-art"><span>◌</span></div><div class="pokemon-number" id="pokemonNumber"># ???</div></div><div class="pokemon-answer" id="pokemonAnswer" aria-live="polite">Rate mal …</div><div class="pokemon-buttons"><button class="button button-dark" id="pokemonReveal" type="button">Auflösen</button><button class="inline-action" id="pokemonNext" type="button">Noch eins ↻</button></div><div class="pokemon-credit">PokéAPI · keine Anmeldung · kostenlos</div></article>
-</div></section>
-
-<section class="sources-section wrap" id="quellen"><div class="section-title"><div><div class="index"><span class="index-line"></span> 05 / NICHTS ERFUNDEN</div><h2>Woher kommt das alles?</h2></div><p>Quellen nachvollziehen. Ausfälle sichtbar.<br>Kein Fake-»Live«, keine erfundenen Zahlen.</p></div><div id="sourceGrid" class="source-grid"></div><p class="sources-note">Wichtig: «Ohne feste Gratis-Kontingente» ist nicht dasselbe wie garantiert unlimitiert. Öffentliche Dienste können technisch drosseln, Fair-Use-Regeln durchsetzen oder ausfallen. Darum werden Anfragen gecacht und auf echte Nutzeraktionen begrenzt. Musikcharts können je nach Region oder CORS-Verfügbarkeit nicht ladbar sein.</p></section>
+<section class="about" id="about"><div class="about-left"><span class="eyebrow">THE IDEA / 2026</span><h2>The internet used to<br>feel <em>like exploring.</em></h2><p>Keine Endlos-Timeline, keine personalisierte Werbung. FREQUENCY ist ein kleiner Ort für Zufallsfunde mit echten, frei verfügbaren Daten. Jeder Kanal funktioniert unabhängig. Wenn ein Dienst ausfällt, sagen wir es.</p><a href="#studio" class="about-back">Back to the studio ↑</a></div><div class="about-right"><span class="label-mini">WHAT POWERS THIS THING?</span><div id="sourcesList" class="sources-list"></div><p class="fineprint">Kostenlose öffentliche APIs können Fair-Use-Regeln, Nutzungslimits oder Ausfälle haben. Open-Meteo ist im nichtkommerziellen Rahmen kostenlos. Anfragen sind gecacht und starten nur bei Bedarf. Ohne Konto und ohne Tracking durch FREQUENCY; externe Dienste erhalten normale technische Verbindungsdaten.</p></div></section>
 </main>
-<footer class="site-footer"><div class="wrap footer-inner"><div><span class="footer-brand">NEBENAN<span>.</span></span><p>Ein Internet-Ausflug, der keine Richtung braucht.<br>Ein offenes, nichtkommerzielles Experiment.</p></div><div class="footer-right"><a href="https://github.com/Brotesser8/hnkrspiel/tree/main/nebenan" target="_blank" rel="noopener noreferrer">Quellcode & Kontakt auf GitHub ↗</a><span>Mit öffentlichen Daten. Mit Neugier. 2026.</span></div></div></footer>
+
+<footer><div><a class="footer-logo" href="./">FREQUENCY<span>.</span></a><span>AN INTERNET EXPLORATION DEVICE</span></div><div><span>NO ALGORITHM. JUST CURIOSITY.</span><a href="https://github.com/Brotesser8/hnkrspiel/tree/main/nebenan" target="_blank" rel="noopener noreferrer">SOURCE CODE ↗</a></div></footer>
+
+<div id="pocketBackdrop" class="pocket-backdrop" hidden></div>
+<aside id="pocketDrawer" class="pocket-drawer" role="dialog" aria-modal="true" aria-labelledby="pocketTitle" hidden>
+  <div class="drawer-header"><div><span class="label-mini">YOUR LITTLE CORNER</span><h2 id="pocketTitle">Merkliste<span>.</span></h2></div><button type="button" id="closePocket" aria-label="Merkliste schliessen">✕</button></div>
+  <p>Fundstücke, die du wiederfinden möchtest. Nur in diesem Browser gespeichert.</p><div id="pocketItems" class="pocket-items"></div><button type="button" id="clearPocket" class="clear-button">Merkliste leeren</button>
+</aside>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 </body>
 </html>

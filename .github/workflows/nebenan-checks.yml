@@ -1,4 +1,4 @@
-name: NEBENAN checks
+name: FREQUENCY checks
 on:
   push:
     branches: [main]
@@ -20,38 +20,37 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validate JavaScript syntax
+      - name: Validate app and tests
         run: |
           node --check nebenan/core.mjs
           node --check nebenan/api.mjs
           node --check nebenan/app.mjs
-          node --check nebenan/map-ui.mjs
-          node --check nebenan/map-data.mjs
+          node --check nebenan/tests/core.test.mjs
           node --check nebenan/tests/browser-smoke.mjs
-      - name: Run pure unit tests
-        run: node --test nebenan/tests/*.test.mjs
+      - name: Test data adapters and HTTP caching
+        run: node --test nebenan/tests/core.test.mjs
   browser:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install browser test dependencies
+      - name: Install Playwright
         run: npm install --no-save playwright@1.58.2
-      - name: Verify runner browser
+      - name: Verify Chrome
         run: |
           command -v google-chrome
           google-chrome --version
-      - name: Test country changes, interactive modules and phone layout
+      - name: Exercise all six channels and responsive layouts
         env:
           PLAYWRIGHT_CHANNEL: chrome
         run: node nebenan/tests/browser-smoke.mjs
-      - name: Upload screenshots
+      - name: Save visual reference screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: nebenan-browser
+          name: frequency-browser-screenshots
           path: nebenan/test-artifacts/
           if-no-files-found: ignore

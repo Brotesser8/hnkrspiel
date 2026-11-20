@@ -1,78 +1,26 @@
-import {musicUrl,travelUrl} from "./core.mjs";
-const cache=new Map();
-const pending=new Map();
-export async function request(url,{ttl=10*60*1000,force=false,timeout=13000}={}){
-  const previous=cache.get(url);
-  if(!force&&previous&&Date.now()-previous.at<ttl)return previous.data;
-  if(pending.has(url))return pending.get(url);
-  const task=(async()=>{
-    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);
-    try{
-      const resp=await fetch(url,{signal:controller.signal,headers:{Accept:"application/json"}});
-      if(!resp.ok)throw new Error("HTTP "+resp.status);
-      const data=await resp.json();
-      cache.set(url,{at:Date.now(),data});
-      return data;
-    }finally{clearTimeout(timer);}
-  })();
-  pending.set(url,task);
-  try{return await task;}finally{if(pending.get(url)===task)pending.delete(url);}
+// No-key, browser-side API client; caching, timeouts and in-flight deduplication.
+const cache=new Map(),pending=new Map();
+export async function request(url,{ttl=900000,force=false,timeout=14000}={}){
+ const hit=cache.get(url);
+ if(!force&&hit&&Date.now()-hit.t<ttl)return hit.data;
+ if(pending.has(url))return pending.get(url);
+ const p=(async()=>{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);
+  try{const response=await fetch(url,{signal:controller.signal,headers:{Accept:"application/json"}});if(!response.ok)throw Error("Datenquelle HTTP "+response.status);const data=await response.json();cache.set(url,{t:Date.now(),data});return data;}
+  finally{clearTimeout(timer);}
+ })();
+ pending.set(url,p);try{return await p;}finally{if(pending.get(url)===p)pending.delete(url);}
 }
-export async function countries(){
-  const data=await request("https://countries.dev/countries",{ttl:24*60*60*1000,timeout:18000});
-  if(!Array.isArray(data))throw new Error("Ungültige Länderdaten");
-  return data;
-}
-export async function music(code){const data=await request(musicUrl(code),{ttl:60*60*1000});
-  if(!Array.isArray(data?.feed?.results))throw new Error("Für dieses Land kein Musikfeed verfügbar");
-  return data.feed.results.slice(0,6);
-}
-export async function holidays(code){
-  const y=new Date().getFullYear();
-  const a=await request("https://nagerholidays.com/api/v4/Holidays/"+code+"/"+y,{ttl:24*60*60*1000});
-  if(!Array.isArray(a))throw new Error("Feiertagsdaten fehlen");
-  const future=a.filter(h=>h.date>=new Date().toISOString().slice(0,10));
-  if(future.length>=3)return a;
-  const b=await request("https://nagerholidays.com/api/v4/Holidays/"+code+"/"+(y+1),{ttl:24*60*60*1000});
-  return a.concat(Array.isArray(b)?b:[]);
-}
-export async function worldBank(iso3,indicator){
-  if(!/^[A-Z]{3}$/.test(iso3))throw new Error("Kein ISO3 Code");
-  const y=new Date().getFullYear();
-  const data=await request("https://api.worldbank.org/v2/country/"+iso3+"/indicator/"+indicator+"?"+new URLSearchParams({format:"json",date:(y-7)+":"+y,per_page:"10"}),{ttl:24*60*60*1000});
-  const good=Array.isArray(data?.[1])?data[1].find(v=>typeof v.value==="number"&&Number.isFinite(v.value)):null;
-  return good?{value:good.value,year:good.date}:null;
-}
-export async function exchange(from,to){
-  if(from===to)return {rate:1,date:new Date().toISOString().slice(0,10)};
-  const data=await request("https://api.frankfurter.dev/v2/rate/"+encodeURIComponent(from.toLowerCase())+"/"+encodeURIComponent(to.toLowerCase()),{ttl:60*60*1000});
-  if(!Number.isFinite(data?.rate))throw new Error("Kein Referenzkurs");
-  return data;
-}
-export async function quakes(range){
-  const url="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_"+(range==="week"?"week":"day")+".geojson";
-  const data=await request(url,{ttl:5*60*1000});
-  if(!Array.isArray(data?.features))throw new Error("Keine Erdbeben-Features");
-  return data.features;
-}
-export async function nasaEvents(){
-  const data=await request("https://eonet.gsfc.nasa.gov/api/v3/events?status=all&days=30&limit=40",{ttl:30*60*1000});
-  if(!Array.isArray(data?.events))throw new Error("Keine NASA Ereignisse");
-  return data.events;
-}
-export async function asteroids(){
-  const from=new Date(),to=new Date(from.getTime()+7*86400000);
-  const params=new URLSearchParams({body:"Earth","date-min":from.toISOString().slice(0,10),"date-max":to.toISOString().slice(0,10),sort:"date",limit:"7"});
-  return request("https://ssd-api.jpl.nasa.gov/cad.api?"+params,{ttl:6*60*60*1000});
-}
-export async function dog(){
-  const data=await request("https://dog.ceo/api/breeds/image/random",{ttl:0,force:true});
-  if(data?.status!=="success"||!/^https:\/\//.test(data.message))throw new Error("Kein Hundebild");
-  return data.message;
-}
-export async function pokemon(index){
-  const data=await request("https://pokeapi.co/api/v2/pokemon/"+index,{ttl:24*60*60*1000});
-  if(!data?.name)throw new Error("Pokémon nicht gefunden");
-  return {id:data.id,name:data.name,types:(data.types||[]).map(t=>t.type?.name).filter(Boolean),image:data.sprites?.other?.["official-artwork"]?.front_default||data.sprites?.front_default};
-}
-export async function journey(from,to){return request(travelUrl(from,to),{ttl:2*60*1000,timeout:23000});}
+const params=o=>new URLSearchParams(o).toString();
+export const api={
+ weather(c){return request("https://api.open-meteo.com/v1/forecast?"+params({latitude:c.lat,longitude:c.lon,current:"temperature_2m,weather_code,is_day,wind_speed_10m,precipitation",daily:"weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max",timezone:c.timezone||"auto",forecast_days:6}),{ttl:1200000})},
+ air(c){return request("https://air-quality-api.open-meteo.com/v1/air-quality?"+params({latitude:c.lat,longitude:c.lon,current:"european_aqi",timezone:c.timezone||"auto"}),{ttl:2100000})},
+ geocode(term){const name=String(term).trim();if(name.length<2)throw Error("Bitte mindestens zwei Zeichen eingeben");return request("https://geocoding-api.open-meteo.com/v1/search?"+params({name,count:6,language:"de",format:"json"}),{ttl:86400000})},
+ holiday(code){if(!/^[A-Z]{2}$/.test(code))throw Error("Kein gültiger Ländercode");return request("https://date.nager.at/api/v3/NextPublicHolidays/"+code,{ttl:43200000})},
+ artworks(q,page=1){return request("https://api.artic.edu/api/v1/artworks/search?"+params({q,"query[term][is_public_domain]":"true",fields:"id,title,artist_display,date_display,image_id,is_public_domain,thumbnail",limit:40,page}),{ttl:2700000})},
+ books(q){return request("https://openlibrary.org/search.json?"+params({q:String(q).slice(0,100),fields:"key,title,author_name,first_publish_year,cover_i,edition_count",limit:20}),{ttl:1800000})},
+ quakes(force=false){return request("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson",{ttl:300000,force})},
+ events(force=false){return request("https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=40",{ttl:1500000,force})},
+ charts(region){if(!/^[a-z]{2}$/.test(region))throw Error("Region ungültig");return request("https://rss.marketingtools.apple.com/api/v2/"+region+"/music/most-played/10/songs.json",{ttl:3600000})},
+ pokemon(id){if(!Number.isInteger(id)||id<1||id>1025)throw Error("Pokémon ungültig");return request("https://pokeapi.co/api/v2/pokemon/"+id,{ttl:86400000})},
+ dog(){return request("https://dog.ceo/api/breeds/image/random",{ttl:0,force:true})}
+};

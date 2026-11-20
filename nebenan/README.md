@@ -1,99 +1,57 @@
-# NEBENAN. — Ein Weltlabor für alles Mögliche
+# FREQUENCY. — An Internet Exploration Device
 
-**Live (nach erfolgreichem Pages-Deploy):** https://brotesser8.github.io/hnkrspiel/nebenan/
+**Website:** https://brotesser8.github.io/hnkrspiel/nebenan/
 
-Eine eigenständige, bewusst spielerische Webanwendung im bestehenden Repository. **Der vorhandene Schweizer Atlas \`schweiz-atlas/\` und das Henkerspiel bleiben unangetastet.**
+FREQUENCY ersetzt die frühere Website NEBENAN. vollständig, ohne andere Unterordner des Repositories zu verändern. Eine interaktive Entdeckungsmaschine mit sechs klar getrennten Kanälen. Keine Endlos-Timeline, keine eigene Nutzeridentität, keine Anmeldung, keine Tracking-Software.
 
-## Die Idee
+## Die sechs Kanäle
 
-Ein Land auswählen oder mit dem Globus den nächsten Länder-Mittelpunkt entdecken. Die Auswahl steuert **Länderfakten, lokale UTC-Offset-Anzeige, eine kuratierte Musikchart, Feiertage, Wechselkurse und Weltbank-Statistiken**. Unabhängige Karten zeigen **globale Erdbeben, NASA-Naturereignisse und Vorbeiflüge von Asteroiden**. Ein ÖV-Planer berechnet ausdrücklich angeforderte Verbindungen; ein Länderquiz, ein Pokémon-Schattenspiel und ein Hundebild sorgen für den etwas unsinnigeren Teil.
+| Kanal | Interaktionen | API |
+| --- | --- | --- |
+| Elsewhere | Weltweite Städte suchen, Live-Wetter, 6-Tages-Prognose, lokale Uhrzeit, modellierte Luftqualität, Feiertage | Open-Meteo Forecast, Geocoding und Air Quality; Nager.Date |
+| Art room | Themen und Kunst auswählen, gemeinfreie Originalkunst betrachten und speichern | Art Institute of Chicago REST + IIIF |
+| Page turner | Bücher nach Thema oder freiem Suchtext, Cover und Autoren, Fundstücke merken | Open Library Search + Covers |
+| Planet pulse | Erdbeben und Naturereignisse nach Quelle auswählen, Punkte im geografischen Koordinatenraster und Originalmeldung anklicken | USGS Earthquake GeoJSON; NASA EONET v3 |
+| Now playing | Meistgespielte Songs in sieben Apple-Music-Regionen, Originaltitel und Quelllinks | Apple Marketing Tools RSS |
+| Side quest | Pokémon anhand einer Silhouette raten, Streak, zufälliges Hundefoto | PokéAPI und Dog CEO |
 
-Das ist kein «alles live»-Fake: Jeder externe Wert hat eine Quelle, Fehler werden angezeigt, und für nicht verfügbare Daten werden keine Ersatzwerte erfunden.
+Die Merkliste nutzt ausschliesslich den Browser-Speicher localStorage. Die Webseite benötigt keinen Account und keinen eigenen Server.
 
-## Eingesetzte Quellen
+## Gratis, Fair Use und Datenqualität
 
-| Quelle | Einsatz | Eigenschaft |
-|---|---|---|
-| [countries.dev](https://countries.dev/docs/rate-limits) | Weltweite Länder, Hauptstädte, Flaggen, Bevölkerungsreferenzen, Währungen | Kein Key und keine Kontingent-Tiers, aber Missbrauchsschutz |
-| [Apple Marketing Tools RSS](https://performance-partners.apple.com/tools) | Regionales Apple-Music-**Most-Played-Ranking** | Öffentlicher RSS-/JSON-Feed ohne persönlichen Nutzerzugang; CORS/Region kann blockieren |
-| [Frankfurter](https://frankfurter.dev/) | Aktuelle veröffentlichte Währungs-Referenzkurse | Keine Tages-/Monatskontingente, Missbrauchs-Ratenlimit |
-| [Nager.Date](https://nagerholidays.com/) | Feiertage in ausgewählten Ländern | Freie Community API v4; Gültigkeit ist nicht rechtsverbindlich |
-| [World Bank Indicators](https://data.worldbank.org/) | Bevölkerung und Anteil der Internetnutzung mit Datenjahr | Öffentlicher Statistikdienst |
-| [USGS Earthquake](https://earthquake.usgs.gov/earthquakes/feed/) | Globale Erdbebenfeeds ab Magnitude 2,5 | Öffentliche Feeds, keine persönlichen Warnungen |
-| [NASA EONET](https://eonet.gsfc.nasa.gov/) | Von NASA kuratierte Naturereignisse | Offener NASA-Ereigniskatalog |
-| [NASA/JPL CNEOS](https://ssd-api.jpl.nasa.gov/doc/cad.html) | Erdnahe Annäherungen in 7 Tagen | Nur ein Request je erneuter Aktion, JPL-Fair-Use |
-| [Transitous](https://transitous.org/api/) | Internationale ÖV-Routen | Offenes, **nichtkommerzielles** Routing, nur per Klick. Siehe Lizenzhinweise |
-| [PokéAPI](https://pokeapi.co/docs/v2) | Pokémon-Schattenrätsel | Laut Dokumentation ohne Ratenlimit, trotzdem sparsam nutzen |
-| [Dog CEO](https://dog.ceo/dog-api/) | Zufalls-Hundefoto | Öffentlicher Bilddienst, nur auf Knopfdruck |
-| [OpenStreetMap](https://www.openstreetmap.org/copyright) | Weltkarte | Öffentliche Kartenkacheln mit Nutzungsregeln und Attribution |
+Alle verwendeten Endpunkte sind ohne eigenen API-Key nutzbar. Eine öffentliche API ist aber **niemals garantiert unbegrenzt**: Open-Meteo ist im nichtkommerziellen Rahmen kostenlos mit Gratisnutzungsgrenzen; andere Dienste können Fair-Use-Regeln, Ratenbegrenzungen oder Ausfälle haben. Die App lädt Daten nur für den benötigten Kanal, benutzt Caches und dedupliziert parallele Requests.
 
-**Keine garantierte unlimitierte öffentliche API:** Anbieter können Ressourcen schützen, drosseln, Dienste ändern oder sperren. Das Projekt verzichtet auf APIs mit kostenpflichtigem Pflicht-Key oder festen monatlichen Freikontingenten. Kein heimliches Retry-Spamming, keine Polling-Schleifen für API-Calls, keine Produktions-Scraper. *Transitous* nennt >720 Planungs-Requests pro 24 Stunden als bedeutende Ressourcenlast: Die Anwendung stellt nur ausdrücklich ausgelöste Planungsanfragen. Für grössere Nutzung wäre eine selbst gehostete Instanz erforderlich.
+Die Wetterangaben sind Modellwerte, kein Ersatz für lokale amtliche Messstationen. Auch der Europäische Luftqualitätsindex ist modelliert. Feiertage können regional beschränkt sein. Der USGS-Feed zeigt Erdbeben ab Magnitude 2,5 und ist kein Warnsystem. NASA EONET ist ein kuratierter Katalog. Die Apple Charts sind Storefront-Rankings und keine Echtzeitbeobachtungen individueller Menschen.
 
-Eine Musikchart misst nur das Ranking im entsprechenden **Apple-Music-Storefront**, nicht die gerade laufenden Songs oder die Hörgewohnheiten individueller Personen. Das Bild der Weltkarte verwendet **Länder-Mittelpunkte**, keine Punkt-in-Polygon-Bestimmung: ein Kartenklick wählt den nächstgelegenen Mittelpunkt. Die Uhr zeigt einen UTC-Offset aus der Länderquelle, *nicht* garantiert die aktuelle Sommerzeit. Bevölkerungsdaten der Länder-API sind nicht zwingend aktuell; Weltbank-Zahlen zeigen ihr Datenjahr.
+Bildrechte: Kunst aus dem Art Institute wird anhand des Felds is_public_domain gefiltert. Bei Pokémon-Grafiken, Buch- und Musikcovern sowie Hundefotos gelten die Rechte der jeweiligen Quellen, nicht die MIT-Lizenz des Quellcodes.
 
+## Architektur
 
-## Karten-Navigation 2.0
+- Statische HTML/CSS/JavaScript-Module ohne Framework oder Backend
+- Sechs zugängliche ARIA-Tabs inklusive Tastatur-Pfeilnavigation, Fokusindikatoren
+- Datenadapter pro Dienst, Anfragen mit Timeout, Caching und Deduplikation
+- Abfrage-Token verhindern, dass alte API-Antworten eine neuere Auswahl überschreiben
+- Sichere externe Links (HTTPS, noopener noreferrer)
+- API-Ausfälle werden angezeigt, keine erfundenen Live-Werte
+- Responsives Layout für Smartphones, Tablets und Desktop
+- Keine Kartenkacheln oder Kartendaten-CDNs mehr
 
-Die neue Weltkarte ist der Hauptbestandteil des Interfaces. Sie hat jetzt:
+## Tests
 
-- **Echte Länderflächen statt nächstgelegener Zentren:** Vereinfachte Natural-Earth/World-Atlas-110m-Grenzen werden über die öffentliche TopoJSON-CDN-Version geladen und zu GeoJSON umgewandelt. Klick auf eine Landfläche wählt das entsprechende Land anhand des numerischen ISO-Codes. Die Auswahl nutzt browserseitiges Punkt-in-Polygon-Hit-Testing im Capture-Event, damit Leaflet-Canvas- und Markerebenen die Auswahl nicht verschlucken. Ein Klick aufs Meer wählt **kein** zufälliges Land. Grenzen sind vereinfacht, besonders kleine Staaten können fehlen.
-- **Datenebenen direkt auf der Karte:** „Alle“, „Erdbeben“, „Natur“, „Nur Länder“. Ereignismarker kommen aus den bereits für die Seite geladenen USGS- und NASA-EONET-Antworten – **keine zusätzlichen API-Requests**. Der Marker zeigt Details und gegebenenfalls einen Quellenlink.
-- **Bedienhilfen:** Zoom per Mausrad, Touch-Pinch und +/−, Weltansicht, Koordinaten unter dem Mauszeiger, sichtbare Zoomstufe, Massstabsleiste, Legende, Länder-Tooltip, interaktive Hilfe und Kontrastmodus.
-- **Grossansicht mit Escape-Taste**, auch auf Mobilgeräten. Animationen respektieren „Reduzierte Bewegung“.
-- **Stabileres Rendering:** Der Lade-/Fehlerhinweis liegt ausserhalb des Leaflet-Containers, Länder- und Ereignisebenen haben getrennte Karten-Panes, Grösse wird bei Layoutänderungen neu berechnet. Bei Ausfall der Kartentiles bleiben vorhandene Länder- und Ereignis-Geometrien bedienbar. „Erneut laden“ ist ein manueller Versuch.
+Mit Node.js 22+ im Hauptverzeichnis des Repositories:
 
-Die Grenzen stammen aus [world-atlas](https://github.com/topojson/world-atlas) auf Grundlage von Natural Earth und sind nicht für rechtliche Grenzaussagen geeignet. Sie werden einmal beim Besuch über jsDelivr geladen. Bei Ausfall bleiben die Suche, Länderinformationen und Datenmodule erreichbar. Die Kartenkacheln und die Ausgabe von Country-Facts benötigen Internetzugang.
+    node --check nebenan/app.mjs
+    node --check nebenan/api.mjs
+    node --check nebenan/core.mjs
+    node --test nebenan/tests/core.test.mjs
 
-### Kartentests
+Browser-Tests mit Playwright und Chrome:
 
-Der neue Test \`nebenan/tests/map-data.test.mjs\` validiert TopoJSON-Umwandlung, Länderkennungen, EONET-Koordinaten und USGS-Events. Der Playwright-Browsertest prüft zusätzlich Kachel-Ladezustand, Ländergrenzen, Karte anklicken, Ebenenwechsel, Zoom, Hilfe, Kontrast, Grossansicht und mobile Überläufe. Die Tests verwenden künstliche Beispieldaten und ersetzen keine manuelle Live-API-Prüfung.
+    npm install --no-save playwright@1.58.2
+    PLAYWRIGHT_CHANNEL=chrome node nebenan/tests/browser-smoke.mjs
 
-## Datenschutz & Technik
+Die Browsertests verwenden bewusst simulierte externe Antworten, damit CI keine öffentlichen API-Dienste unnötig belastet. Das bestätigt UI- und Datenadapterfunktionen, aber nicht die zukünftige Echtzeit-Erreichbarkeit fremder Anbieter.
 
-- Keine Registrierung, keine App-eigenen Cookies, keine Analytics.
-- Statische HTML/CSS/ES-Module ohne Framework oder Backend, für GitHub Pages.
-- Blattkarte Leaflet 1.9.4 und OSM-Tiles (nur interaktive Kartenansicht).
-- Antwort-Cache pro URL, Requests mit Timeout, Länderwechsel-Token gegen veraltete Antwort.
-- Netzwerkadressen und technische Daten sind für die externen API-Anbieter und CDN erreichbar.
-- Links immer HTTPS, neue Tabs mit \`noopener noreferrer\`.
-- Kein persönlicher Standort wird abgefragt.
+Der bestehende GitHub-Pages-Workflow veröffentlicht den Ordner unter /hnkrspiel/nebenan/. FREQUENCY checks prüft bei Änderungen an diesem Projekt Unit- und Browsertests. Alle anderen Projekte und Ordner im Repository bleiben unverändert.
 
-### Lokal prüfen
-
-Mit Node.js 22+ im Repository-Hauptverzeichnis:
-
-~~~sh
-node --check nebenan/app.mjs
-node --check nebenan/map-ui.mjs
-node --check nebenan/map-data.mjs
-node --check nebenan/api.mjs
-node --check nebenan/core.mjs
-node --check nebenan/tests/browser-smoke.mjs
-node --test nebenan/tests/*.test.mjs
-~~~
-
-Browser-End-to-End-Tests verwenden Playwright mit **gemockten** Daten (damit kein CI-Lauf öffentliche APIs belastet):
-
-~~~sh
-npm install --no-save playwright@1.58.2
-npx playwright install chromium
-node nebenan/tests/browser-smoke.mjs
-~~~
-
-Alle Commits in \`nebenan/\` starten den automatisierten GitHub-Actions-Lauf [nebenan-checks.yml](../.github/workflows/nebenan-checks.yml). Screenshots für Desktop und Mobilgerät liegen als Actions-Artefakt vor. Externe Anbieter werden **nicht** im CI belastet; Produktions-API-Änderungen oder CORS-Probleme sind damit ausdrücklich **nicht** ausgeschlossen.
-
-## Veröffentlichung & Lizenz
-
-Das Repository \`Brotesser8/hnkrspiel\` hat bereits einen GitHub-Pages-Workflow, der alle Unterordner publiziert. NEBENAN. liegt deshalb automatisch unter \`/hnkrspiel/nebenan/\`; andere Projekte werden nicht verändert.
-
-Quellcode im Ordner unter MIT-Lizenz. Für Transitous: nichtkommerzielle Nutzung, Attribution [Transitous Datenquellen](https://transitous.org/sources/), Quellcode öffentlich auf GitHub, Kontakt via [GitHub Issues](https://github.com/Brotesser8/hnkrspiel/issues). Für Karten: © OpenStreetMap-Mitwirkende / ODbL. Inhalte externer APIs behalten die jeweiligen Rechte ihrer Anbieter; insbesondere Albumcover und Pokémon-Abbildungen sind **nicht** durch MIT neu lizenziert.
-
-## Überarbeitung der Karte (19. November 2026)
-
-Die Weltkarte ist nun der zentrale Teil der Seite. Es gibt einen kachelunabhängigen Vektormodus, eine regionale Schnellnavigation, Zoom- und Richtungstasten, eine vergrösserte Kartenfläche und kontextbezogene Hilfe. Bei Fehlern der Rasterkacheln wechselt die Karte in den klaren Länder-Modus, ohne ein blockierendes Fenster über den Ländern einzublenden. Die Kartengeometrien können von zwei öffentlichen CDN-Mirrors bezogen werden. Geografische Auswahl bleibt auf Länderflächen beschränkt (keine ungenaue Mittelpunkt-Schätzung für Klicks im Meer).
-
-### Kartenreparatur – lokale Weltkarte
-
-Nach einem realen Fehlerbild mit fragmentarischen OSM-Kacheln wird die **lokal gebündelte Natural-Earth-Länderkarte** (`data/world-110m.json`) als zuverlässige Standarddarstellung verwendet. Der Kartendatensatz enthält 174 vereinfachte Länderflächen. Die Darstellung benötigt weder Bildkacheln noch Geodaten-CDNs. «Strassenkarte» ist ein freiwilliger Zusatzmodus und schaltet bei fehlenden Kacheln zur vollständigen Länderansicht zurück. Bei der Strassenkarte werden die Landesfarben erst transparent, wenn der komplette Kartenkachel-Ladevorgang erfolgreich war.
-
-Karten-Navigation, Weltregionsauswahl und Hintergrundwahl liegen **unterhalb** des geografischen Kartenbereichs. Sie verdecken keine Länder mehr. Automatisierte Tests kontrollieren die eingebundene lokale Geometrie, korrekt auswählbare echte Länder, Kachel-Unabhängigkeit beim Start, Layout-Abstände, alle Datenmodule, Touch-/Mobilansicht, Filter, Vollbild und gezielte Navigation.
+**Quellcode-Lizenz:** MIT. Drittanbieterdaten, Abbildungen und Marken ausgenommen.
