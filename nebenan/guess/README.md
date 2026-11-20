@@ -2,7 +2,7 @@
 
 **Spiel:** https://brotesser8.github.io/hnkrspiel/nebenan/guess/
 
-Ein kostenloses Bilder-Ratespiel für FREQUENCY mit 15 kuratierten Kategorien und über 200 Rätselbegriffen. Unter anderem Tiere, Essen, Flaggen, Architektur, Weltraum, Fahrzeuge, Technik, Sportarten, Instrumente, Natur, Pflanzen, berühmte Kunst, Buchcover und Dinosaurier.
+Ein kostenloses Bilder-Ratespiel für FREQUENCY mit 15 kuratierten Kategorien und über 200 Rätselbegriffen. Unter anderem Tiere, Essen, Flaggen, Architektur, Weltraum, Fahrzeuge, Technik, Sportarten, Instrumente, Natur, Pflanzen, Alltag, berühmte Kunst, Buchcover und Dinosaurier.
 
 ## So funktioniert es
 

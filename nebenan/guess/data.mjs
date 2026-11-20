@@ -104,6 +104,14 @@ const rows=[
 "Die Verwandlung|The Metamorphosis|🪳","Dune|Dune (novel)|🏜️",
 "Der Alchimist|The Alchemist (novel)|⚗️"
 ]],
+["everyday","Alltag & Objekte","💡","Dinge, die du täglich siehst","wiki",[
+"Regenschirm|Umbrella|☂️","Glühbirne|Light bulb|💡","Zahnbürste|Toothbrush|🪥",
+"Schlüssel|Key (lock)|🔑","Schere|Scissors|✂️","Wecker|Alarm clock|⏰",
+"Rucksack|Backpack|🎒","Staubsauger|Vacuum cleaner|🧹","Kühlschrank|Refrigerator|🧊",
+"Brille|Glasses|👓","Wasserkocher|Electric kettle|🫖","Sofa|Couch|🛋️",
+"Magnet|Magnet|🧲","Taschenlampe|Flashlight|🔦","Fahrradhelm|Bicycle helmet|⛑️",
+"Bürostuhl|Office chair|🪑","Schloss|Padlock|🔒","Feuerlöscher|Fire extinguisher|🧯"
+]],
 ["dinosaurs","Dinosaurier","🦕","Urzeit in allen Formen","wiki",[
 "Tyrannosaurus rex|Tyrannosaurus|🦖","Triceratops|Triceratops|🦕",
 "Stegosaurus|Stegosaurus|🦕","Velociraptor|Velociraptor|🦖",
