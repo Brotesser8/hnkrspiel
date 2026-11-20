@@ -1,87 +1,78 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {CATEGORIES,allQuestions,normalizeAnswer,acceptAnswer,shuffle,createDeck,answersFor,parseCustomLines,customTopic,safeTopics,formatTime,pointsFor} from "../data.mjs";
-import {parseWikipedia,wikipediaUrl,json,safeHttps} from "../api.mjs";
-
-test("at least fifteen independent themes and 200+ unique examples",()=>{
- assert.equal(CATEGORIES.length,15);
- assert.ok(allQuestions().length>=200);
- assert.equal(new Set(CATEGORIES.map(t=>t.id)).size,15);
- CATEGORIES.forEach(c=>{
-  assert.ok(c.items.length>=12);
-  c.items.forEach(q=>{
-   assert.ok(q.answer.length>1&&q.page.length>0);
-   assert.equal(q.category,c.id);
-  });
- });
+import {MODES,OBJECTS,BANK,SCALE_ROUNDS,DISTANCE_ROUNDS,TIME_ROUNDS,LIVE_CITIES,buildDeck,shuffle,
+  greatCircleKm,sliderToValue,valueToSlider,pointsFor,ratioScore,linearScore,percentError,formatValue,nextRange,safeModeSettings,normaliseModes} from "../data.mjs";
+test("four distinct modes and 70+ varied real-world challenges",()=>{
+ assert.deepEqual(MODES.map(x=>x.id),["scale","distance","time","weather"]);
+ assert.ok(SCALE_ROUNDS.length>=15);assert.ok(DISTANCE_ROUNDS.length>=20);
+ assert.ok(TIME_ROUNDS.length>=20);assert.ok(LIVE_CITIES.length>=10);
+ assert.ok(Object.values(BANK).flat().length>=70);
+ const ids=Object.values(BANK).flat().map(x=>x.id);
+ assert.equal(new Set(ids).size,ids.length);
 });
-test("normalisation tolerates accents but avoids approximate false positives",()=>{
- assert.equal(normalizeAnswer("  Müßli!  "),"mussli");
- assert.ok(acceptAnswer("café","Cafe"));
- assert.equal(acceptAnswer("Titanic","Taj Mahal"),false);
- assert.equal(acceptAnswer("","Taj Mahal"),false);
+test("all landmark ratios fit the slider and link to sources",()=>{
+ const {min,max}=nextRange("scale");
+ for(const q of SCALE_ROUNDS){
+  assert.ok(q.reference.height>0&&q.target.height>0);
+  assert.equal(q.truth,q.target.height/q.reference.height);
+  assert.ok(q.truth>=min&&q.truth<=max,q.reference.name+" vs "+q.target.name+": "+q.truth);
+  assert.equal(new URL(q.reference.source).protocol,"https:");
+  assert.equal(new URL(q.target.source).protocol,"https:");
+ }
+ assert.equal(OBJECTS.eiffel.height,330);assert.equal(OBJECTS.burj.height,828);
+ assert.equal(OBJECTS.skytree.height,634);
 });
-test("random question deck excludes repeat answers and honors round limits",()=>{
- const topics=CATEGORIES.filter(c=>["animals","flags"].includes(c.id));
- const deck=createDeck(topics,20,()=>.1);
- assert.equal(deck.length,20);
- assert.equal(new Set(deck.map(q=>normalizeAnswer(q.answer))).size,20);
- assert.equal(createDeck(topics,5,()=>.5).length,5);
- const answerOptions=answersFor(deck[0],allQuestions(topics),()=>.5);
- assert.equal(answerOptions.length,4);
- assert.ok(answerOptions.includes(deck[0].answer));
- assert.equal(new Set(answerOptions.map(normalizeAnswer)).size,4);
- assert.deepEqual(shuffle([1],()=>.5),[1]);
+test("great-circle distances make sense and are symmetric",()=>{
+ const a={lat:47.3769,lon:8.5417},b={lat:46.948,lon:7.4474};
+ const d=greatCircleKm(a,b);
+ assert.ok(d>90&&d<110);
+ assert.ok(Math.abs(greatCircleKm(a,b)-greatCircleKm(b,a))<1e-8);
+ assert.equal(greatCircleKm(a,a),0);
+ for(const q of DISTANCE_ROUNDS)assert.ok(q.truth>=nextRange("distance").min&&q.truth<=nextRange("distance").max);
 });
-test("own topic editor parses Wikipedia titles and optional HTTPS pictures",()=>{
- const lines=parseCustomLines("Eiffelturm | Eiffel Tower\nRheinfall\nMatterhorn | Matterhorn | https://example.org/mountain.jpg\nFlamingo | Flamingo");
- assert.equal(lines.length,4);
- assert.equal(lines[1].page,"Rheinfall");
- assert.equal(lines[2].image,"https://example.org/mountain.jpg");
- const created=customTopic("sample", "Meine Schweiz",lines);
- assert.equal(created.id,"custom-sample");
- assert.equal(created.items[2].kind,"direct");
- assert.equal(created.items[1].kind,"wiki");
- assert.throws(()=>customTopic("x","a",lines),/Themenname/);
- assert.throws(()=>customTopic("x","Gutes Thema",lines.slice(0,3)),/mindestens 4/);
- assert.throws(()=>parseCustomLines("E | E | javascript:alert(1)"),/https/);
+test("history entries use valid years and named sources",()=>{
+ for(const q of TIME_ROUNDS){
+  assert.ok(q.truth>=1800&&q.truth<=2026);assert.ok(q.label.length>10);
+  assert.equal(new URL(q.source).protocol,"https:");
+ }
 });
-test("stored custom topics are validated and malicious entries excluded",()=>{
- const good={id:"m7",name:"Vieles",items:parseCustomLines("Auto\nBahn\nSchiff\nBoot")};
- const unsafe={id:"m9",name:"Schlecht",items:parseCustomLines("Eins\nZwei\nDrei\nVier").map((x,i)=>i===0?{...x,image:"javascript:bad"}:x)};
- const list=safeTopics([good,unsafe,{id:"../../a",name:"Bad",items:good.items}]);
- assert.equal(list.length,1);
- assert.equal(list[0].name,"Vieles");
+test("deck covers selected modes without repeating",()=>{
+ const deck=buildDeck(["scale","distance","time","weather"],12,()=>.35);
+ assert.equal(deck.length,12);
+ assert.deepEqual(new Set(deck.map(x=>x.mode)),new Set(["scale","distance","time","weather"]));
+ assert.equal(new Set(deck.map(x=>x.id)).size,12);
+ assert.equal(buildDeck(["scale"],5).length,5);
+ assert.deepEqual(buildDeck([],10),[]);
+ assert.deepEqual(normaliseModes(["scale","bogus","scale"]),["scale"]);
+ assert.deepEqual(shuffle([1],()=>.1),[1]);
 });
-test("point scoring handles hints, typed mode and timer bonus",()=>{
- assert.equal(pointsFor({correct:true,mode:"choice"}),100);
- assert.equal(pointsFor({correct:true,mode:"type",hints:2}),100);
- assert.equal(pointsFor({correct:true,mode:"choice",hints:1,secondsRemaining:30}),90);
- assert.equal(pointsFor({correct:false,hints:0,mode:"choice"}),0);
- assert.equal(formatTime(9.2),"10");
- assert.equal(formatTime(-3),"00");
+test("logarithmic sliders roundtrip and clamp",()=>{
+ for(const [min,max] of [[.25,3.3],[40,18000]]){
+  for(const value of [min,Math.sqrt(min*max),max]){
+   const s=valueToSlider(value,min,max);
+   assert.ok(Math.abs(sliderToValue(s,min,max)-value)<1e-9*max);
+  }
+  assert.equal(sliderToValue(-100,min,max),min);
+  assert.ok(Math.abs(sliderToValue(1100,min,max)-max)<1e-9);
+ }
 });
-test("MediaWiki API URL includes correct anonymous CORS marker",()=>{
- const url=new URL(wikipediaUrl("Giant panda","en"));
- assert.equal(url.searchParams.get("origin"),"*");
- assert.equal(url.searchParams.get("prop"),"pageimages");
- assert.equal(url.searchParams.get("titles"),"Giant panda");
- assert.equal(url.searchParams.get("formatversion"),"2");
- assert.equal(safeHttps("javascript:bad"),null);
+test("closer answers yield more points; hints reduce result",()=>{
+ assert.equal(ratioScore(2,2),1000);
+ assert.ok(ratioScore(2.1,2)>ratioScore(3,2));
+ assert.ok(ratioScore(.5,2)<ratioScore(1.8,2));
+ assert.equal(linearScore(1969,1969,28),1000);
+ assert.ok(linearScore(1971,1969,28)>linearScore(2000,1969,28));
+ assert.equal(pointsFor("scale",2,2,true),700);
+ assert.equal(pointsFor("time",1977,1977,false),1000);
+ assert.equal(pointsFor("weather",10,10,true),700);
+ assert.equal(pointsFor("scale",-1,2),0);
+ assert.equal(percentError(3,2),50);
 });
-test("Wikipedia thumbnail parser links to original image license page",()=>{
- const result=parseWikipedia({query:{pages:[{pageid:9,title:"Taj Mahal",pageimage:"File_name.jpg",thumbnail:{source:"https://upload.wikimedia.org/thumb.jpg"}}]}},"en");
- assert.equal(result.image,"https://upload.wikimedia.org/thumb.jpg");
- assert.ok(result.source.includes("/wiki/File:"));
- assert.equal(parseWikipedia({query:{pages:[{title:"Missing",missing:true}]}}),null);
-});
-test("request client deduplicates simultaneous fetches and caches responses",async()=>{
- const previous=globalThis.fetch;let count=0;
- globalThis.fetch=async()=>{count++;return {ok:true,json:async()=>({answer:42})};};
- try{
-  const url="https://api.example.test/mixup-unique-111";
-  const result=await Promise.all([json(url),json(url),json(url)]);
-  assert.equal(count,1);assert.equal(result[1].answer,42);
-  await json(url);assert.equal(count,1);
- }finally{globalThis.fetch=previous;}
+test("formatting and settings validation",()=>{
+ assert.equal(formatValue("time",1969),"1969");
+ assert.ok(formatValue("distance",1133).includes("km"));
+ assert.ok(formatValue("weather",-4.5).includes("°C"));
+ assert.deepEqual(safeModeSettings({modes:["weather"],rounds:5}),{modes:["weather"],rounds:5});
+ assert.equal(safeModeSettings({modes:["invalid"],rounds:99}).rounds,8);
+ assert.ok(new Set(LIVE_CITIES.map(x=>x.city.zone)).size>5);
 });

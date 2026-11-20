@@ -1,4 +1,4 @@
-name: FREQUENCY checks
+name: FREQUENCY + ALMOST checks
 on:
   push:
     branches: [main]
@@ -26,7 +26,6 @@ jobs:
           node --check nebenan/api.mjs
           node --check nebenan/app.mjs
           node --check nebenan/guess/data.mjs
-          node --check nebenan/guess/api.mjs
           node --check nebenan/guess/game.mjs
           node --check nebenan/tests/core.test.mjs
           node --check nebenan/tests/browser-smoke.mjs

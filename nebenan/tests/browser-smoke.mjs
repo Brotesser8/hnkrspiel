@@ -106,6 +106,7 @@ try{
  await page.locator("#soundListTitle").getByText(/JAPAN/).waitFor();
  await page.locator('[data-channel="play"]').click();
  assert.equal(await page.locator(".mixup-tiles > span").count(),6);
+ assert.match(await page.locator("#panel-play").textContent(),/ALMOST/);
  assert.equal(await page.locator('a[href="./guess/"]').count()>=1,true);
  await page.locator('a[href="./guess/"]').last().waitFor();
  await page.locator("#surprise").click();

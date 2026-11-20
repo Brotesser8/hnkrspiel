@@ -3,181 +3,180 @@ import {createServer} from "node:http";
 import {readFile,mkdir} from "node:fs/promises";
 import {extname,resolve,sep} from "node:path";
 import assert from "node:assert/strict";
-import {CATEGORIES} from "../data.mjs";
+import {OBJECTS,valueToSlider} from "../data.mjs";
 
-const root=resolve(".");
-const types={".html":"text/html; charset=utf-8",".mjs":"text/javascript; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".svg":"image/svg+xml"};
+const repoRoot=resolve(".");
+const types={".html":"text/html; charset=utf-8",".mjs":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".svg":"image/svg+xml",".json":"application/json"};
 const server=createServer(async(req,res)=>{
  try{
-  const u=new URL(req.url,"http://127.0.0.1"),path=decodeURIComponent(u.pathname);
-  const file=resolve(root,"."+path+(path.endsWith("/")?"index.html":""));
-  if(!file.startsWith(root+sep)){res.writeHead(403);res.end("Forbidden");return;}
-  const content=await readFile(file);
-  res.writeHead(200,{"Content-Type":types[extname(file)]||"application/octet-stream","Cache-Control":"no-store"});res.end(content);
+  const u=new URL(req.url,"http://127.0.0.1"),name=decodeURIComponent(u.pathname);
+  const file=resolve(repoRoot,"."+name+(name.endsWith("/")?"index.html":""));
+  if(!file.startsWith(repoRoot+sep)){res.writeHead(403);res.end("Forbidden");return;}
+  const bytes=await readFile(file);
+  res.writeHead(200,{"Content-Type":types[extname(file)]||"application/octet-stream","Cache-Control":"no-store"});res.end(bytes);
  }catch{res.writeHead(404);res.end("Not found");}
 });
-await new Promise(done=>server.listen(0,"127.0.0.1",done));
+await new Promise(r=>server.listen(0,"127.0.0.1",r));
 const base="http://127.0.0.1:"+server.address().port+"/nebenan/guess/";
-const picture='<svg xmlns="http://www.w3.org/2000/svg" width="350" height="350" viewBox="0 0 350 350"><rect width="350" height="350" fill="#ded7f3"/><circle cx="180" cy="175" r="113" fill="#6a8e7d"/><path d="M120 220L150 90L201 105L253 225" fill="#c4e8b2" stroke="#344f49" stroke-width="9"/><circle cx="145" cy="154" r="9" fill="#2c3c39"/><circle cx="219" cy="154" r="9" fill="#2c3c39"/></svg>';
+const ids=["scale","distance","time","weather"];
 let browser;
-const setupMocks=async page=>{
- let lastWiki="";
- await page.route("https://en.wikipedia.org/w/api.php?**",route=>{
-  const u=new URL(route.request().url());
-  lastWiki=u.searchParams.get("titles")||"";
-  route.fulfill({json:{query:{pages:[{pageid:33,title:lastWiki,pageimage:"Demo.svg",thumbnail:{source:"https://mixup.mock/image.svg"}}]}}});
- });
- await page.route("https://de.wikipedia.org/w/api.php?**",route=>{
-  const u=new URL(route.request().url());lastWiki=u.searchParams.get("titles")||"";
-  route.fulfill({json:{query:{pages:[{pageid:33,title:lastWiki,pageimage:"Demo.svg",thumbnail:{source:"https://mixup.mock/image.svg"}}]}}});
- });
- await page.route("https://api.artic.edu/api/v1/artworks/search?**",route=>{
-  const q=new URL(route.request().url()).searchParams.get("q")||"";
-  route.fulfill({json:{data:[{id:56,title:q,image_id:"demo",is_public_domain:true,artist_display:"An artist"}]}});
- });
- await page.route("https://openlibrary.org/search.json?**",route=>{
-  const q=new URL(route.request().url()).searchParams.get("title")||"";
-  route.fulfill({json:{docs:[{key:"/works/OL1W",title:q,cover_i:221}]}});
- });
- for(const url of ["https://mixup.mock/**","https://flagcdn.com/**","https://covers.openlibrary.org/**","https://www.artic.edu/iiif/2/**"]){
-  await page.route(url,route=>route.fulfill({contentType:"image/svg+xml",body:picture}));
+async function only(page,mode){
+ for(const name of ids){
+  const b=page.locator('.mode-card[data-mode="'+name+'"]');
+  const active=await b.getAttribute("aria-pressed")==="true";
+  if(active!==(name===mode))await b.click();
  }
- return ()=>lastWiki;
-};
-async function waitImage(page){
- await page.waitForFunction(()=>{
-  const loading=document.querySelector("#imageLoader"),image=document.querySelector("#mysteryImage"),emoji=document.querySelector("#emojiFallback");
-  return loading?.hidden&&(image&&!image.hidden||emoji&&!emoji.hidden);
- },null,{timeout:18000});
+ assert.equal(await page.locator(".mode-card[aria-pressed=true]").count(),1);
 }
-async function selectCorrectFlag(page){
- const source=await page.locator("#mysteryImage").getAttribute("src");
- const code=source?.match(/\/w640\/([a-z]{2})\.png/)?.[1];
- assert.ok(code,"Flag image should use a two-letter country code: "+source);
- const answer=CATEGORIES.find(c=>c.id==="flags").items.find(x=>x.page===code)?.answer;
- assert.ok(answer,"Flag not found "+code);
- await page.locator("#choiceAnswers button").filter({hasText:answer}).first().click();
- return answer;
+async function chooseSlider(page,value){
+ await page.locator("#guessSlider").evaluate((n,v)=>{n.value=String(v);n.dispatchEvent(new Event("input",{bubbles:true}));},value);
 }
+async function start(page,mode){
+ await only(page,mode);
+ await page.locator("#startButton").click();
+ await page.locator("#lockButton").waitFor({state:"visible"});
+ await page.waitForFunction(()=>!document.querySelector("#guessSlider").disabled,{timeout:12000});
+}
+async function finishRounds(page){
+ for(let index=0;index<5;index++){
+  if(index)await page.waitForFunction(()=>!document.querySelector("#guessSlider").disabled);
+  await page.locator("#lockButton").click();
+  await page.locator("#revealPanel").waitFor({state:"visible"});
+  assert.equal(await page.locator("#guessSlider").isDisabled(),true);
+  assert.equal(await page.locator("#revealSource").getAttribute("target"),"_blank");
+  await page.locator("#nextButton").click();
+ }
+ assert.equal(await page.locator("#finalView").isVisible(),true);
+ assert.equal(await page.locator(".history-row").count(),5);
+ await page.locator("#reconfigureButton").click();
+}
+
 try{
  browser=await chromium.launch({headless:true,args:["--no-sandbox"],...(process.env.PLAYWRIGHT_CHANNEL?{channel:process.env.PLAYWRIGHT_CHANNEL}:{})});
- const page=await browser.newPage({viewport:{width:1440,height:980},reducedMotion:"reduce"});
- const errors=[];page.on("pageerror",e=>errors.push(e.message));
- const latestWiki=await setupMocks(page);
+ const page=await browser.newPage({viewport:{width:1440,height:940},reducedMotion:"reduce"});
+ const errors=[];page.on("pageerror",error=>errors.push(error.message));
+ let weatherHits=0;
+ await page.route("https://api.open-meteo.com/v1/forecast?**",route=>{weatherHits++;route.fulfill({json:{current:{temperature_2m:23.6,time:"2026-11-20T14:00"}}});});
  await page.goto(base,{waitUntil:"domcontentloaded"});
- await page.locator("#topicGrid .topic-card").first().waitFor();
- assert.equal(await page.locator("#topicGrid .topic-card").count(),15);
- assert.equal(await page.locator("#selectedCount").textContent(),"4 AUSGEWÄHLT");
- const duplicates=await page.evaluate(()=>{const ids=[...document.querySelectorAll("[id]")].map(n=>n.id);return ids.filter((s,i)=>ids.indexOf(s)!==i);});
- assert.deepEqual(duplicates,[],"All IDs should be unique");
+ assert.equal(await page.locator(".mode-card").count(),4);
+ assert.equal(await page.locator(".mode-card.selected").count(),3);
+ assert.equal(await page.locator(".custom-expander").count(),1);
  await mkdir("nebenan/guess/test-artifacts",{recursive:true});
- await page.screenshot({path:"nebenan/guess/test-artifacts/setup-desktop.png",fullPage:true});
+ await page.screenshot({path:"nebenan/guess/test-artifacts/almost-setup-desktop.png",fullPage:true});
 
- // Flag-only 5-round game. Each answer is chosen based on the real image URL.
- await page.locator("#clearTopics").click();
- await page.locator('[data-topic="flags"]').click();
- await page.locator('[data-rounds="5"]').click();
- await page.locator("#startGame").click();
- assert.equal(await page.locator("#setupView").isHidden(),true);
- await waitImage(page);
- assert.equal(await page.locator("#choiceAnswers button").count(),4);
- const initialFilter=await page.locator("#mysteryImage").evaluate(n=>getComputedStyle(n).filter);
- assert.ok(initialFilter.includes("grayscale"),"Shadow must preserve photographic detail rather than make a black rectangle");
- assert.ok(!initialFilter.includes("brightness(0)"),"No opaque black rectangular silhouette");
- await page.locator("#hintButton").click();
- assert.equal(await page.locator("#hintText").isVisible(),true);
- const hintedFilter=await page.locator("#mysteryImage").evaluate(n=>getComputedStyle(n).filter);
- assert.notEqual(hintedFilter,initialFilter,"Hint must progressively reveal image detail");
- await selectCorrectFlag(page);
- assert.match(await page.locator("#feedback").textContent(),/Richtig/);
- assert.equal(await page.locator("#scoreValue").textContent(),"0075");
- await page.screenshot({path:"nebenan/guess/test-artifacts/playing-desktop.png",fullPage:true});
- for(let i=1;i<5;i++){
-  await page.locator("#nextRound").click();
-  await waitImage(page);
-  await selectCorrectFlag(page);
- }
- await page.locator("#nextRound").click();
- assert.equal(await page.locator("#finishView").isVisible(),true);
- assert.equal(await page.locator("#finalCorrect").textContent(),"5 / 5");
- assert.equal(await page.locator("#finalScore").textContent(),"0475");
- await page.screenshot({path:"nebenan/guess/test-artifacts/finish-desktop.png",fullPage:true});
- await page.locator("#editMixButton").click();
-
- // Custom theme creation and editing.
- await page.locator("#customTitle").fill("Meine Lieblingsdinge");
- await page.locator("#customEntries").fill("Löwe | Lion | https://mixup.mock/image.svg\nTiger | Tiger | https://mixup.mock/image.svg\nPanda | Giant panda | https://mixup.mock/image.svg\nKamel | Camel | https://mixup.mock/image.svg");
- await page.locator("#saveCustom").click();
- assert.equal(await page.locator("#topicGrid .topic-card").count(),16);
- assert.equal(await page.locator(".custom-item").count(),1);
- assert.match(await page.locator("#selectedCount").textContent(),/2 AUSGEWÄHLT/);
- await page.locator(".custom-item button").first().click();
- await page.locator("#customTitle").fill("Mein eigenes Mix-Thema");
- await page.locator("#saveCustom").click();
- assert.match(await page.locator(".custom-item").textContent(),/Mein eigenes Mix-Thema/);
+ // Mode #1: actual draggable SVG heights, exact fact overlay, hint penalty, full five-round game.
+ await page.locator("#toggleCustom").click();
+ await page.locator("#customRef").fill("Mein Glockenturm");
+ await page.locator("#customRefHeight").fill("60");
+ await page.locator("#customTarget").fill("Mein Rathaus");
+ await page.locator("#customTargetHeight").fill("90");
+ await page.locator("#customForm button[type=submit]").click();
+ assert.equal(await page.locator(".custom-row").count(),1);
  await page.reload({waitUntil:"domcontentloaded"});
- assert.equal(await page.locator("#topicGrid .topic-card").count(),16);
- assert.match(await page.locator(".custom-item").textContent(),/Mein eigenes Mix-Thema/);
-
- // Own-topic-only, hidden tiles and typed answers; no Wikipedia needed.
- await page.locator("#clearTopics").click();
- const customBtn=page.locator('[data-topic^="custom-"]').first();
- await customBtn.click();
- await page.locator('[data-mode="type"]').click();
- await page.locator('[data-effect="tiles"]').click();
- await page.locator("#startGame").click();
- await waitImage(page);
- assert.equal(await page.locator("#coverTiles > span").count(),12);
+ assert.equal(await page.locator(".custom-row").count(),1,"Custom question must persist in localStorage");
+ await page.locator('[data-rounds="5"]').click();
+ await start(page,"scale");
+ assert.equal(await page.locator("#referenceArt svg").count(),1);
+ assert.equal(await page.locator("#targetArt svg").count(),1);
+ const initial=await page.locator("#estimateReadout").textContent();
+ const target=await page.locator("#targetSpecimen").boundingBox();
+ assert.ok(target&&target.height>40);
+ await page.mouse.move(target.x+target.width/2,target.y+target.height/2);
+ await page.mouse.down();
+ await page.mouse.move(target.x+target.width/2,target.y+target.height/2-40,{steps:8});
+ await page.mouse.up();
+ assert.notEqual(await page.locator("#estimateReadout").textContent(),initial,"Direct drag must affect guess");
+ const labels=await page.locator(".scale-labels strong").allTextContents();
+ const figures=Object.values(OBJECTS);
+ // User-defined rounds also work; all source values in the fixture are known.
+ const value=name=>figures.find(x=>x.name===name)?.height||(name==="Mein Glockenturm"?60:name==="Mein Rathaus"?90:null);
+ const trueRatio=value(labels[1])/value(labels[0]);
+ assert.ok(Number.isFinite(trueRatio));
+ await chooseSlider(page,Math.round(valueToSlider(trueRatio,.25,3.3)));
  await page.locator("#hintButton").click();
- assert.equal(await page.locator('#coverTiles > span[style*="opacity: 0"]').count(),4);
- await page.locator("#skipButton").click();
- assert.equal(await page.locator("#feedback").isVisible(),true);
- await page.locator("#nextRound").click();
- await waitImage(page);
- assert.equal(await page.locator("#answerInput").isEnabled(),true);
- // Hidden answer is not accessible from the interface until the reveal.
- await page.locator("#answerInput").fill("absolutely wrong");
- await page.locator("#writeAnswer button").click();
- assert.match(await page.locator("#answerIntro").textContent(),/zweiten Versuch/);
- await page.locator("#answerInput").fill("still wrong");
- await page.locator("#writeAnswer button").click();
- assert.equal(await page.locator("#feedback").isVisible(),true);
- await page.locator("#quitGame").click();
+ assert.equal(await page.locator("#hintMessage").isVisible(),true);
+ await page.locator("#lockButton").click();
+ await page.locator("#revealPanel").waitFor({state:"visible"});
+ assert.ok(await page.locator("#revealSource").getAttribute("href"));
+ assert.ok(await page.locator(".scale-reveal-line").count()===1);
+ const withHint=parseInt((await page.locator("#revealPoints").textContent()).replace(/[^0-9]/g,""),10);
+ assert.ok(withHint>=680&&withHint<=700,"Hint must cap score at 700, received "+withHint);
+ await page.screenshot({path:"nebenan/guess/test-artifacts/almost-reveal-desktop.png",fullPage:true});
+ // Finish the remaining 4 scale rounds.
+ for(let i=1;i<5;i++){
+  await page.locator("#nextButton").click();
+  await page.waitForFunction(()=>!document.querySelector("#guessSlider").disabled);
+  await page.locator("#lockButton").click();
+  await page.locator("#revealPanel").waitFor({state:"visible"});
+ }
+ await page.locator("#nextButton").click();
+ assert.equal(await page.locator(".history-row").count(),5);
+ await page.screenshot({path:"nebenan/guess/test-artifacts/almost-finish-desktop.png",fullPage:true});
+ await page.locator("#reconfigureButton").click();
 
- // Wikipedia source and typed scoring: deterministic answer obtained from the mocked request.
- await page.locator("#clearTopics").click();
- await page.locator('[data-topic="animals"]').click();
- await page.locator('[data-effect="blur"]').click();
- await page.locator("#startGame").click();
- await waitImage(page);
- assert.equal(await page.locator("#imageStage").evaluate(n=>n.classList.contains("mask-blur")),true);
- const firstWiki=latestWiki();
- const answer=CATEGORIES.find(c=>c.id==="animals").items.find(x=>x.page===firstWiki)?.answer;
- assert.ok(answer,"Wikipedia article title must match selected question: "+firstWiki);
- await page.locator("#answerInput").fill(answer);
- await page.locator("#writeAnswer button").click();
- assert.equal(await page.locator("#scoreValue").textContent(),"0150");
- await page.locator("#quitGame").click();
+ // Mode #2: slider and distance marker actually respond.
+ await start(page,"distance");
+ assert.equal(await page.locator(".place-pin").count(),2);
+ const firstDistance=await page.locator("#estimateReadout").textContent();
+ await chooseSlider(page,950);
+ assert.notEqual(await page.locator("#estimateReadout").textContent(),firstDistance);
+ assert.ok(parseFloat(await page.locator("#distanceFill").evaluate(n=>getComputedStyle(n).width))>0);
+ await page.locator("#lockButton").click();
+ assert.match(await page.locator("#revealFact").textContent(),/Luftlinie/);
+ await page.locator("#backButton").click();
 
- // Mobile, including editor and active round.
- await page.locator("#clearTopics").click();
- await page.locator('[data-topic="flags"]').click();
- for(const viewport of [{width:390,height:844},{width:360,height:740},{width:768,height:900}]){
+ // Mode #3: date placement, actual marker and historic source.
+ await start(page,"time");
+ assert.equal(await page.locator(".timeline-pin").count(),1);
+ await chooseSlider(page,900);
+ assert.ok(Number(await page.locator("#timelinePin strong").textContent())>1990);
+ await page.locator("#lockButton").click();
+ assert.equal(await page.locator(".timeline-pin-actual").count(),1);
+ await page.locator("#backButton").click();
+
+ // Mode #4: real API adapter (mocked in CI), proper answer reveal and source.
+ await start(page,"weather");
+ assert.equal(weatherHits,1,"Weather API must not fetch for unrelated game types");
+ assert.equal(await page.locator(".thermo-outline").count(),1);
+ await chooseSlider(page,700);
+ await page.locator("#lockButton").click();
+ assert.match(await page.locator("#revealedTruth").textContent(),/23,6 °C/);
+ assert.match(await page.locator("#revealSource").getAttribute("href"),/open-meteo/);
+ await page.locator("#backButton").click();
+ // Switching away should not fire another weather API call.
+ assert.equal(weatherHits,1);
+
+ // Simulate unavailable weather service in a separate browser context.
+ const broken=await browser.newPage({viewport:{width:800,height:900},reducedMotion:"reduce"});
+ const brokenErrors=[];broken.on("pageerror",x=>brokenErrors.push(x.message));
+ await broken.route("https://api.open-meteo.com/v1/forecast?**",r=>r.fulfill({status:503,body:"Offline"}));
+ await broken.goto(base,{waitUntil:"domcontentloaded"});
+ await broken.locator('[data-rounds="5"]').click();
+ await only(broken,"weather");await broken.locator("#startButton").click();
+ await broken.locator("#revealStatus").getByText("SIGNAL LOST").waitFor();
+ assert.equal(await broken.locator("#lockButton").isHidden(),true);
+ assert.match(await broken.locator("#revealFact").textContent(),/keine Werte erfunden|keine Schätzung bewertet/i);
+ await broken.locator("#nextButton").click();
+ await broken.locator("#revealStatus").getByText("SIGNAL LOST").waitFor();
+ assert.deepEqual(brokenErrors,[]);
+ await broken.close();
+
+ // Responsive rendering. A touch-sized target and no horizontally clipped controls.
+ for(const viewport of [{width:390,height:844},{width:360,height:740},{width:768,height:920}]){
   await page.setViewportSize(viewport);
-  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth+2);
-  assert.equal(overflow,false,"No horizontal setup overflow at "+viewport.width);
-  if(viewport.width===390)await page.screenshot({path:"nebenan/guess/test-artifacts/setup-mobile.png",fullPage:true});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false,"Setup overflow at "+viewport.width);
+  if(viewport.width===390)await page.screenshot({path:"nebenan/guess/test-artifacts/almost-setup-mobile.png",fullPage:true});
  }
  await page.setViewportSize({width:390,height:844});
- await page.locator('[data-mode="choice"]').click();
- await page.locator('[data-effect="shadow"]').click();
- await page.locator("#startGame").click();
- await waitImage(page);
- await page.screenshot({path:"nebenan/guess/test-artifacts/playing-mobile.png",fullPage:true});
- assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth+2),false);
- assert.deepEqual(errors,[],"No unhandled page errors");
- console.log("PASS: MIXUP topics, API images, flags, hints, scoring, 5-round finish, custom create/edit/persist, writing, tiles, mobile");
+ await start(page,"scale");
+ await page.screenshot({path:"nebenan/guess/test-artifacts/almost-play-mobile.png",fullPage:true});
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false,"Mobile play horizontally clipped");
+ await page.locator("#lockButton").click();
+ await page.locator("#revealPanel").waitFor({state:"visible"});
+ await page.screenshot({path:"nebenan/guess/test-artifacts/almost-reveal-mobile.png",fullPage:true});
+ assert.deepEqual(errors,[],"No unhandled exceptions");
+ console.log("PASS: ALMOST desktop+mobile, scaling drag, factual overlays, precision and score, custom persistence, timeline, routes, live weather and offline fallback");
 }finally{
  if(browser)await browser.close();
- await new Promise(done=>server.close(done));
+ await new Promise(r=>server.close(r));
 }

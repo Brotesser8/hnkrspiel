@@ -1,109 +1,111 @@
 <!doctype html>
 <html lang="de-CH">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#15191e">
-<meta name="description" content="MIXUP — Erstelle dein eigenes Bilder-Ratespiel. Wähle Tiere, Länder, Kunst, Essen und weitere Themen oder füge eigene hinzu. Kostenlos spielen.">
-<title>MIXUP — Rate einfach alles.</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#171b1d">
+<meta name="description" content="ALMOST. Ein interaktives Schätzspiel für Grössen, Entfernungen, Geschichte und Live-Wetter. Vier Spielarten, ein guter Instinkt.">
+<title>ALMOST. — Wie nah bist du dran?</title>
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="./game.css?v=mixup1">
-<script src="./game.mjs?v=mixup1" type="module"></script>
+<link rel="stylesheet" href="./game.css?v=almost1">
+<script type="module" src="./game.mjs?v=almost1"></script>
 </head>
 <body>
-<a href="#main" class="skip-link">Zum Spiel springen</a>
+<a href="#main" class="skip-link">Zum Spiel</a>
 <header class="topbar">
-  <a class="backlink" href="../"><span class="back-arrow">↖</span> ZURÜCK ZU FREQUENCY</a>
-  <a class="brand" href="./" aria-label="MIXUP Startseite"><span class="brand-symbol" aria-hidden="true">✳</span> MIXUP<span class="brand-period">.</span></a>
-  <span class="topnote">YOUR GAME. YOUR RULES. <span class="top-live" aria-hidden="true"></span></span>
+ <a class="home-link" href="../"><span aria-hidden="true">↖</span> FREQUENCY / STUDIO</a>
+ <a class="brand" href="./"><span class="brand-spark" aria-hidden="true">✳</span> almost<span class="brand-dot">.</span></a>
+ <span class="header-id">AN EXPERIMENT IN ESTIMATION <span class="live-dot"></span></span>
 </header>
-<main id="main" class="page-shell">
-<section class="setup-view" id="setupView" aria-labelledby="setupHeading">
- <div class="page-heading">
-  <div class="eyebrow"><span class="tiny-dot"></span> THE EVERYTHING QUIZ / 001</div>
-  <h1 id="setupHeading">Was <em>ist das?</em><span class="starburst" aria-hidden="true">✳</span></h1>
-  <div class="heading-bottom"><p>Ein Spiel, hundert Richtungen. Mixe deine Lieblingsthemen, verstecke echte Bilder und finde heraus, was du erkennst.</p><div class="little-stats"><strong id="questionCount">200+</strong><span>MOTIVE ZUM ENTDECKEN</span></div></div>
+<main id="main">
+<section id="setupView" class="setup page-wrap" aria-labelledby="pageTitle">
+ <div class="hero">
+  <div class="hero-left"><div class="eyebrow"><span class="small-square"></span> THE GUESSING LAB · NO. 01</div>
+   <h1 id="pageTitle">How close<br>can you <em>get?</em><span class="hero-asterisk">✳</span></h1>
+   <p>Die Welt hat Zahlen. Du hast ein Bauchgefühl. Skaliere Gebäude, schätze Distanzen, verschiebe Ereignisse durch die Zeit – und finde heraus, wie nahe du dran bist.</p>
+   <div class="hero-facts"><span><strong>04</strong> SPIELARTEN</span><span><strong>70+</strong> FRAGEN</span><span><strong>0</strong> BILDERÄTSEL</span></div>
+  </div>
+  <div class="hero-art" aria-hidden="true">
+   <div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div>
+   <div class="hero-ruler"><span>00</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+   <div class="hero-disc"><span>?</span><small>HOW FAR OFF?</small></div>
+   <span class="hero-ticket ticket-a">REAL FACTS.</span><span class="hero-ticket ticket-b">PURE INSTINCT.</span>
+   <div class="hero-bottom-code">ESTIMATE / COMPARE / REVEAL</div>
+  </div>
  </div>
-
- <div class="setup-grid">
-  <section class="selection-card" aria-labelledby="topicsHeading">
-   <div class="card-heading"><div><span class="step-badge">01</span><h2 id="topicsHeading">Was kommt rein?</h2></div><span id="selectedCount" class="count-pill">0 AUSGEWÄHLT</span></div>
-   <p class="card-description">Wähle alle Themen, die dein Spiel enthalten soll. Du kannst wild durcheinander kombinieren.</p>
-   <div class="select-actions"><button id="allTopics" type="button">Alle auswählen</button><button id="clearTopics" type="button">Auswahl leeren</button></div>
-   <div class="topic-grid" id="topicGrid" role="group" aria-label="Themen auswählen"></div>
-   <button id="jumpToSettings" class="mobile-setup-cta" type="button">Weiter zu den Spieleinstellungen <span aria-hidden="true">↗</span></button>
-
-   <div class="own-topics">
-    <div class="own-heading"><div><span class="label-mini">GO FULL CUSTOM</span><h3>Deine eigenen <em>Themen.</em></h3></div><span class="own-icon" aria-hidden="true">+</span></div>
-    <p>Erstelle beispielsweise «Schweizer Berge», «Autos der 90er» oder «Meme-Legenden». Ein Begriff pro Zeile; wir suchen passende Bilder in Wikipedia.</p>
-    <form id="customForm" class="custom-form">
-     <label for="customTitle">NAME DES THEMAS</label>
-     <input id="customTitle" placeholder="z. B. Berühmte Fussballer" maxlength="42" required>
-     <label for="customEntries">MINDESTENS 4 BEGRIFFE – EINER PRO ZEILE</label>
-     <textarea id="customEntries" rows="5" maxlength="20000" placeholder="Roger Federer | Roger Federer&#10;Lionel Messi | Lionel Messi&#10;Marta | Marta (footballer)&#10;Pelé | Pelé" required></textarea>
-     <p class="field-help">Format: <strong>Ratebegriff | Wikipedia-Artikel</strong>. Optional zusätzlich <strong>| https://bild-url</strong>. Ohne Artikelangabe wird nach dem Ratebegriff gesucht.</p>
-     <div class="form-bottom"><span id="customFormStatus" role="status" aria-live="polite">Lokal gespeichert, ohne Account.</span><div><button type="button" id="cancelEdit" class="subtle-button" hidden>Abbrechen</button><button id="saveCustom" type="submit" class="create-button">+ Thema anlegen</button></div></div>
-    </form>
-    <div id="customList" class="custom-list" aria-label="Eigene Themen verwalten"></div>
+ <div class="section-head"><div><span class="section-index">01 / BUILD YOUR GAME</span><h2>Wähle deinen <em>Mix.</em></h2></div><p>Eine Spielart oder alle vier? Du entscheidest. Jede Runde fühlt sich anders an.</p></div>
+ <div class="setup-layout">
+  <section class="modes-panel" aria-labelledby="modesTitle"><h3 id="modesTitle" class="sr-only">Spielarten wählen</h3><div class="mode-grid" id="modeGrid"></div>
+   <div class="custom-expander">
+    <button type="button" id="toggleCustom" class="custom-trigger" aria-expanded="false" aria-controls="customEditor"><span><span class="trigger-symbol">+</span><strong>Dein eigenes Grössen-Duell erstellen</strong><small>Eigene Fakten, eigener Vergleich. Perfekt für Freund:innen.</small></span><span class="trigger-arrow" aria-hidden="true">↗</span></button>
+    <div id="customEditor" class="custom-editor" hidden>
+     <p>Gib zwei Dinge und ihre Höhen in Metern ein. Die tatsächliche Höhe des zweiten Objekts bleibt während des Spiels verborgen.</p>
+     <form id="customForm" class="custom-form">
+      <div class="form-grid"><label>Referenzobjekt<input id="customRef" required maxlength="45" placeholder="z. B. Kirchturm" autocomplete="off"></label><label>Bekannte Höhe (m)<input id="customRefHeight" type="number" min="1" max="20000" step="0.1" required placeholder="60"></label>
+      <label>Gesuchtes Objekt<input id="customTarget" required maxlength="45" placeholder="z. B. Rathaus" autocomplete="off"></label><label>Gesuchte Höhe (m)<input id="customTargetHeight" type="number" min="1" max="20000" step="0.1" required placeholder="92"></label></div>
+      <label>Quelle (optional)<input id="customSource" type="url" maxlength="350" placeholder="https://..."></label>
+      <div class="custom-actions"><span id="customHelp" role="status">Wird nur in diesem Browser gespeichert.</span><button type="submit">Duell hinzufügen ↗</button></div>
+     </form>
+     <div id="customList" class="custom-list"></div>
+    </div>
    </div>
   </section>
-
-  <aside class="game-options" aria-labelledby="settingsHeading">
-   <div class="settings-panel">
-    <div class="card-heading"><div><span class="step-badge">02</span><h2 id="settingsHeading">Wie wird gespielt?</h2></div></div>
-    <div class="setting-group"><div class="setting-title"><strong>Antworten</strong><span>WIE WILLST DU RATEN?</span></div><div class="option-group" id="modeOptions" role="group" aria-label="Antwortmodus"><button data-mode="choice" class="selected" type="button" aria-pressed="true"><span>◈</span> 4 Antworten</button><button data-mode="type" type="button" aria-pressed="false"><span>⌨</span> Selbst schreiben</button></div></div>
-    <div class="setting-group"><div class="setting-title"><strong>Bild-Effekt</strong><span>WAS SIEHST DU?</span></div><div class="option-group three" id="effectOptions" role="group" aria-label="Bildeffekt"><button data-effect="shadow" type="button" class="selected" aria-pressed="true">◕<small>Silhouette</small></button><button data-effect="blur" type="button" aria-pressed="false">◌<small>Unscharf</small></button><button data-effect="tiles" type="button" aria-pressed="false">▦<small>Verdeckt</small></button></div></div>
-    <div class="setting-group"><div class="setting-title"><strong>Runden</strong><span>WIE LANG GEHT'S?</span></div><div class="option-group three" id="roundOptions" role="group" aria-label="Rundenanzahl"><button data-rounds="5" type="button" aria-pressed="false">5</button><button data-rounds="10" class="selected" type="button" aria-pressed="true">10</button><button data-rounds="20" type="button" aria-pressed="false">20</button></div></div>
-    <div class="setting-group"><div class="setting-title"><strong>Zeit pro Bild</strong><span>OPTIONALER NERVENKITZEL</span></div><div class="option-group three" id="timerOptions" role="group" aria-label="Zeitlimit"><button data-timer="0" class="selected" type="button" aria-pressed="true">∞<small>Entspannt</small></button><button data-timer="20" type="button" aria-pressed="false">20<small>Sekunden</small></button><button data-timer="40" type="button" aria-pressed="false">40<small>Sekunden</small></button></div></div>
-    <div class="setting-summary"><div><span>DEIN MIX</span><strong id="mixSummary">4 Themen · 10 Runden</strong></div><div class="setting-summary-points"><span>MAX. PUNKTE / RUNDE</span><strong id="pointsSummary">100+</strong></div></div>
-    <button id="startGame" type="button" class="main-action">Spiel starten <span aria-hidden="true">↗</span></button>
-    <p id="startError" role="status" aria-live="polite" class="start-error"></p>
-    <p class="setting-note">Keine Anmeldung. Keine Werbung. Gratis-APIs mit Fair Use und klaren Quellen.</p>
+  <aside class="setup-side">
+   <div class="settings-card"><div class="settings-header"><span>02 / YOUR RULES</span><span class="settings-mark">✳</span></div>
+    <h3>Mach es <em>deins.</em></h3><p>Wie lange soll dein Schätz-Marathon dauern?</p>
+    <div class="number-label">ANZAHL RUNDEN</div>
+    <div class="round-picker" id="roundPicker" role="group" aria-label="Rundenzahl"><button type="button" data-rounds="5" aria-pressed="false">05</button><button type="button" data-rounds="8" aria-pressed="true">08</button><button type="button" data-rounds="12" aria-pressed="false">12</button></div>
+    <div class="setup-summary"><div><span>DEIN MIX</span><strong id="mixSummary">3 Spielarten</strong></div><div><span>FRAGEN IM POOL</span><strong id="poolSummary">—</strong></div></div>
+    <button id="startButton" class="primary-button" type="button">Challenge starten <span aria-hidden="true">↗</span></button>
+    <p id="setupError" class="setup-error" role="status"></p>
+    <div class="settings-fineprint"><span class="online-tick"></span> Kein Login · Keine Werbung · Dein eigener Instinkt</div>
    </div>
-   <div class="mini-poster"><span>GOOD LUCK, HUMAN.</span><div class="poster-shapes" aria-hidden="true"><i>?</i><b>✷</b><small>!</small></div><p>Das Beste daran:<br><em>Du weisst nie, was kommt.</em></p></div>
+   <div class="mini-note"><span>QUICK TIP / 001</span><p>Du wirst <em>nicht</em> für perfektes Wissen belohnt, sondern dafür, wie nah du an der Wahrheit liegst.</p><div class="mini-note-art" aria-hidden="true">≈ <i>≠</i> =</div></div>
+  </aside>
+ </div>
+ <section class="howto"><div class="section-index">HOW TO PLAY / 03</div><div class="howto-grid"><div><b>01</b><h4>Schätzen</h4><p>Bewege den Regler oder zieh direkt am Objekt. Deine Entscheidung verändert die Darstellung.</p></div><div><b>02</b><h4>Festlegen</h4><p>Drück auf „Einloggen“ und vergleiche deine Schätzung mit dem echten Wert.</p></div><div><b>03</b><h4>Staunen</h4><p>Sieh deinen Fehler und die echten Fakten. Je näher du dran bist, desto mehr Punkte.</p></div></div></section>
+</section>
+<section id="playView" class="play page-wrap" hidden aria-labelledby="questionTitle">
+ <div class="play-header">
+  <button id="backButton" type="button" class="text-button"><span aria-hidden="true">←</span> MIX ÄNDERN</button>
+  <div class="round-progress"><span id="roundInfo">RUNDE 01 / 08</span><div class="progress-track"><div id="progressFill"></div></div></div>
+  <div class="score-stand"><span>GESAMTSCORE</span><strong id="scoreTotal">0000</strong></div>
+ </div>
+ <div class="play-layout">
+  <section class="question-card">
+   <div class="question-top"><div><span id="questionMode" class="mode-flag">01 / SCALE IT</span><h2 id="questionTitle">Wie viel <em>grösser?</em></h2><p id="questionDescription">Ziehen, schätzen, vergleichen.</p></div><span class="question-symbol" id="questionSymbol" aria-hidden="true">↟</span></div>
+   <div id="visualStage" class="visual-stage stage-scale" aria-label="Interaktive grafische Darstellung der Schätzung">
+    <div id="stageContent" class="stage-content"></div>
+    <span class="stage-corner top-corner">ALMOST / LAB 001</span>
+    <span class="stage-corner bottom-corner" id="stageCorner">NOT TO SCALE / YET</span>
+   </div>
+   <div class="question-foot"><span id="stageCaption">Die Illustration folgt deiner Schätzung.</span><span>NO STOCK PHOTOS · JUST SHAPES</span></div>
+  </section>
+  <aside class="dial-card">
+   <div class="dial-top"><span>YOUR ESTIMATE</span><div class="round-dots" id="roundDots"></div></div>
+   <div class="dial-question" id="dialQuestion">Welche Grösse fühlst du?</div>
+   <div class="estimate-readout" id="estimateReadout" aria-live="off">1,00<span>×</span></div>
+   <div class="dial-instruction" id="dialInstruction">Ziehe den Regler. Du kannst auch die Pfeiltasten verwenden.</div>
+   <div class="range-wrap"><input id="guessSlider" type="range" min="0" max="1000" step="1" value="500" aria-label="Schätzwert einstellen"><div id="answerMark" class="answer-mark" hidden><span>EXAKT</span></div></div>
+   <div class="range-ends"><span id="rangeStart">0.25×</span><span id="rangeEnd">3.3×</span></div>
+   <div class="precision-controls"><button type="button" id="nudgeMinus" aria-label="Schätzung ein wenig verringern">−</button><span>FEINJUSTIEREN</span><button type="button" id="nudgePlus" aria-label="Schätzung ein wenig erhöhen">+</button></div>
+   <div class="hint-area"><button id="hintButton" type="button" class="hint-link">✳ Kleiner Hinweis <span>−30 % SCORE</span></button><p id="hintMessage" class="hint-message" hidden></p></div>
+   <button id="lockButton" class="primary-button lock-button" type="button">Schätzung einloggen <span>↗</span></button>
+   <div id="revealPanel" class="reveal-panel" hidden>
+    <div class="reveal-overline" id="revealStatus">YOUR RESULT / ALMOST!</div><strong id="revealPoints" class="reveal-points">+000 P.</strong>
+    <div class="reveal-pair"><div><span>DEIN TIPP</span><strong id="revealedGuess">—</strong></div><div><span>WIRKLICH</span><strong id="revealedTruth">—</strong></div></div>
+    <p id="revealFact">—</p><a id="revealSource" target="_blank" rel="noopener noreferrer" href="https://www.wikipedia.org/">Faktenquelle ansehen ↗</a>
+    <button id="nextButton" class="next-button" type="button">Nächste Runde <span>→</span></button>
+   </div>
+   <div class="dial-footer"><span class="verified-dot"></span><span id="dataProvenance">FACT-CHECKED NUMBERS / NOT A MEMORY GAME</span></div>
   </aside>
  </div>
 </section>
-
-<section id="playView" class="play-view" aria-labelledby="playHeading" hidden>
- <div class="play-top"><button type="button" id="quitGame" class="back-game">← Mix ändern</button><div class="play-top-right"><span id="roundBadge">RUNDE 01 / 10</span><span class="score-display"><span>DEIN SCORE</span><strong id="scoreValue">0000</strong></span></div></div>
- <div class="play-progress"><div id="progressBar"></div></div>
- <div class="play-grid">
-  <div class="question-area">
-   <div class="question-heading"><div><div class="eyebrow"><span class="tiny-dot"></span><span id="questionTopic">WELCHES THEMA?</span></div><h2 id="playHeading">Was ist <em>das?</em></h2></div><div class="question-number" id="imageNumber">01<span>/</span>10</div></div>
-   <div id="imageStage" class="image-stage mask-shadow" aria-label="Verdecktes Quizbild">
-    <div class="image-decor" aria-hidden="true"><span class="deco-1">✳</span><span class="deco-2">MIXUP</span></div>
-    <img id="mysteryImage" src="" alt="Verdecktes Rätselbild" hidden>
-    <div id="emojiFallback" class="emoji-fallback" hidden>❔</div>
-    <div id="coverTiles" class="cover-tiles" aria-hidden="true"></div>
-    <div id="imageLoader" class="image-loader"><span class="spinner"></span><strong>Ein Bild wird gesucht …</strong><small>Wikimedia · Open Library · Art Institute · FlagCDN</small></div>
-    <span class="photo-corner photo-top">FQ // VISUAL 001</span><span class="photo-corner photo-bottom" id="effectLabel">SILHOUETTE MODE</span>
-   </div>
-   <div class="image-footer"><span id="imageSourceName">Echte Bilder aus offenen Quellen</span><a href="https://www.mediawiki.org/" id="imageCredit" target="_blank" rel="noopener noreferrer" hidden>Bildquelle & Lizenz ↗</a></div>
-  </div>
-  <div class="answer-area">
-   <div class="answer-panel"><div class="answer-header"><span class="eyebrow">MAKE YOUR GUESS</span><div id="timerDisplay" class="timer-display" hidden><span>ZEIT</span><strong id="timeValue">20</strong><span>s</span></div></div>
-    <h3>Erkennst du <em>es?</em></h3><p class="answer-intro" id="answerIntro">Wähle eine Antwort. Du kannst dir einen Hinweis holen, wenn du feststeckst.</p>
-    <div id="choiceAnswers" class="choice-answers" role="group" aria-label="Antwort auswählen"></div>
-    <form id="writeAnswer" class="write-answer" hidden><label for="answerInput">DEINE ANTWORT</label><div><input type="text" id="answerInput" placeholder="Deine Vermutung …" maxlength="100" autocomplete="off"><button type="submit">Prüfen ↗</button></div></form>
-    <div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div>
-    <div class="hint-box"><div id="hintText" class="hint-text" hidden></div><div class="hint-actions"><button type="button" id="hintButton" class="hint-button">✳ Hinweis <span>−25 P.</span></button><button type="button" id="skipButton" class="skip-button">Auflösen ↗</button></div></div>
-    <button type="button" id="nextRound" class="main-action next-round" hidden>Nächstes Bild <span aria-hidden="true">→</span></button>
-   </div>
-   <div class="round-stats"><div><span>RICHTIG</span><strong id="correctCount">0</strong></div><div><span>SERIE</span><strong id="streakCount">0</strong></div><div><span>HINWEISE</span><strong id="hintsCount">0</strong></div></div>
-  </div>
- </div>
-</section>
-
-<section id="finishView" class="finish-view" aria-labelledby="finishHeading" hidden>
- <div class="finish-inner"><div class="finish-confetti" aria-hidden="true">✺</div><span class="eyebrow">GAME OVER / NICE TRY</span><h2 id="finishHeading">Was für ein <em>Mix!</em></h2><p>Dein persönliches Bilderquiz ist durchgespielt.</p>
- <div class="final-score"><span>DEIN ERGEBNIS</span><strong id="finalScore">0000</strong><small>PUNKTE</small></div>
- <div class="final-metrics"><div><span>RICHTIGE ANTWORTEN</span><strong id="finalCorrect">0 / 10</strong></div><div><span>BESTE SERIE</span><strong id="finalStreak">0</strong></div><div><span>BESTER SCORE</span><strong id="bestScore">—</strong></div></div>
- <div class="finish-actions"><button id="againButton" class="main-action" type="button">Noch einmal ↻</button><button id="editMixButton" class="secondary-action" type="button">Anderen Mix bauen ↗</button></div>
- </div><div class="recap"><div class="recap-title">DEINE RUNDEN</div><div id="roundHistory"></div></div>
+<section id="finalView" class="final-view page-wrap" hidden aria-labelledby="finalTitle">
+ <div class="final-left"><span class="eyebrow">THE VERDICT / END OF THE LINE</span><h2 id="finalTitle">Not bad.<br><em>Almost.</em></h2><p id="finalSubtitle">Du warst näher dran, als du dachtest.</p><div class="final-number"><span>DEIN SCORE</span><strong id="finalScore">0000</strong><small>PUNKTE</small></div><div class="final-stats"><div><span>DURCHSCHNITT</span><strong id="finalAverage">—</strong></div><div><span>BESTE RUNDE</span><strong id="finalBest">—</strong></div><div><span>PERSÖNLICHER REKORD</span><strong id="finalRecord">—</strong></div></div><div class="final-buttons"><button id="restartButton" type="button" class="primary-button">Noch eine Runde ↗</button><button id="reconfigureButton" type="button" class="secondary-button">Mix anpassen ↗</button></div></div>
+ <aside class="final-right"><div class="history-title">ALL YOUR GUESSES / ROUND BY ROUND</div><div id="historyList" class="history-list"></div></aside>
 </section>
 </main>
-<footer><div><a href="../">FREQUENCY<span>.</span></a> <span>/ MIXUP — MAKE YOUR OWN QUIZ</span></div><div><a href="https://www.mediawiki.org/wiki/API:Pageimages" target="_blank" rel="noopener noreferrer">WIKIMEDIA API ↗</a><a href="https://github.com/Brotesser8/hnkrspiel/tree/main/nebenan/guess" target="_blank" rel="noopener noreferrer">SOURCE ↗</a></div></footer>
-<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<footer class="footer"><div><a href="../">FREQUENCY<span>.</span></a><span> / ALMOST GUESSING LAB</span></div><div><span>REAL NUMBERS, HUMAN INSTINCT.</span><a href="https://github.com/Brotesser8/hnkrspiel/tree/main/nebenan/guess" target="_blank" rel="noopener noreferrer">SOURCE CODE ↗</a></div></footer>
+<div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 </body>
 </html>

@@ -13,7 +13,7 @@ FREQUENCY ersetzt die frühere Website NEBENAN. vollständig, ohne andere Untero
 | Page turner | Bücher nach Thema oder freiem Suchtext, Cover und Autoren, Fundstücke merken | Open Library Search + Covers |
 | Planet pulse | Erdbeben und Naturereignisse nach Quelle auswählen, Punkte im geografischen Koordinatenraster und Originalmeldung anklicken | USGS Earthquake GeoJSON; NASA EONET v3 |
 | Now playing | Meistgespielte Songs in sieben Apple-Music-Regionen, Originaltitel und Quelllinks | Apple Marketing Tools RSS |
-| Side quest → MIXUP | Eigenes Bilderquiz aus 15 Kategorien und selbst erstellten Themen, Bild-Effekte, Hinweise, Punktestand | Wikimedia Action API, Art Institute of Chicago, Open Library und FlagCDN |
+| Side quest → ALMOST | Interaktive Grössen-, Luftlinien- und Geschichtsschätzungen; optionale Live-Temperaturen und eigene Grössenvergleiche | Kuratierte Fakten mit offiziellen Quellen; Open-Meteo für den optionalen Live-Modus |
 
 Die Merkliste nutzt ausschliesslich den Browser-Speicher localStorage. Die Webseite benötigt keinen Account und keinen eigenen Server.
 
@@ -56,8 +56,11 @@ Der bestehende GitHub-Pages-Workflow veröffentlicht den Ordner unter /hnkrspiel
 
 **Quellcode-Lizenz:** MIT. Drittanbieterdaten, Abbildungen und Marken ausgenommen.
 
-## MIXUP – Ratespiel mit eigenen Themen
 
-Unter https://brotesser8.github.io/hnkrspiel/nebenan/guess/ liegt jetzt das vollständige Ratespiel. Es ist über den FREQUENCY-Kanal «Side quest» und im oberen Menü erreichbar. Der Spieleinstieg mit ?quick=1 startet direkt einen Standardmix; im Editor kannst du beliebig viele Kombinationen aus 15 integrierten Themen (mit mehr als 200 Begriffen) und bis zu zwölf selbst angelegten Themen speichern. Eigene Themen brauchen mindestens vier Begriffe. Jeder Begriff kann einen Wikipedia-Seitentitel und optional ein eigenes HTTPS-Bild angeben. Auswahl, eigene Themen und Rekordpunkte bleiben im lokalen Browser erhalten. Keine Bild-Uploads oder Backends.
+## ALMOST — neues Schätzspiel
 
-Das Rätsel prüft Bildquellen über die Wikimedia Action API (origin=*), FlagCDN, Open Library und das Art Institute of Chicago. Jeder Blick zeigt einen Quellen-/Lizenzlink. Bei nicht ladbaren Medien werden alternative Fragen versucht und andernfalls ein expliziter Emoji-Ersatz angezeigt. Endpunkte unterliegen Fair Use und ihre Erreichbarkeit kann nicht garantiert werden.
+**Direkt spielen:** https://brotesser8.github.io/hnkrspiel/nebenan/guess/
+
+ALMOST ersetzt MIXUP in derselben Verzeichnis-Adresse (nebenan/guess/). Keine Foto-Ratefilter und keine kachelbasierten Karten mehr. Vier Arten, Fakten zu schätzen: Höhe von Bauwerken im visuellen Vergleich (Scale it), Luftliniendistanzen zwischen Städten (Far apart), Jahreszahlen wichtiger Ereignisse (Time machine) und aktuelle Temperaturmodelle von Open-Meteo (Outside now). Spieler wählen Spielarten und 5/8/12 Runden. Ausserdem lassen sich eigene Grössen-Duelle mit Quelllink hinzufügen, die lokal gespeichert werden.
+
+Die Wertung berücksichtigt die tatsächliche Abweichung von der korrekten Zahl. Kuratierte Werte haben Quellenlinks; für Luftlinien werden Stadtkoordinaten mithilfe der Haversine-Formel verglichen. Der Wettermodus lädt Daten nur bei Auswahl und zeigt bei API-Ausfällen keine erfundenen Messwerte. Es gelten die Nutzungslimits des kostenlosen nichtkommerziellen Open-Meteo-Zugangs.

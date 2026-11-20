@@ -1,41 +1,33 @@
-# MIXUP – Rate einfach alles
+# ALMOST. — The guessing lab
 
-**Spiel:** https://brotesser8.github.io/hnkrspiel/nebenan/guess/
+**Play:** https://brotesser8.github.io/hnkrspiel/nebenan/guess/
 
-Ein kostenloses Bilder-Ratespiel für FREQUENCY mit 15 kuratierten Kategorien und über 200 Rätselbegriffen. Unter anderem Tiere, Essen, Flaggen, Architektur, Weltraum, Fahrzeuge, Technik, Sportarten, Instrumente, Natur, Pflanzen, Alltag, berühmte Kunst, Buchcover und Dinosaurier.
+A new game replacing MIXUP, without silhouettes, image APIs, photos, or external maps. Four distinct estimation mechanics:
 
-## So funktioniert es
+- **Scale it**: Resize a landmark silhouette relative to another whose height is known. All objects are original schematic SVGs and share one baseline. The target's real height and the true ratio remain hidden until after submitting.
+- **Far apart**: Estimate great-circle distances between cities in kilometres. Distances use curated city-centre coordinates and the Haversine formula, never road routes.
+- **Time machine**: Move a marker between 1800 and 2026 to estimate the year when a historical event occurred.
+- **Outside now**: Guess the current Open-Meteo model temperature of a random city. Data loads ONLY if weather is selected and is cached for approximately ten minutes.
 
-1. Wähle beliebige Kategorien aus, oder verwende «Alle auswählen».
-2. Optional: Lege unter «Deine eigenen Themen» weitere Kategorien mit mindestens vier eigenen Begriffen an. Eine Zeile entspricht einem Begriff; nach einem senkrechten Strich kann der passende englische oder deutsche Wikipedia-Seitentitel angegeben werden, optional nach einem weiteren Strich ein eigenes HTTPS-Bild. Beispiel: Matterhorn | Matterhorn | https://example.org/photo.jpg. Die Bildrechte für eigene URLs liegen in deiner Verantwortung.
-3. Stelle 5, 10 oder 20 Runden ein, wähle Multiple Choice oder selber schreiben, und kombiniere Silhouette, Weichzeichner oder verdeckte Bildfelder mit optionalem 20-/40-Sekunden-Timer.
-4. Hole bis zu zwei Hinweise für je −25 Punkte. Multiple-Choice-Antworten geben normalerweise 100 Punkte, freie Eingabe 150 Punkte. Ein Zeitbonus kann hinzukommen.
-5. Am Ende: Punktestand, Trefferquote, beste Serie und Rückblick auf die Fragen.
+Players can choose any combination and 5, 8, or 12 rounds. Mouse, touch, and keyboard are supported. Hints reduce the score by 30%. Results are computed from the actual estimation error: an exact result scores 1000 points, and the score decreases continuously with error.
 
-Der Mix, eigene Themen und Bestwert werden **ausschliesslich lokal im Browser** gespeichert. Das Spiel läuft ohne Registrierung, ohne Werbung und ohne eigenen Server.
+Up to 20 user-defined height comparisons, game settings and best scores are stored only in the browser's localStorage without an account.
 
-## Quellen und Einschränkungen
+## Sources and accuracy
 
-- [MediaWiki Action API](https://www.mediawiki.org/wiki/API:Pageimages) für Wikipedia-Artikelbilder ohne API-Key, anonym mit CORS-Parameter origin=*.
-- [Wikimedia Commons](https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia) / Wikipedia-Bilddateiseiten für Lizenzen und Namensnennung.
-- [Art Institute of Chicago](https://api.artic.edu/docs/) für nach Werkstitel gefundene, als gemeinfrei gekennzeichnete Gemälde.
-- [Open Library](https://openlibrary.org/developers/api) für Buchcover. Cover können urheberrechtlich geschützt sein.
-- [FlagCDN](https://flagcdn.com/) für Flaggenbilder.
+Height data is curated and links to original owners where available: Tour Eiffel 330 m; Burj Khalifa 828 m; Tokyo Skytree 634 m; Elizabeth Tower approx. 96 m (UK Parliament). Other sources are shown at the end of each question. The silhouettes are clearly stylized vectors, not architectural scale models.
 
-Die externen Dienste sind kostenlos beziehungsweise öffentlich, aber nicht unbegrenzt garantiert: Es gelten Fair-Use- und mögliche Drosselungsregeln. Bilder und Antworten werden nur bei Bedarf abgerufen und teilweise gecacht. Wenn ein Bild fehlt oder die Quelle nicht funktioniert, versucht das Spiel weitere Fragen; andernfalls weist es explizit auf den Emoji-Ersatzmodus hin.
+Date questions cite archives, NASA, CERN and other linked historical sources. Geographical distances are approximate geodesic distances between named city-centre coordinates, not claimed travel distance.
 
-Buchcover und Wikipedia-Fotos haben eigene Bildrechte, die beim jeweiligen Quellenlink nachgesehen werden können. Der Spielcode steht unter der MIT-Lizenz des FREQUENCY-Projekts; externe Bilder sind davon ausgenommen.
+The noncommercial Open-Meteo tier has finite fair-use limits: the live temperature mode only requests weather when selected, never sends API keys, and displays an honest skip if the service fails. No weather figures are invented. The broader FREQUENCY website retains its independent APIs.
 
-## Testen
+## Tests
 
-Node.js 22+:
+Node.js 22+ from repository root:
 
     node --check nebenan/guess/game.mjs
     node --test nebenan/guess/tests/data.test.mjs
 
-Chrome + Playwright:
+Playwright browser tests use mocked weather responses to avoid burdening the open APIs and test desktop/mobile game interactions.
 
-    npm install --no-save playwright@1.58.2
-    PLAYWRIGHT_CHANNEL=chrome node nebenan/guess/tests/browser-smoke.mjs
-
-Die automatisierten Browsertests simulieren externe APIs, damit keine offenen Dienste im CI belastet werden. Die Tests decken Spielschritte, Punktelogik, eigene Themen, lokale Persistenz, Bildmasken, freie Eingabe und mobile Breiten ab. Die zukünftige Erreichbarkeit öffentlicher Anbieter lässt sich damit nicht dauerhaft garantieren.
+MIT source code license; linked factual material remains under its respective terms.
