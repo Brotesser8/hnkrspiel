@@ -353,6 +353,7 @@ function handlers(){
  $("clearTopics").addEventListener("click",()=>{selected.clear();renderTopics();savePrefs();});
  $("customForm").addEventListener("submit",createOwn);
  $("cancelEdit").addEventListener("click",cancelEdit);
+ $("jumpToSettings").addEventListener("click",()=>{$("settingsHeading").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});});
  for(const [id,attr,setting] of [["modeOptions","mode","mode"],["effectOptions","effect","effect"],["roundOptions","rounds","rounds"],["timerOptions","timer","timer"]]){
   $(id).querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
    settings[setting]=["rounds","timer"].includes(setting)?Number(b.dataset[attr]):b.dataset[attr];

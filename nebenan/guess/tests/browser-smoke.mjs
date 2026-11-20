@@ -81,8 +81,13 @@ try{
  assert.equal(await page.locator("#setupView").isHidden(),true);
  await waitImage(page);
  assert.equal(await page.locator("#choiceAnswers button").count(),4);
+ const initialFilter=await page.locator("#mysteryImage").evaluate(n=>getComputedStyle(n).filter);
+ assert.ok(initialFilter.includes("grayscale"),"Shadow must preserve photographic detail rather than make a black rectangle");
+ assert.ok(!initialFilter.includes("brightness(0)"),"No opaque black rectangular silhouette");
  await page.locator("#hintButton").click();
  assert.equal(await page.locator("#hintText").isVisible(),true);
+ const hintedFilter=await page.locator("#mysteryImage").evaluate(n=>getComputedStyle(n).filter);
+ assert.notEqual(hintedFilter,initialFilter,"Hint must progressively reveal image detail");
  await selectCorrectFlag(page);
  assert.match(await page.locator("#feedback").textContent(),/Richtig/);
  assert.equal(await page.locator("#scoreValue").textContent(),"0075");
